@@ -35,6 +35,8 @@ func Provider() terraform.ResourceProvider {
     },
 
     ResourcesMap: map[string]*schema.Resource{
+      "ip_subnet": resourceipaddress(),
+      "ip_address": resourceipaddress(),
     },
 
     ConfigureFunc: ProviderConfigure,
