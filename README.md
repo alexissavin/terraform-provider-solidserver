@@ -1,3 +1,5 @@
+[![Build status](https://travis-ci.org/alexissavin/terraform-provider-efficientip.svg)](https://travis-ci.org/alexissavin/terraform-provider-efficientip)
+
 # EfficientIP SOLIDserver Provider
 
 This provider allows to easily interact with [SOLIDserver](http://www.efficientip.com/products/solidserver/)'s REST API.
