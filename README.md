@@ -26,7 +26,6 @@ SOLIDServer provider supports the following arguments:
 * `username` - (Required) Username used to establish the connection. Can be stored in `SOLIDServer_USERNAME` environment variable.
 * `password` - (Required) Password associated with the username. Can be stored in `SOLIDServer_PASSWORD` environment variable.
 * `host` - (Required) IP Address of the SOLIDServer REST API endpoint. Can be stored in `SOLIDServer_HOST` environment variable.
-* `space` - (Required) IP Space into which provionning the resources. Can be stored in `SOLIDServer_SPACE` environment variable.
 * `sslverify` - (Optionnal) Enable/Disable ssl certificate check. Can be stored in `SOLIDServer_SSLVERIFY` environment variable.
 
 ```
@@ -35,7 +34,6 @@ provider "solidserver" {
     username = "username"
     password = "password"
     host  = "192.168.0.1"
-    space = "local"
     sslverify = "false"
 }
 ```
