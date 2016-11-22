@@ -1,4 +1,4 @@
-package efficientip
+package solidserver
 
 import (
   "crypto/tls"

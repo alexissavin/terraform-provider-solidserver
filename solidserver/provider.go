@@ -1,4 +1,4 @@
-package efficientip
+package solidserver
 
 import (
   "github.com/hashicorp/terraform/terraform"
@@ -28,7 +28,7 @@ func Provider() terraform.ResourceProvider {
       },
       "sslverify": &schema.Schema{
         Type:        schema.TypeBool,
-        Required:    true,
+        Required:    false,
         DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_SSLVERIFY", true),
         Description: "Enable/Disable ssl verify (Default : enabled)",
       },

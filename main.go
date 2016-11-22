@@ -2,11 +2,11 @@ package main
 
 import (
   "github.com/hashicorp/terraform/plugin"
-  "github.com/alexissavin/terraform-provider-efficientip/efficientip"
+  "github.com/alexissavin/terraform-provider-efficientip/solidserver"
 )
 
 func main() {
   plugin.Serve(&plugin.ServeOpts{
-    ProviderFunc: efficientip.Provider,
+    ProviderFunc: solidserver.Provider,
   })
 }

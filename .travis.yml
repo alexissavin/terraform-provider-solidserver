@@ -1,0 +1,12 @@
+language: go
+go:
+  - 1.7.3
+install:
+  - echo ""
+script:
+  - go build
+before_install:
+  - go get
+branches:
+  only:
+    - master
