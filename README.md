@@ -32,8 +32,8 @@ SOLIDServer provider supports the following arguments:
 ```
 # Add a record to the domain
 provider "solidserver" {
-    username = "ipmadmin"
-    password = "default"
+    username = "username"
+    password = "password"
     host  = "192.168.0.1"
     space = "local"
     sslverify = "false"
