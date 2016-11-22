@@ -22,6 +22,7 @@ providers {
 # Usage
 ## Using the SOLIDserver provider
 SOLIDServer provider supports the following arguments:
+
 * `username` - (Required) Username used to establish the connection. Can be stored in `SOLIDServer_USERNAME` environment variable.
 * `password` - (Required) Password associated with the username. Can be stored in `SOLIDServer_PASSWORD` environment variable.
 * `host` - (Required) IP Address of the SOLIDServer REST API endpoint. Can be stored in `SOLIDServer_HOST` environment variable.
@@ -40,8 +41,11 @@ provider "solidserver" {
 ```
 
 ## Available Resources
+SOLIDServer provider allows to manage several resources listed below.
+
 ### IP Address
 ### IP Subnet
 ### A Record
+### AAAA Record
 ### CNAME Record
 
