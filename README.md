@@ -3,7 +3,7 @@
 This provider allows to easily interact with [SOLIDserver](http://www.efficientip.com/products/solidserver/)'s REST API.
 It allows managing all IPAM objects through CRUD operations.
 
-This provider is compatible with SOLIDserver version 6.0.0 and higher.
+This provider is compatible with [SOLIDserver](http://www.efficientip.com/products/solidserver/) version 6.0.0 and higher.
 
 # Install
 Download the appropriate build for your system from the release page.
