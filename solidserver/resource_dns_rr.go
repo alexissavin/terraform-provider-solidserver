@@ -2,10 +2,12 @@ package solidserver
 
 import (
   "github.com/hashicorp/terraform/helper/schema"
-  "github.com/go-resty/resty"
+  "github.com/alexissavin/gorequest"
+  "encoding/base64"
+  "crypto/tls"
   "net/url"
   "fmt"
-  //"log"
+  "log"
 )
 
 func resourcednsrr() *schema.Resource {
@@ -47,13 +49,14 @@ func resourcednsrr() *schema.Resource {
 }
 
 func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
-  apiclient := meta.(*resty.Client)
+  apiconf := meta.(*Config)
 
   //FIXME Create DNS entry with name as FQDN in the specified zone with proper type and value
   //mandatory_addition_params": "(rr_name && rr_type && value1 && (dns_id || dns_name || hostaddr))"
   //mandatory_edition_params": "(rr_id || (rr_name && rr_type && value1 && (dns_id || dns_name || hostaddr)))
 
   //log.Printf("[DEBUG] SOLIDserver Record creation request : %#v", d)
+
 
   // Building parameters
   parameters := url.Values{}
@@ -62,11 +65,15 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("rr_type", d.Get("type").(string))
   parameters.Add("value1", d.Get("value").(string))
 
-  //return fmt.Errorf("/rest/dns_rr_add?%s", parameters.Encode())
+  // Sending the request
+  apiclient := gorequest.New()
+  apiclient.Post(fmt.Sprintf("https://%s/rest/dns_rr_add?%s", apiconf.Host, parameters.Encode())).
+  TLSClientConfig(&tls.Config{ InsecureSkipVerify: !apiconf.SSLVerify }).
+  Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(apiconf.Username))).
+  Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(apiconf.Password))).
+  End()
 
-  body, err := apiclient.R().Post(fmt.Sprintf("/rest/dns_rr_add?%s", parameters.Encode()))
-
-  return fmt.Errorf("Error : %d - %s", err, body)
+  log.Printf("[DEBUG] SOLIDserver Client : %#v", apiclient)
 
   return nil
 }
