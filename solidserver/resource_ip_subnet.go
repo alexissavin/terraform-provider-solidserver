@@ -38,7 +38,7 @@ func resourceipsubnet() *schema.Resource {
 }
 
 func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
-  apiclient := meta.(*solidserver.APIClient)
+  //apiclient := meta.(*solidserver.APIClient)
 
   //FIXME Find next available subnet of the given size in the current space (and block)?
 
@@ -50,7 +50,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
-  apiclient := meta.(*solidserver.APIClient)
+  //apiclient := meta.(*solidserver.APIClient)
 
   //FIXME Update IP Subnet's name based on its id
 
@@ -58,7 +58,7 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceipsubnetDelete(d *schema.ResourceData, meta interface{}) error {
-  apiclient := meta.(*solidserver.APIClient)
+  //apiclient := meta.(*solidserver.APIClient)
 
   //FIXME Delete IP Subnet based on its id
 
@@ -66,7 +66,7 @@ func resourceipsubnetDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
-  apiclient := meta.(*solidserver.APIClient)
+  //apiclient := meta.(*solidserver.APIClient)
 
   //FIXME Update local information based on IP Subnet id
 

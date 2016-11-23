@@ -4,7 +4,7 @@ import (
   "crypto/tls"
   "encoding/base64"
   "github.com/go-resty/resty"
-//  "log"
+  "log"
 )
 
 type Config struct {
@@ -16,14 +16,20 @@ type Config struct {
 
 func (c *Config) APIClient() (*resty.Client, error) {
 
-  Client := resty.New()
+  client := resty.New()
 
-  Client.SetTLSClientConfig(&tls.Config{ InsecureSkipVerify: c.SSLVerify })
-  Client.SetHostURL("https://" + c.Host + "/rpc")
-  Client.SetHeaders(map[string]string{
+  client.SetTLSClientConfig(&tls.Config{ InsecureSkipVerify: !c.SSLVerify })
+  client.SetHostURL("http://" + c.Host)
+  // Trying to force header case - not working
+  //client.Header["X-IPM-Username"] = []string{base64.StdEncoding.EncodeToString([]byte(c.Username))}
+  //client.Header["X-IPM-Password"] = []string{base64.StdEncoding.EncodeToString([]byte(c.Password))}
+
+  client.SetHeaders(map[string]string{
     "X-IPM-Username": base64.StdEncoding.EncodeToString([]byte(c.Username)),
     "X-IPM-Password": base64.StdEncoding.EncodeToString([]byte(c.Password)),
   })
 
-  return Client, nil
+  log.Printf("[DEBUG] SOLIDserver Client : %#v", client)
+
+  return client, nil
 }

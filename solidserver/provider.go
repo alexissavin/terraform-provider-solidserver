@@ -29,15 +29,16 @@ func Provider() terraform.ResourceProvider {
       "sslverify": &schema.Schema{
         Type:        schema.TypeBool,
         Required:    false,
+        Optional:    true,
         DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_SSLVERIFY", true),
         Description: "Enable/Disable ssl verify (Default : enabled)",
       },
     },
 
     ResourcesMap: map[string]*schema.Resource{
-      "ip_subnet": resourceipaddress(),
-      "ip_address": resourceipaddress(),
-      "dns_rr": resourcednsrr(),
+      "solidserver_ip_subnet": resourceipaddress(),
+      "solidserver_ip_address": resourceipaddress(),
+      "solidserver_dns_rr": resourcednsrr(),
     },
 
     ConfigureFunc: ProviderConfigure,

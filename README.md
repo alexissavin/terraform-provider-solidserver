@@ -21,6 +21,11 @@ providers {
 }
 ```
 
+# Debug
+You can enable debug mode by exporting 'TF_LOG' environment variable setting its value to 'DEBUG'.
+
+For further details have a look to the [terraform documentation](https://www.terraform.io/docs/internals/debugging.html)
+
 # Usage
 ## Using the SOLIDserver provider
 SOLIDServer provider supports the following arguments:

@@ -37,7 +37,7 @@ func resourceipaddress() *schema.Resource {
 }
 
 func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
-  apiclient := meta.(*solidserver.APIClient)
+  //apiclient := meta.(*solidserver.APIClient)
 
   //FIXME Find subnet's id from provided cidr prefix
 
@@ -51,7 +51,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
-  apiclient := meta.(*solidserver.APIClient)
+  //apiclient := meta.(*solidserver.APIClient)
 
   //FIXME Update IP Address's name based on its id
 
@@ -59,7 +59,7 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceipaddressDelete(d *schema.ResourceData, meta interface{}) error {
-  apiclient := meta.(*solidserver.APIClient)
+  //apiclient := meta.(*solidserver.APIClient)
 
   //FIXME Delete IP Address based on its id
 
@@ -67,7 +67,7 @@ func resourceipaddressDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
-  apiclient := meta.(*solidserver.APIClient)
+  //apiclient := meta.(*solidserver.APIClient)
 
   //FIXME Update local information based on IP Address id
 
