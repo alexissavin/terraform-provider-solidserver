@@ -49,8 +49,23 @@ provider "solidserver" {
 SOLIDServer provider allows to manage several resources listed below.
 
 ### IP Address
-### IP Subnet
-### A Record
-### AAAA Record
-### CNAME Record
 
+### IP Subnet
+
+### DNS Record
+DNS Record resource allows to create records from the following arguments :
+
+* `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the zone.
+* `name` - (Required) The Fully Qualified Domain Name of the record to create.
+* `type` - (Required) The type of the record to create (Supported : A, AAAA, CNAME).
+* `value` - (Required) The value od the record to create.
+* `ttl` - (Optionnal) The DNS Time To Live of the record to create.
+
+```
+resource "solidserver_dns_rr" "a_a_record" {
+  dnsserver = "ns.mycompany.priv"
+  name      = "arecord.mycompany.priv"
+  type      = "A"
+  value     = "127.0.0.1"
+}
+```
