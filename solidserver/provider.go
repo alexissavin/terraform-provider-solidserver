@@ -46,12 +46,12 @@ func Provider() terraform.ResourceProvider {
 }
 
 func ProviderConfigure(d *schema.ResourceData) (interface{}, error) {
-  apiendpoint := SOLIDserver{
-    Username:   d.Get("username").(string),
-    Password:   d.Get("password").(string),
-    Host:       d.Get("host").(string),
-    SSLVerify:  d.Get("sslverify").(bool),
-  }
+  s := NewSOLIDserver(
+    d.Get("host").(string),
+    d.Get("username").(string),
+    d.Get("password").(string),
+    d.Get("sslverify").(bool),
+  )
 
-  return apiendpoint, nil
+  return s, nil
 }

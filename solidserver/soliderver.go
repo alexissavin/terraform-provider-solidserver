@@ -7,6 +7,7 @@ import (
   "net/http"
   "net/url"
   "fmt"
+  //"log"
 )
 
 type SOLIDserver struct {
@@ -17,7 +18,7 @@ type SOLIDserver struct {
   SSLVerify   bool
 }
 
-func New(host string, username string, password string, sslverify bool) (*SOLIDserver) {
+func NewSOLIDserver(host string, username string, password string, sslverify bool) (*SOLIDserver) {
   s := &SOLIDserver{
     Host:      host,
     Username:  username,
@@ -34,25 +35,25 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 
   switch method {
   case "post":
-    return apiclient.Post(fmt.Sprintf("%s/%s/%s", s.BaseUrl, service, parameters.Encode())).
+    return apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
     TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify}).
     Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
     Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
     End()
   case "put":
-    return apiclient.Put(fmt.Sprintf("%s/%s/%s", s.BaseUrl, service, parameters.Encode())).
+    return apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
     TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify}).
     Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
     Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
     End()
   case "delete":
-    return apiclient.Delete(fmt.Sprintf("%s/%s/%s", s.BaseUrl, service, parameters.Encode())).
+    return apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
     TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify}).
     Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
     Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
     End()
   case "get":
-    return apiclient.Get(fmt.Sprintf("%s/%s/%s", s.BaseUrl, service, parameters.Encode())).
+    return apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
     TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify}).
     Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
     Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
