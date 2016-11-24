@@ -49,7 +49,7 @@ func resourcednsrr() *schema.Resource {
 }
 
 func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
-  apiconf := meta.(*Config)
+  apiconf := meta.(*SOLIDserver)
 
   //FIXME Create DNS entry with name as FQDN in the specified zone with proper type and value
   //mandatory_addition_params": "(rr_name && rr_type && value1 && (dns_id || dns_name || hostaddr))"
