@@ -48,6 +48,7 @@ func resourcednsrr() *schema.Resource {
   }
 }
 
+
 func resourcednsrrvalidatetype(v interface{}, _ string) ([]string, []error) {
   switch strings.ToUpper(v.(string)){
     case "A":
@@ -79,7 +80,8 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
   var buf [](map[string]interface{})
   json.Unmarshal([]byte(body), &buf)
 
-  if (http_resp.StatusCode == 201 && buf[0]["errno"].(int) <= 1) {
+  if (http_resp.StatusCode == 201) {
+    //&& buf[0]["errno"].(int) <= 1) {
     d.SetId(buf[0]["ret_oid"].(string))
     return nil
   }
@@ -105,9 +107,10 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
   var buf [](map[string]interface{})
   json.Unmarshal([]byte(body), &buf)
 
-  if (http_resp.StatusCode == 200 && buf[0]["errno"].(int) <= 1) {
+  if (http_resp.StatusCode == 200) {
+    //&& buf[0]["errno"].(int) <= 1) {
     d.SetId(buf[0]["ret_oid"].(string))
-    return nil
+  return nil
   }
 
   return fmt.Errorf("Unable to update the RR record %s", d.Get("name").(string))
@@ -130,7 +133,7 @@ func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
-   s := meta.(*SOLIDserver)
+  s := meta.(*SOLIDserver)
 
   // Building parameters
   parameters := url.Values{}
@@ -147,7 +150,8 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
   var buf [](map[string]interface{})
   json.Unmarshal([]byte(body), &buf)
 
-  if (http_resp.StatusCode == 200 && buf[0]["errno"].(int) <= 1) {
+  if (http_resp.StatusCode == 200) {
+    //&& buf[0]["errno"].(int) <= 1) {
     d.Set("dnsserver", buf[0]["dns_name"].(string))
     d.Set("name", buf[0]["rr_full_name"].(string))
     d.Set("type", buf[0]["rr_type"].(string))
