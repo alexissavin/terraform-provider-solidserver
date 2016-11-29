@@ -6,7 +6,7 @@ import (
   "net/url"
   "strings"
   "fmt"
-  //"log"
+  "log"
 )
 
 func resourcednsrr() *schema.Resource {
@@ -48,7 +48,6 @@ func resourcednsrr() *schema.Resource {
   }
 }
 
-
 func resourcednsrrvalidatetype(v interface{}, _ string) ([]string, []error) {
   switch strings.ToUpper(v.(string)){
     case "A":
@@ -74,19 +73,26 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("rr_ttl", d.Get("ttl").(string))
 
   // Sending the creation request
-  //resp, body, errs := s.Request("post", "rest/dns_rr_add", &parameters)
   http_resp, body, _ := s.Request("post", "rest/dns_rr_add", &parameters)
 
   var buf [](map[string]interface{})
   json.Unmarshal([]byte(body), &buf)
 
-  if (http_resp.StatusCode == 201) {
-    //&& buf[0]["errno"].(int) <= 1) {
-    d.SetId(buf[0]["ret_oid"].(string))
-    return nil
+  // Checking the answer
+  if (len(buf) > 0) {
+    if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+
+      log.Printf("[DEBUG] SOLIDServer - Created RR's oid: %s", oid)
+
+      if (http_resp.StatusCode == 201) {
+        d.SetId(buf[0]["ret_oid"].(string))
+        return nil
+      }
+    }
   }
 
-  return fmt.Errorf("Unable to create the RR record %s", d.Get("name").(string))
+  // Reporting a failure
+  return fmt.Errorf("SOLIDServer - Unable to create RR record %s", d.Get("name").(string))
 }
 
 func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -107,13 +113,21 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
   var buf [](map[string]interface{})
   json.Unmarshal([]byte(body), &buf)
 
-  if (http_resp.StatusCode == 200) {
-    //&& buf[0]["errno"].(int) <= 1) {
-    d.SetId(buf[0]["ret_oid"].(string))
-  return nil
+  // Checking the answer
+  if (len(buf) > 0) {
+    if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+
+      log.Printf("[DEBUG] SOLIDServer - Updated RR's oid: %s", oid)
+
+      if (http_resp.StatusCode == 200) {
+        d.SetId(buf[0]["ret_oid"].(string))
+        return nil
+      }
+    }
   }
 
-  return fmt.Errorf("Unable to update the RR record %s", d.Get("name").(string))
+  // Reporting a failure
+  return fmt.Errorf("SOLIDServer - Unable to update RR : %s", d.Get("name").(string))
 }
 
 func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
@@ -124,10 +138,25 @@ func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("rr_id", d.Id())
 
   // Sending the deletion request
-  _, body, _ := s.Request("delete", "rest/dns_rr_delete", &parameters)
+  http_resp, body, _ := s.Request("delete", "rest/dns_rr_delete", &parameters)
 
   var buf [](map[string]interface{})
   json.Unmarshal([]byte(body), &buf)
+
+  // Checking the answer
+  if (http_resp.StatusCode != 204) {
+    if (len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Unable to delete RR : %s (%s)", d.Get("name"), errmsg)
+      }
+    }
+  }
+
+  // Log deletion
+  log.Printf("[DEBUG] SOLIDServer - Deleted RR's oid: %s", d.Id())
+
+  // Unset local ID
+  d.SetId("")
 
   return nil
 }
@@ -139,27 +168,32 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
   parameters := url.Values{}
   parameters.Add("rr_id", d.Id())
 
-  // Sending the deletion request
+  // Sending the read request
   http_resp, body, _ := s.Request("get", "rest/dns_rr_info", &parameters)
-
-  if (http_resp.StatusCode == 204) {
-    d.SetId("")
-    return fmt.Errorf("Couldn't find RR record %s", d.Get("name").(string))
-  }
 
   var buf [](map[string]interface{})
   json.Unmarshal([]byte(body), &buf)
 
-  if (http_resp.StatusCode == 200) {
-    //&& buf[0]["errno"].(int) <= 1) {
-    d.Set("dnsserver", buf[0]["dns_name"].(string))
-    d.Set("name", buf[0]["rr_full_name"].(string))
-    d.Set("type", buf[0]["rr_type"].(string))
-    d.Set("value", buf[0]["value1"].(string))
-    d.Set("ttl", buf[0]["ttl"].(string))
+  // Checking the answer
+  if (len(buf) > 0) {
+    if (http_resp.StatusCode == 200) {
+      d.Set("dnsserver", buf[0]["dns_name"].(string))
+      d.Set("name", buf[0]["rr_full_name"].(string))
+      d.Set("type", buf[0]["rr_type"].(string))
+      d.Set("value", buf[0]["value1"].(string))
+      d.Set("ttl", buf[0]["ttl"].(string))
 
-    return nil
+      return nil
+    } else {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        // Log the error
+        log.Printf("[DEBUG] SOLIDServer - Unable to find RR : %s (%s)", d.Get("name"), errmsg)
+      }
+      // Unset the local ID
+      d.SetId("")
+    }
   }
 
-  return fmt.Errorf("Unable to read RR record %s", d.Get("name").(string))
+  // Reporting a failure
+  return fmt.Errorf("SOLIDServer - Unable to read RR : %s", d.Get("name").(string))
 }
