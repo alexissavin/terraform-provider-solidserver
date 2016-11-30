@@ -48,9 +48,24 @@ provider "solidserver" {
 ## Available Resources
 SOLIDServer provider allows to manage several resources listed below.
 
-### IP Address
-
 ### IP Subnet
+IP Subnet resource allows to create subnets from the following arguments :
+
+* `space` - (Required) The name of the space into which creating the subnet.
+* `block` - (Required) The name of the block into which creating the subnet.
+* `size` - (Required) The expected subnet prefix size (ex: 24 for a '/24').
+* `name` - (Required) The name of the subnet to create.
+
+```
+resource "solidserver_ip_subnet" "my_first_subnet" {
+  space = "my_space"
+  block = "my_block"
+  size  = 24
+  name  = "my_first_subnet"
+}
+```
+
+### IP Address
 
 ### DNS Record
 DNS Record resource allows to create records from the following arguments :

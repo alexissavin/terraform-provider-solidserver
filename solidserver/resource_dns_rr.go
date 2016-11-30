@@ -79,20 +79,16 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (len(buf) > 0) {
+  if (http_resp.StatusCode == 201 && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-
-      log.Printf("[DEBUG] SOLIDServer - Created RR's oid: %s", oid)
-
-      if (http_resp.StatusCode == 201) {
-        d.SetId(buf[0]["ret_oid"].(string))
-        return nil
-      }
+      log.Printf("[DEBUG] SOLIDServer - Created RR (oid): %s", oid)
+      d.SetId(oid)
+      return nil
     }
   }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to create RR record %s", d.Get("name").(string))
+  return fmt.Errorf("SOLIDServer - Unable to create RR record: %s", d.Get("name").(string))
 }
 
 func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -114,20 +110,16 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (len(buf) > 0) {
+  if (http_resp.StatusCode == 200 && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-
-      log.Printf("[DEBUG] SOLIDServer - Updated RR's oid: %s", oid)
-
-      if (http_resp.StatusCode == 200) {
-        d.SetId(buf[0]["ret_oid"].(string))
-        return nil
-      }
+      log.Printf("[DEBUG] SOLIDServer - Updated RR (oid): %s", oid)
+      d.SetId(oid)
+      return nil
     }
   }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to update RR : %s", d.Get("name").(string))
+  return fmt.Errorf("SOLIDServer - Unable to update RR: %s", d.Get("name").(string))
 }
 
 func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
@@ -147,13 +139,13 @@ func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
   if (http_resp.StatusCode != 204) {
     if (len(buf) > 0) {
       if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-        log.Printf("[DEBUG] SOLIDServer - Unable to delete RR : %s (%s)", d.Get("name"), errmsg)
+        log.Printf("[DEBUG] SOLIDServer - Unable to delete RR: %s (%s)", d.Get("name"), errmsg)
       }
     }
   }
 
   // Log deletion
-  log.Printf("[DEBUG] SOLIDServer - Deleted RR's oid: %s", d.Id())
+  log.Printf("[DEBUG] SOLIDServer - Deleted RR (oid): %s", d.Id())
 
   // Unset local ID
   d.SetId("")
@@ -175,25 +167,28 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (len(buf) > 0) {
-    if (http_resp.StatusCode == 200) {
-      d.Set("dnsserver", buf[0]["dns_name"].(string))
-      d.Set("name", buf[0]["rr_full_name"].(string))
-      d.Set("type", buf[0]["rr_type"].(string))
-      d.Set("value", buf[0]["value1"].(string))
-      d.Set("ttl", buf[0]["ttl"].(string))
+  if (http_resp.StatusCode == 200 && len(buf) > 0) {
+    d.Set("dnsserver", buf[0]["dns_name"].(string))
+    d.Set("name", buf[0]["rr_full_name"].(string))
+    d.Set("type", buf[0]["rr_type"].(string))
+    d.Set("value", buf[0]["value1"].(string))
+    d.Set("ttl", buf[0]["ttl"].(string))
 
-      return nil
-    } else {
-      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-        // Log the error
-        log.Printf("[DEBUG] SOLIDServer - Unable to find RR : %s (%s)", d.Get("name"), errmsg)
-      }
-      // Unset the local ID
-      d.SetId("")
-    }
+    return nil
   }
 
+  if (len(buf) > 0) {
+    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      // Log the error
+      log.Printf("[DEBUG] SOLIDServer - Unable to find RR: %s (%s)", d.Get("name"), errmsg)
+    }
+  } else {
+    // Log the error
+    log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s", d.Id())
+  }
+
+  // Do not unset the local ID to avoid inconsistency
+
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to read RR : %s", d.Get("name").(string))
+  return fmt.Errorf("SOLIDServer - Unable to find RR: %s", d.Get("name").(string))
 }

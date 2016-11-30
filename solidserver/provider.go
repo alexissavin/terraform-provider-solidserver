@@ -36,7 +36,7 @@ func Provider() terraform.ResourceProvider {
     },
 
     ResourcesMap: map[string]*schema.Resource{
-      "solidserver_ip_subnet": resourceipaddress(),
+      "solidserver_ip_subnet": resourceipsubnet(),
       "solidserver_ip_address": resourceipaddress(),
       "solidserver_dns_rr": resourcednsrr(),
     },
