@@ -4,6 +4,7 @@ import (
   "github.com/hashicorp/terraform/helper/schema"
   "encoding/json"
   "net/url"
+  "strconv"
   "strings"
   "fmt"
   "log"
@@ -39,10 +40,9 @@ func resourcednsrr() *schema.Resource {
         Required: true,
       },
       "ttl": &schema.Schema{
-        Type:     schema.TypeString,
-        Computed: false,
+        Type:     schema.TypeInt,
         Optional: true,
-        Default:  "3600",
+        Default:  3600,
       },
     },
   }
@@ -70,7 +70,7 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("rr_name", d.Get("name").(string))
   parameters.Add("rr_type", strings.ToUpper(d.Get("type").(string)))
   parameters.Add("value1", d.Get("value").(string))
-  parameters.Add("rr_ttl", d.Get("ttl").(string))
+  parameters.Add("rr_ttl", strconv.Itoa(d.Get("ttl").(int)))
 
   // Sending the creation request
   http_resp, body, _ := s.Request("post", "rest/dns_rr_add", &parameters)
@@ -101,7 +101,7 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("rr_name", d.Get("name").(string))
   parameters.Add("rr_type", strings.ToUpper(d.Get("type").(string)))
   parameters.Add("value1", d.Get("value").(string))
-  parameters.Add("rr_ttl", d.Get("ttl").(string))
+  parameters.Add("rr_ttl", strconv.Itoa(d.Get("ttl").(int)))
 
   // Sending the update request
   http_resp, body, _ := s.Request("put", "rest/dns_rr_add", &parameters)
@@ -168,11 +168,13 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
 
   // Checking the answer
   if (http_resp.StatusCode == 200 && len(buf) > 0) {
+    ttl, _ := strconv.Atoi(buf[0]["ttl"].(string))
+
     d.Set("dnsserver", buf[0]["dns_name"].(string))
     d.Set("name", buf[0]["rr_full_name"].(string))
     d.Set("type", buf[0]["rr_type"].(string))
     d.Set("value", buf[0]["value1"].(string))
-    d.Set("ttl", buf[0]["ttl"].(string))
+    d.Set("ttl", ttl)
 
     return nil
   }
