@@ -136,11 +136,9 @@ func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (http_resp.StatusCode != 204) {
-    if (len(buf) > 0) {
-      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-        log.Printf("[DEBUG] SOLIDServer - Unable to delete RR: %s (%s)", d.Get("name"), errmsg)
-      }
+  if (http_resp.StatusCode != 204 && len(buf) > 0) {
+    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      log.Printf("[DEBUG] SOLIDServer - Unable to delete RR: %s (%s)", d.Get("name"), errmsg)
     }
   }
 

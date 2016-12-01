@@ -66,6 +66,23 @@ resource "solidserver_ip_subnet" "my_first_subnet" {
 ```
 
 ### IP Address
+IP Subnet resource allows to create subnets from the following arguments :
+
+* `space` - (Required) The name of the space into which creating the IP address.
+* `subnet` - (Required) The name of the subnet into which creating the IP address.
+* `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
+
+For convenience, the IP address' subnet name is expected, not its ID, this allow to create IP addresses in existing subnets.
+If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
+
+```
+resource "solidserver_ip_address" "my_first_ip" {
+  depends_on = ["solidserver_ip_subnet.my_first_subnet"]
+  space  = "my_space"
+  subnet = "my_first_subnet"
+  name   = "my_first_ip.mycompany.priv"
+}
+```
 
 ### DNS Record
 DNS Record resource allows to create records from the following arguments :

@@ -157,7 +157,7 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
     }
   }
 
-  log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP Subnet in the Space (oid): %s, Block (oid): %s, Size: ", site_id, block_id, strconv.Itoa(prefix_size))
+  log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP Subnet in Space (oid): %s, Block (oid): %s, Size: ", site_id, block_id, strconv.Itoa(prefix_size))
 
   return ""
 }
@@ -189,7 +189,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
   // Checking the answer
   if (http_resp.StatusCode == 201 && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Created Subnet (oid): %s", oid)
+      log.Printf("[DEBUG] SOLIDServer - Created IP Subnet (oid): %s", oid)
 
       d.SetId(oid)
       d.Set("cidr", hexiptoip(subnet_addr) + "/" + strconv.Itoa(d.Get("size").(int)))
@@ -220,7 +220,7 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
   // Checking the answer
   if (http_resp.StatusCode == 200 && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Updated  (oid): %s", oid)
+      log.Printf("[DEBUG] SOLIDServer - Updated IP Subnet (oid): %s", oid)
       d.SetId(oid)
       return nil
     }
@@ -244,11 +244,9 @@ func resourceipsubnetDelete(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (http_resp.StatusCode != 204) {
-    if (len(buf) > 0) {
-      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-        log.Printf("[DEBUG] SOLIDServer - Unable to delete IP Subnet : %s (%s)", d.Get("name"), errmsg)
-      }
+  if (http_resp.StatusCode != 204 && len(buf) > 0) {
+    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      log.Printf("[DEBUG] SOLIDServer - Unable to delete IP Subnet : %s (%s)", d.Get("name"), errmsg)
     }
   }
 
