@@ -3,9 +3,7 @@ package solidserver
 import (
   "github.com/hashicorp/terraform/helper/schema"
   "encoding/json"
-  //"strconv"
   "net/url"
-  //"strings"
   "fmt"
   "log"
 )
@@ -20,26 +18,31 @@ func resourceipaddress() *schema.Resource {
     Schema: map[string]*schema.Schema{
       "space": &schema.Schema{
         Type:     schema.TypeString,
+        Description: "The name of the space into which creating the IP address.",
         Required: true,
         ForceNew: true,
       },
       "subnet": &schema.Schema{
         Type:     schema.TypeString,
+        Description: "The name of the subnet into which creating the IP address.",
         Required: true,
         ForceNew: true,
       },
       "address": &schema.Schema{
         Type:     schema.TypeString,
-        Computed: true,
+        Description: "The provisionned IP address.",
         Required: false,
+        Computed: true,
       },
       "name": &schema.Schema{
         Type:     schema.TypeString,
+        Description: "The short name or FQDN of the IP address to create.",
         Required: true,
         ForceNew: false,
       },
       "class": &schema.Schema{
         Type:     schema.TypeString,
+        Description: "The class associated to the IP address.",
         Optional: true,
         ForceNew: false,
         Default:  "",

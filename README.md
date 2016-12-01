@@ -62,10 +62,10 @@ SOLIDServer provider allows to manage several resources listed below.
 ### IP Subnet
 IP Subnet resource allows to create subnets from the following arguments :
 
-* `space` - (Required) The name of the space into which creating the subnet.
-* `block` - (Required) The name of the block into which creating the subnet.
-* `size` - (Required) The expected subnet prefix size (ex: 24 for a '/24').
-* `name` - (Required) The name of the subnet to create.
+* `space` - (Required) The name of the space into which creating the IP subnet.
+* `block` - (Required) The name of the block into which creating the IP subnet.
+* `size` - (Required) The expected IP subnet's prefix size (ex: 24 for a '/24').
+* `name` - (Required) The name of the IP subnet to create.
 
 ```
 resource "solidserver_ip_subnet" "my_first_subnet" {
@@ -98,11 +98,11 @@ resource "solidserver_ip_address" "my_first_ip" {
 ### DNS Record
 DNS Record resource allows to create records from the following arguments :
 
-* `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the zone.
-* `name` - (Required) The Fully Qualified Domain Name of the record to create.
-* `type` - (Required) The type of the record to create (Supported : A, AAAA, CNAME).
-* `value` - (Required) The value od the record to create.
-* `ttl` - (Optionnal) The DNS Time To Live of the record to create.
+* `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the RR's zone.
+* `name` - (Required) The Fully Qualified Domain Name of the RR to create.
+* `type` - (Required) The type of the RR to create (Supported : A, AAAA, CNAME).
+* `value` - (Required) The value od the RR to create.
+* `ttl` - (Optionnal) The DNS Time To Live of the RR to create.
 
 ```
 resource "solidserver_dns_rr" "a_a_record" {

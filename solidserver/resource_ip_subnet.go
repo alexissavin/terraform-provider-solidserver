@@ -20,36 +20,43 @@ func resourceipsubnet() *schema.Resource {
     Schema: map[string]*schema.Schema{
       "space": &schema.Schema{
         Type:     schema.TypeString,
+        Description: "The name of the space into which creating the subnet.",
         Required: true,
         ForceNew: true,
       },
       "block": &schema.Schema{
         Type:     schema.TypeString,
+        Description: "The name of the block into which creating the IP subnet.",
         Required: true,
         ForceNew: true,
       },
       "size": &schema.Schema{
         Type:     schema.TypeInt,
+        Description: "The expected IP subnet's prefix size (ex: 24 for a '/24').",
         Required: true,
         ForceNew: true,
       },
-      "cidr": &schema.Schema{
+      "prefix": &schema.Schema{
         Type:     schema.TypeString,
+        Description: "The provisionned IP prefix.",
         Computed: true,
       },
       "name": &schema.Schema{
         Type:     schema.TypeString,
+        Description: "The name of the IP subnet to create.",
         Required: true,
         ForceNew: false,
       },
       "terminal":&schema.Schema{
         Type:     schema.TypeBool,
+        Description: "The terminal property of the IP subnet.",
         Optional: true,
         ForceNew: true,
         Default:  true,
       },
       "class": &schema.Schema{
         Type:     schema.TypeString,
+        Description: "The class associated to the IP subnet.",
         Optional: true,
         ForceNew: false,
         Default:  "",
@@ -192,7 +199,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
       log.Printf("[DEBUG] SOLIDServer - Created IP Subnet (oid): %s", oid)
 
       d.SetId(oid)
-      d.Set("cidr", hexiptoip(subnet_addr) + "/" + strconv.Itoa(d.Get("size").(int)))
+      d.Set("prefix", hexiptoip(subnet_addr) + "/" + strconv.Itoa(d.Get("size").(int)))
 
       return nil
     }
