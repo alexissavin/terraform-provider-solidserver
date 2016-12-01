@@ -7,6 +7,17 @@ It allows managing all IPAM objects through CRUD operations.
 
 This provider is compatible with [SOLIDserver](http://www.efficientip.com/products/solidserver/) version 6.0.0 and higher.
 
+# Build
+Download the latest revision of the master branch then use the go compiler to generate the binary.
+
+```
+cd "${GOPATH}
+go get github.com/alexissavin/terraform-provider-efficientip
+cd ./src/github.com/alexissavin/terraform-provider-efficientip
+go get
+go build -o terraform-provider-efficientip
+```
+
 # Install
 Download the appropriate build for your system from the release page.
 
