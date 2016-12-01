@@ -69,10 +69,15 @@ IP Subnet resource allows to create subnets from the following arguments :
 
 ```
 resource "solidserver_ip_subnet" "my_first_subnet" {
-  space = "my_space"
-  block = "my_block"
-  size  = 24
-  name  = "my_first_subnet"
+  space            = "my_space"
+  block            = "my_block"
+  size             = 24
+  name             = "my_first_subnet"
+  class            =
+  class_parameters {
+    cloudaz        = "eu-west-1a"
+    subnetclouduid = "subnet-56f261f1"
+  }
 }
 ```
 
@@ -89,9 +94,13 @@ If you intend to create a dedicated subnet first, use the `depends_on` parameter
 ```
 resource "solidserver_ip_address" "my_first_ip" {
   depends_on = ["solidserver_ip_subnet.my_first_subnet"]
-  space  = "my_space"
-  subnet = "my_first_subnet"
-  name   = "my_first_ip.mycompany.priv"
+  space            = "my_space"
+  subnet           = "my_first_subnet"
+  name             = "my_first_ip.mycompany.priv"
+  class            = "AWS_VPC_ADDRESS"
+  class_parameters {
+    instanceclouduid = "i-0121e79997521079c"
+  }
 }
 ```
 

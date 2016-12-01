@@ -47,6 +47,13 @@ func resourceipaddress() *schema.Resource {
         ForceNew: false,
         Default:  "",
       },
+      "class_parameters": &schema.Schema{
+        Type:     schema.TypeMap,
+        Description: "The class parameters associated to the IP address.",
+        Optional: true,
+        ForceNew: false,
+        Default: map[string]string{},
+      },
     },
   }
 }
