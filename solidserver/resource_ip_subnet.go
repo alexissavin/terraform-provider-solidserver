@@ -26,7 +26,7 @@ func resourceipsubnet() *schema.Resource {
       },
       "block": &schema.Schema{
         Type:     schema.TypeString,
-        Description: "The name of the block into which creating the IP subnet.",
+        Description: "The name of the block intyo which creating the IP subnet.",
         Required: true,
         ForceNew: true,
       },
@@ -189,10 +189,14 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("subnet_name", d.Get("name").(string))
   parameters.Add("subnet_addr", hexiptoip(subnet_addr))
   parameters.Add("subnet_prefix", strconv.Itoa(d.Get("size").(int)))
+  parameters.Add("subnet_class_name", d.Get("class").(string))
 
-  //if (d.Get("class").(string) != "") {
-    parameters.Add("subnet_class_name", d.Get("class").(string))
-  //}
+  // Building class_parameters
+  class_parameters := url.Values{}
+  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
+    class_parameters.Add(k, v.(string))
+  }
+  parameters.Add("subnet_class_parameters", class_parameters.Encode())
 
   // Sending the creation request
   http_resp, body, _ := s.Request("post", "rest/ip_subnet_add", &parameters)
@@ -224,6 +228,13 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("subnet_id", d.Id())
   parameters.Add("subnet_name", d.Get("name").(string))
   parameters.Add("subnet_class_name", d.Get("class").(string))
+
+  // Building class_parameters
+  class_parameters := url.Values{}
+  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
+    class_parameters.Add(k, v.(string))
+  }
+  parameters.Add("subnet_class_parameters", class_parameters.Encode())
 
   // Sending the update request
   http_resp, body, _ := s.Request("put", "rest/ip_subnet_add", &parameters)
@@ -298,6 +309,21 @@ func resourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
     } else {
       d.Set("terminal", false)
     }
+
+    // Updating local class_parameters
+    current_class_parameters := d.Get("class_parameters").(map[string]interface{})
+    retrieved_class_parameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
+    computed_class_parameters := map[string]string{}
+
+    for ck, _ := range current_class_parameters {
+      if rv, rv_exist := retrieved_class_parameters[ck]; (rv_exist) {
+        computed_class_parameters[ck] = rv[0]
+      } else {
+        computed_class_parameters[ck] = ""
+      }
+    }
+
+    d.Set("class_parameters", computed_class_parameters)
 
     return nil
   }

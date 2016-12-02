@@ -47,7 +47,6 @@ SOLIDServer provider supports the following arguments:
 * `sslverify` - (Optionnal) Enable/Disable ssl certificate check. Can be stored in `SOLIDServer_SSLVERIFY` environment variable.
 
 ```
-# Add a record to the domain
 provider "solidserver" {
     username = "username"
     password = "password"
@@ -73,7 +72,7 @@ resource "solidserver_ip_subnet" "my_first_subnet" {
   block            = "my_block"
   size             = 24
   name             = "my_first_subnet"
-  class            =
+  class            = "AWS_VPC_SUBNET"
   class_parameters {
     cloudaz        = "eu-west-1a"
     subnetclouduid = "subnet-56f261f1"

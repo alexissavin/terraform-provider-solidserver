@@ -102,10 +102,14 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("site_id", site_id)
   parameters.Add("name", d.Get("name").(string))
   parameters.Add("hostaddr", addr)
+  parameters.Add("ip_class_name", d.Get("class").(string))
 
-  //if (d.Get("class").(string) != "") {
-    parameters.Add("ip_class_name", d.Get("class").(string))
-  //}
+  // Building class_parameters
+  class_parameters := url.Values{}
+  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
+    class_parameters.Add(k, v.(string))
+  }
+  parameters.Add("ip_class_parameters", class_parameters.Encode())
 
   // Sending the creation request
   http_resp, body, _ := s.Request("post", "rest/ip_add", &parameters)
@@ -135,10 +139,14 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
   parameters := url.Values{}
   parameters.Add("ip_id", d.Id())
   parameters.Add("ip_name", d.Get("name").(string))
+  parameters.Add("ip_class_name", d.Get("class").(string))
 
-  //if (d.Get("class").(string) != "") {
-    parameters.Add("ip_class_name", d.Get("class").(string))
-  //}
+  // Building class_parameters
+  class_parameters := url.Values{}
+  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
+    class_parameters.Add(k, v.(string))
+  }
+  parameters.Add("ip_class_parameters", class_parameters.Encode())
 
   // Sending the update request
   http_resp, body, _ := s.Request("put", "rest/ip_add", &parameters)
@@ -202,22 +210,38 @@ func resourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (len(buf) > 0) {
-    if (http_resp.StatusCode == 200) {
-      d.Set("space", buf[0]["site_name"].(string))
-      d.Set("subnet", buf[0]["subnet_name"].(string))
-      d.Set("name", buf[0]["name"].(string))
-      d.Set("class", buf[0]["ip_class_name"].(string))
+  if (http_resp.StatusCode == 200 && len(buf) > 0) {
+    d.Set("space", buf[0]["site_name"].(string))
+    d.Set("subnet", buf[0]["subnet_name"].(string))
+    d.Set("name", buf[0]["name"].(string))
+    d.Set("class", buf[0]["ip_class_name"].(string))
 
-      return nil
-    } else {
-      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-        // Log the error
-        log.Printf("[DEBUG] SOLIDServer - Unable to find IP Address: %s (%s)", d.Get("name"), errmsg)
+    // Updating local class_parameters
+    current_class_parameters := d.Get("class_parameters").(map[string]interface{})
+    retrieved_class_parameters, _ := url.ParseQuery(buf[0]["ip_class_parameters"].(string))
+    computed_class_parameters := map[string]string{}
+
+    for ck, _ := range current_class_parameters {
+      if rv, rv_exist := retrieved_class_parameters[ck]; (rv_exist) {
+        computed_class_parameters[ck] = rv[0]
+      } else {
+        computed_class_parameters[ck] = ""
       }
-      // Unset the local ID
-      d.SetId("")
     }
+
+    d.Set("class_parameters", computed_class_parameters)
+
+    return nil
+  }
+
+  if (len(buf) > 0) {
+    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      // Log the error
+      log.Printf("[DEBUG] SOLIDServer - Unable to find IP Address: %s (%s)", d.Get("name"), errmsg)
+    }
+  } else {
+    // Log the error
+    log.Printf("[DEBUG] SOLIDServer - Unable to find IP Address (oid): %s", d.Id())
   }
 
   // Do not unset the local ID to avoid inconsistency
