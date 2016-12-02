@@ -87,7 +87,7 @@ IP Subnet resource allows to create subnets from the following arguments :
 * `subnet` - (Required) The name of the subnet into which creating the IP address.
 * `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
 
-For convenience, the IP address' subnet name is expected, not its ID, this allow to create IP addresses in existing subnets.
+For convenience, the IP address' subnet name is expected, not its ID. This allow to create IP addresses within existing subnets.
 If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
 
 ```
