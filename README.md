@@ -81,7 +81,7 @@ resource "solidserver_ip_subnet" "my_first_subnet" {
 ```
 
 ### IP Address
-IP Subnet resource allows to create subnets from the following arguments :
+IP Address resource allows to assign an IP from the following arguments :
 
 * `space` - (Required) The name of the space into which creating the IP address.
 * `subnet` - (Required) The name of the subnet into which creating the IP address.
