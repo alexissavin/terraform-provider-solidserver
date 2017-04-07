@@ -1,4 +1,4 @@
-[![Build status](https://travis-ci.org/alexissavin/terraform-provider-efficientip.svg)](https://travis-ci.org/alexissavin/terraform-provider-efficientip)
+[![Build status](https://travis-ci.org/alexissavin/terraform-provider-solidserver.svg)](https://travis-ci.org/alexissavin/terraform-provider-solidserver)
 
 # EfficientIP SOLIDserver Provider
 
