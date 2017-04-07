@@ -12,10 +12,10 @@ Download the latest revision of the master branch then use the go compiler to ge
 
 ```
 cd "${GOPATH}
-go get github.com/alexissavin/terraform-provider-efficientip
-cd ./src/github.com/alexissavin/terraform-provider-efficientip
+go get github.com/alexissavin/terraform-provider-solidserver
+cd ./src/github.com/alexissavin/terraform-provider-solidserver
 go get
-go build -o terraform-provider-efficientip
+go build -o terraform-provider-solidserver
 ```
 
 # Install
@@ -28,7 +28,7 @@ Then edit the '~/.terraformrc' file of the user running terraform to include the
 The resulting file should include the following:
 ```
 providers {
-    efficientip = "/path/to/terraform-provider-efficientip"
+    solidserver = "/path/to/terraform-provider-solidserver"
 }
 ```
 
