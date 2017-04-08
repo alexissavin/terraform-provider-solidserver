@@ -2,7 +2,7 @@ package main
 
 import (
   "github.com/hashicorp/terraform/plugin"
-  "github.com/alexissavin/terraform-provider-efficientip/solidserver"
+  "github.com/alexissavin/terraform-provider-solidserver/solidserver"
 )
 
 func main() {

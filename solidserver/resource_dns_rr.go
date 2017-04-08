@@ -16,6 +16,9 @@ func resourcednsrr() *schema.Resource {
     Read:   resourcednsrrRead,
     Update: resourcednsrrUpdate,
     Delete: resourcednsrrDelete,
+    Importer: &schema.ResourceImporter{
+        State: resourcednsrrImportState,
+    },
 
     Schema: map[string]*schema.Schema{
       "dnsserver": &schema.Schema{
@@ -64,6 +67,51 @@ func resourcednsrrvalidatetype(v interface{}, _ string) ([]string, []error) {
     default:
       return nil, []error{fmt.Errorf("Unsupported RR type.")}
   }
+}
+
+func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+  s := meta.(*SOLIDserver)
+
+  results := make([]*schema.ResourceData, 1, 1)
+	results[0] = d
+
+  parameters := url.Values{}
+  parameters.Add("rr_id", results[0].Id())
+
+  // Sending the read request
+  http_resp, body, _ := s.Request("get", "rest/dns_rr_info", &parameters)
+
+  var buf [](map[string]interface{})
+  json.Unmarshal([]byte(body), &buf)
+
+  // Checking the answer
+  if (http_resp.StatusCode == 200 && len(buf) > 0) {
+    ttl, _ := strconv.Atoi(buf[0]["ttl"].(string))
+
+    d.Set("dnsserver", buf[0]["dns_name"].(string))
+    d.Set("name", buf[0]["rr_full_name"].(string))
+    d.Set("type", buf[0]["rr_type"].(string))
+    d.Set("value", buf[0]["value1"].(string))
+    d.Set("ttl", ttl)
+
+    return []*schema.ResourceData{d}, nil
+  }
+
+  if (len(buf) > 0) {
+    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      // Log the error
+      log.Printf("[DEBUG] SOLIDServer - Unable to find RR: %s (%s)", d.Get("name"), errmsg)
+    }
+  } else {
+    // Log the error
+    log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s", d.Id())
+  }
+
+  // Do not unset the local ID to avoid inconsistency
+
+  // Reporting a failure
+  return nil, fmt.Errorf("SOLIDServer - Unable to find RR: %s", d.Get("name").(string))
+
 }
 
 func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
