@@ -16,6 +16,7 @@ func resourcednsrr() *schema.Resource {
     Read:   resourcednsrrRead,
     Update: resourcednsrrUpdate,
     Delete: resourcednsrrDelete,
+    Exists: resourcednsrrExists,
     Importer: &schema.ResourceImporter{
         State: resourcednsrrImportState,
     },
@@ -69,6 +70,43 @@ func resourcednsrrvalidatetype(v interface{}, _ string) ([]string, []error) {
   }
 }
 
+func resourcednsrrExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+  s := meta.(*SOLIDserver)
+
+  results := make([]*schema.ResourceData, 1, 1)
+	results[0] = d
+
+  parameters := url.Values{}
+  parameters.Add("rr_id", results[0].Id())
+
+  log.Printf("[INFO] Checking existence of Record Id: %s", results[0].Id())
+
+  // Sending the read request
+  http_resp, body, _ := s.Request("get", "rest/dns_rr_info", &parameters)
+  var buf [](map[string]interface{})
+  json.Unmarshal([]byte(body), &buf)
+
+
+  if http_resp.StatusCode == 200 && len(buf) > 0 {
+    return true, nil
+  } else if http_resp.StatusCode == 204 {
+    return false, nil
+  }
+
+  if (len(buf) > 0) {
+    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      // Log the error
+      log.Printf("[DEBUG] SOLIDServer - Unable to find RR: %s (%s)", d.Get("name"), errmsg)
+    }
+  } else {
+    // Log the error
+    log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s", d.Id())
+  }
+
+  return false, fmt.Errorf("SOLIDServer - Unable to find RR: %s", d.Get("name").(string))
+
+}
+
 func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
   s := meta.(*SOLIDserver)
 
@@ -85,6 +123,8 @@ func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*sche
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
+
+
   if (http_resp.StatusCode == 200 && len(buf) > 0) {
     ttl, _ := strconv.Atoi(buf[0]["ttl"].(string))
 
