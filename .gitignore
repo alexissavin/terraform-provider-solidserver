@@ -6,6 +6,7 @@
 # Folders
 _obj
 _test
+_releases
 
 # Architecture specific extensions/prefixes
 *.[568vq]

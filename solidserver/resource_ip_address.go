@@ -58,73 +58,46 @@ func resourceipaddress() *schema.Resource {
   }
 }
 
-// Return an available IP addresses from site_id, block_id and expected subnet_size
-// Or an empty string in case of failure
-func ipaddressfindfree(subnet_id string, meta interface{}) string {
-  s := meta.(*SOLIDserver)
-
-  // Building parameters
-  parameters := url.Values{}
-  parameters.Add("subnet_id", subnet_id)
-  parameters.Add("max_find", "1")
-
-  // Sending the creation request
-  http_resp, body, _ := s.Request("get", "rpc/ip_find_free_address", &parameters)
-
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
-
-  log.Printf("[DEBUG] SOLIDServer - Suggested IP Address: %#v", buf)
-
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    if addr, addr_exist := buf[0]["hostaddr"].(string); (addr_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Suggested IP Address: %s", addr)
-      return addr
-    }
-  }
-
-  log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP Address in Subnet (oid): %s", subnet_id)
-
-  return ""
-}
-
-
 func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
   var site_id    string = ipsiteidbyname(d.Get("space").(string), meta)
   var subnet_id  string = ipsubnetidbyname(site_id, d.Get("subnet").(string), true, meta)
-  var addr       string = ipaddressfindfree(subnet_id, meta)
+  var addresses  []string = ipaddressfindfree(subnet_id, meta)
 
-  // Building parameters
-  parameters := url.Values{}
-  parameters.Add("site_id", site_id)
-  parameters.Add("name", d.Get("name").(string))
-  parameters.Add("hostaddr", addr)
-  parameters.Add("ip_class_name", d.Get("class").(string))
+  for i := 0; i < len(addresses); i++ {
+    // Building parameters
+    parameters := url.Values{}
+    parameters.Add("site_id", site_id)
+    parameters.Add("name", d.Get("name").(string))
+    parameters.Add("hostaddr", addresses[i])
+    parameters.Add("ip_class_name", d.Get("class").(string))
 
-  // Building class_parameters
-  class_parameters := url.Values{}
-  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-    class_parameters.Add(k, v.(string))
-  }
-  parameters.Add("ip_class_parameters", class_parameters.Encode())
+    // Building class_parameters
+    class_parameters := url.Values{}
+    for k, v := range d.Get("class_parameters").(map[string]interface{}) {
+      class_parameters.Add(k, v.(string))
+    }
+    parameters.Add("ip_class_parameters", class_parameters.Encode())
 
-  // Sending the creation request
-  http_resp, body, _ := s.Request("post", "rest/ip_add", &parameters)
+    // Sending the creation request
+    http_resp, body, _ := s.Request("post", "rest/ip_add", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 201 && len(buf) > 0) {
-    if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Created IP Address (oid): %s", oid)
+    // Checking the answer
+    if (http_resp.StatusCode == 201 && len(buf) > 0) {
+      if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Created IP Address (oid): %s", oid)
 
-      d.SetId(oid)
+        d.SetId(oid)
+        d.Set("address", addresses[i])
 
-      return nil
+        return nil
+      }
+    } else {
+      log.Printf("[DEBUG] SOLIDServer - Failed IP Address registration, trying another one.")
     }
   }
 
@@ -213,6 +186,7 @@ func resourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
   if (http_resp.StatusCode == 200 && len(buf) > 0) {
     d.Set("space", buf[0]["site_name"].(string))
     d.Set("subnet", buf[0]["subnet_name"].(string))
+    d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
     d.Set("name", buf[0]["name"].(string))
     d.Set("class", buf[0]["ip_class_name"].(string))
 
