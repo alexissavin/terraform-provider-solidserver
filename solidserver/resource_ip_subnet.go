@@ -62,7 +62,7 @@ func resourceipsubnet() *schema.Resource {
       },
       "class_parameters": &schema.Schema{
         Type:     schema.TypeMap,
-        Description: "The class parameters associated to the IP address.",
+        Description: "The class parameters associated to the IP subnet.",
         Optional: true,
         ForceNew: false,
         Default: map[string]string{},
