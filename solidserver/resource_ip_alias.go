@@ -4,6 +4,7 @@ import (
   "github.com/hashicorp/terraform/helper/schema"
   "encoding/json"
   "net/url"
+  "strings"
   "fmt"
   "log"
 )
@@ -61,7 +62,7 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
   var site_id    string = ipsiteidbyname(d.Get("space").(string), meta)
-  var address_id  []string = ipaddressidbyip(site_id, d.Get("address").(string), meta)
+  var address_id  string = ipaddressidbyip(site_id, d.Get("address").(string), meta)
 
   // Building parameters
   parameters := url.Values{}
@@ -128,7 +129,7 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
   var site_id    string = ipsiteidbyname(d.Get("space").(string), meta)
-  var address_id  []string = ipaddressidbyip(site_id, d.Get("address").(string), meta)
+  var address_id  string = ipaddressidbyip(site_id, d.Get("address").(string), meta)
 
   // Building parameters
   parameters := url.Values{}

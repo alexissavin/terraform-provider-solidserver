@@ -26,7 +26,7 @@ func hexiptoip(hexip string) string {
 // Convert standard IP address string into hexa IP address string
 // Return an empty string in case of failure
 func iptohexip(ip string) string {
-  ip_dec := strings.Split(ip, '.')
+  ip_dec := strings.Split(ip, ".")
 
   if (len(ip_dec) == 4) {
     return fmt.Sprintf("%02x.%02x.%02x.%02x", ip_dec[0], ip_dec[1], ip_dec[2], ip_dec[3])
