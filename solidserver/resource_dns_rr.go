@@ -36,7 +36,7 @@ func resourcednsrr() *schema.Resource {
       },
       "type": &schema.Schema{
         Type:         schema.TypeString,
-        Description:  "The type of the RR to create (Supported : A, AAAA, CNAME).",
+        Description:  "The type of the RR to create (Supported: A, AAAA, CNAME).",
         ValidateFunc: resourcednsrrvalidatetype,
         Required:     true,
         ForceNew:     true,

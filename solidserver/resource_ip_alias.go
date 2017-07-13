@@ -31,13 +31,13 @@ func resourceipalias() *schema.Resource {
       },
       "name": &schema.Schema{
         Type:     schema.TypeString,
-        Description: "The short name or FQDN of the IP address alias to create.",
+        Description: "The FQDN of the IP address alias to create.",
         Required: true,
         ForceNew: true,
       },
       "type": &schema.Schema{
         Type:         schema.TypeString,
-        Description:  "The type of the Alias to create (Supported : A, AAAA, CNAME).",
+        Description:  "The type of the Alias to create (Supported: A, CNAME; Default: CNAME).",
         ValidateFunc: resourcealiasvalidatetype,
         Default:      "CNAME",
         Required:     true,

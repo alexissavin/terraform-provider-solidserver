@@ -59,7 +59,7 @@ provider "solidserver" {
 SOLIDServer provider allows to manage several resources listed below.
 
 ### IP Subnet
-IP Subnet resource allows to create subnets from the following arguments :
+IP Subnet resource allows to create subnets from the following arguments:
 
 * `space` - (Required) The name of the space into which creating the IP subnet.
 * `block` - (Required) The name of the block into which creating the IP subnet.
@@ -81,7 +81,7 @@ resource "solidserver_ip_subnet" "my_first_subnet" {
 ```
 
 ### IP Address
-IP Address resource allows to assign an IP from the following arguments :
+IP Address resource allows to assign an IP from the following arguments:
 
 * `space` - (Required) The name of the space into which creating the IP address.
 * `subnet` - (Required) The name of the subnet into which creating the IP address.
@@ -103,12 +103,32 @@ resource "solidserver_ip_address" "my_first_ip" {
 }
 ```
 
+### IP Alias
+IP Alias resource allows to register DNS alias associated to an IP address from the IPAM for enhanced IPAM-DNS consistency. The resource accept the following arguments:
+
+* `space` - (Required) The name of the space to which the address belong to.
+* `address` - (Required) The IP address for which the alias will be associated to.
+* `name` - (Required) The FQDN of the IP address alias to create.
+* `type` - (Optionnal) The type of the Alias to create (Supported: A, CNAME; Default: CNAME).
+
+For convenience, the IP space name and IP address are expected, not their IDs.
+If you intend to create an IP Alias use the `depends_on` parameter to inform terraform of the expected dependency.
+
+```
+resource "solidserver_ip_alias" "my_first_alias" {
+  depends_on = ["solidserver_ip_address.my_first_ip"]
+  space  = "my_space"
+  name   = "myfirstalias.mycompany.priv"
+}
+
+```
+
 ### DNS Record
-DNS Record resource allows to create records from the following arguments :
+DNS Record resource allows to create records from the following arguments:
 
 * `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the RR's zone.
 * `name` - (Required) The Fully Qualified Domain Name of the RR to create.
-* `type` - (Required) The type of the RR to create (Supported : A, AAAA, CNAME).
+* `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME).
 * `value` - (Required) The value od the RR to create.
 * `ttl` - (Optionnal) The DNS Time To Live of the RR to create.
 
