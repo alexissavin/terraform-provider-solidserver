@@ -63,14 +63,14 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 
   var site_id    string = ipsiteidbyname(d.Get("space").(string), meta)
   var subnet_id  string = ipsubnetidbyname(site_id, d.Get("subnet").(string), true, meta)
-  var addresses  []string = ipaddressfindfree(subnet_id, meta)
+  var ip_addresses  []string = ipaddressfindfree(subnet_id, meta)
 
-  for i := 0; i < len(addresses); i++ {
+  for i := 0; i < len(ip_addresses); i++ {
     // Building parameters
     parameters := url.Values{}
     parameters.Add("site_id", site_id)
     parameters.Add("name", d.Get("name").(string))
-    parameters.Add("hostaddr", addresses[i])
+    parameters.Add("hostaddr", ip_addresses[i])
     parameters.Add("ip_class_name", d.Get("class").(string))
 
     // Building class_parameters
@@ -92,7 +92,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
         log.Printf("[DEBUG] SOLIDServer - Created IP Address (oid): %s", oid)
 
         d.SetId(oid)
-        d.Set("address", addresses[i])
+        d.Set("address", ip_addresses[i])
 
         return nil
       }

@@ -23,6 +23,18 @@ func hexiptoip(hexip string) string {
   }
 }
 
+// Convert standard IP address string into hexa IP address string
+// Return an empty string in case of failure
+func iptohexip(ip string) string {
+  ip_dec := strings.Split(ip, '.')
+
+  if (len(ip_dec) == 4) {
+    return fmt.Sprintf("%02x.%02x.%02x.%02x", ip_dec[0], ip_dec[1], ip_dec[2], ip_dec[3])
+  } else {
+    return ""
+  }
+}
+
 // Return an available IP addresses from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
 func ipaddressfindfree(subnet_id string, meta interface{}) []string {
@@ -87,7 +99,7 @@ func ipsiteidbyname(site_name string, meta interface{}) string {
   return ""
 }
 
-// Return the oid of a subnet from site_id, subnet_name and expected terminal property
+// Return the oid of a subnet from site_id, subnet_name and is_terminal property
 // Or an empty string in case of failure
 func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta interface{}) string {
   s := meta.(*SOLIDserver)
@@ -115,6 +127,33 @@ func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta in
   }
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find IP Subnet: %s", subnet_name)
+
+  return ""
+}
+
+// Return the oid of an address from site_id, ip_address
+// Or an empty string in case of failure
+func ipaddressidbyip(site_id string, ip_address string, meta interface{}) string {
+  s := meta.(*SOLIDserver)
+
+  // Building parameters
+  parameters := url.Values{}
+  parameters.Add("WHERE", "site_id='" + site_id + "' AND " + "ip_addr='" + iptohexip(ip_address) + "'")
+
+  // Sending the read request
+  http_resp, body, _ := s.Request("get", "rest/ip_address_list", &parameters)
+
+  var buf [](map[string]interface{})
+  json.Unmarshal([]byte(body), &buf)
+
+  // Checking the answer
+  if (http_resp.StatusCode == 200 && len(buf) > 0) {
+    if ip_id, ip_id_exist := buf[0]["ip_id"].(string); (ip_id_exist) {
+      return ip_id
+    }
+  }
+
+  log.Printf("[DEBUG] SOLIDServer - Unable to find IP Address: %s", ip_address)
 
   return ""
 }

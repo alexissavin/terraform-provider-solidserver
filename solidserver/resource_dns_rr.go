@@ -46,6 +46,7 @@ func resourcednsrr() *schema.Resource {
         Description: "The value od the RR to create.",
         Computed:    false,
         Required:    true,
+        ForceNew:    true,
       },
       "ttl": &schema.Schema{
         Type:        schema.TypeInt,
