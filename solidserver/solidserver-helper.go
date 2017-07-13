@@ -29,7 +29,13 @@ func iptohexip(ip string) string {
   ip_dec := strings.Split(ip, ".")
 
   if (len(ip_dec) == 4) {
-    return fmt.Sprintf("%02x.%02x.%02x.%02x", ip_dec[0], ip_dec[1], ip_dec[2], ip_dec[3])
+
+    a, _ := strconv.Atoi(ip_dec[0])
+    b, _ := strconv.Atoi(ip_dec[1])
+    c, _ := strconv.Atoi(ip_dec[2])
+    d, _ := strconv.Atoi(ip_dec[3])
+
+    return fmt.Sprintf("%02x%02x%02x%02x", a, b, c, d)
   } else {
     return ""
   }
@@ -154,6 +160,56 @@ func ipaddressidbyip(site_id string, ip_address string, meta interface{}) string
   }
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find IP Address: %s", ip_address)
+
+  return ""
+}
+
+// Return the oid of an address from ip_id, ip_name_type, alias_name
+// Or an empty string in case of failure
+func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, meta interface{}) string {
+  s := meta.(*SOLIDserver)
+
+  // Building parameters
+  parameters := url.Values{}
+  parameters.Add("ip_id", address_id)
+  // Bug - Ticket 18653
+  // parameters.Add("WHERE", "ip_name_type='" + ip_name_type + "' AND " + "alias_name='" + alias_name + "'")
+
+  // Sending the read request
+  http_resp, body, _ := s.Request("get", "rest/ip_alias_list", &parameters)
+
+  var buf [](map[string]interface{})
+  json.Unmarshal([]byte(body), &buf)
+
+  // Shall be removed once Ticket 18653 is closed
+  // Checking the answer
+  if (http_resp.StatusCode == 200 && len(buf) > 0) {
+    for i := 0; i < len(buf); i++ {
+      r_ip_name_id, r_ip_name_id_exist := buf[i]["ip_name_id"].(string)
+      r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
+      r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
+
+      log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP Alias associated with IP Address ID %s", alias_name, r_alias_name, address_id)
+      log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP Alias associated with IP Address ID %s", ip_name_type, r_ip_name_type, address_id)
+
+      if (r_ip_name_type_exist && strings.Compare(ip_name_type, r_ip_name_type) == 0 &&
+          r_alias_name_exist   && strings.Compare(alias_name, r_alias_name) == 0 &&
+          r_ip_name_id_exist) {
+
+        return r_ip_name_id
+      }
+    }
+  }
+
+  // Shall be restored once Ticket 18653 is closed
+  // Checking the answer
+  //if (http_resp.StatusCode == 200 && len(buf) > 0) {
+  //  if ip_name_id, ip_name_id_exist := buf[0]["ip_name_id"].(string); (ip_name_id_exist) {
+  //    return ip_name_id
+  //  }
+  //}
+
+  log.Printf("[DEBUG] SOLIDServer - Unable to find IP Alias: %s - %s associated with IP Address ID %s", alias_name, ip_name_type, address_id)
 
   return ""
 }

@@ -95,7 +95,7 @@ resource "solidserver_ip_address" "my_first_ip" {
   depends_on = ["solidserver_ip_subnet.my_first_subnet"]
   space            = "my_space"
   subnet           = "my_first_subnet"
-  name             = "my_first_ip.mycompany.priv"
+  name             = "myfirstip.mycompany.priv"
   class            = "AWS_VPC_ADDRESS"
   class_parameters {
     instanceclouduid = "i-0121e79997521079c"
@@ -118,7 +118,8 @@ If you intend to create an IP Alias use the `depends_on` parameter to inform ter
 resource "solidserver_ip_alias" "my_first_alias" {
   depends_on = ["solidserver_ip_address.my_first_ip"]
   space  = "my_space"
-  name   = "myfirstalias.mycompany.priv"
+  address = "${solidserver_ip_address.my_first_ip.address}"
+  name   = "myfirstcnamealias.mycompany.priv"
 }
 
 ```
@@ -135,7 +136,7 @@ DNS Record resource allows to create records from the following arguments:
 ```
 resource "solidserver_dns_rr" "a_a_record" {
   dnsserver = "ns.mycompany.priv"
-  name      = "arecord.mycompany.priv"
+  name      = "myfirstarecord.mycompany.priv"
   type      = "A"
   value     = "127.0.0.1"
 }

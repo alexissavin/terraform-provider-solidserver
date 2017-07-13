@@ -13,7 +13,7 @@ func resourceipalias() *schema.Resource {
   return &schema.Resource{
     Create: resourceipaliasCreate,
     Read:   resourceipaliasRead,
-    Update: resourceipaliasUpdate,
+    //Update: resourceipaliasUpdate,
     Delete: resourceipaliasDelete,
 
     Schema: map[string]*schema.Schema{
@@ -40,7 +40,7 @@ func resourceipalias() *schema.Resource {
         Description:  "The type of the Alias to create (Supported: A, CNAME; Default: CNAME).",
         ValidateFunc: resourcealiasvalidatetype,
         Default:      "CNAME",
-        Required:     true,
+        Optional:     true,
         ForceNew:     true,
       },
     },
@@ -79,6 +79,8 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
   // Checking the answer
   if (http_resp.StatusCode == 201 && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+      //ip_name_id := ipaliasidbyinfo(oid, d.Get("name").(string), d.Get("type").(string), meta)
+
       log.Printf("[DEBUG] SOLIDServer - Created IP Alias (oid): %s", oid)
 
       d.SetId(oid)
@@ -88,13 +90,13 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
   }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to create IP Alias: %s - %s", d.Get("name").(string), d.Get("type"))
+  return fmt.Errorf("SOLIDServer - Unable to create IP Alias: %s - %s (associated to IP address with ID: %s)", d.Get("name").(string), d.Get("type"), address_id)
 }
 
-func resourceipaliasUpdate(d *schema.ResourceData, meta interface{}) error {
-  // Not supported
-  return nil
-}
+//func resourceipaliasUpdate(d *schema.ResourceData, meta interface{}) error {
+  // Not necessary
+//  return nil
+//}
 
 func resourceipaliasDelete(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
@@ -133,8 +135,9 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
 
   // Building parameters
   parameters := url.Values{}
-  parameters.Add("WHERE", "site_id='" + site_id + "' AND " + "ip_id='" + address_id + "'")
-  parameters.Add("ip_name_id", d.Id())
+  parameters.Add("ip_id", address_id)
+  // Bug - Ticket 18653
+  //parameters.Add("WHERE", "ip_name_id='" + d.Id() + "'")
 
   // Sending the read request
   http_resp, body, _ := s.Request("get", "rest/ip_alias_list", &parameters)
@@ -142,13 +145,35 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
   var buf [](map[string]interface{})
   json.Unmarshal([]byte(body), &buf)
 
+  // Shall be removed once Ticket 18653 is closed
   // Checking the answer
   if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    d.Set("name", buf[0]["alias_name"].(string))
-    d.Set("type", buf[0]["ip_name_type"].(string))
+    for i := 0; i < len(buf); i++ {
+      r_ip_name_id, r_ip_name_id_exist := buf[i]["ip_name_id"].(string)
+      r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
+      r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
 
-    return nil
+      if (r_ip_name_id_exist && strings.Compare(d.Id(), r_ip_name_id) == 0) {
+        if (r_alias_name_exist) {
+          d.Set("name", r_alias_name)
+        }
+        if (r_ip_name_type_exist) {
+          d.Set("type", r_ip_name_type)
+        }
+
+        return nil
+      }
+    }
   }
+
+  // Shall be restored once Ticket 18653 is closed
+  // Checking the answer
+  //if (http_resp.StatusCode == 200 && len(buf) > 0) {
+  //  d.Set("name", buf[0]["alias_name"].(string))
+  //  d.Set("type", buf[0]["ip_name_type"].(string))
+  //
+  //  return nil
+  //}
 
   if (len(buf) > 0) {
     if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
