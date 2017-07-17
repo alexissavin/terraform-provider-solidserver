@@ -44,7 +44,7 @@ SOLIDServer provider supports the following arguments:
 * `username` - (Required) Username used to establish the connection. Can be stored in `SOLIDServer_USERNAME` environment variable.
 * `password` - (Required) Password associated with the username. Can be stored in `SOLIDServer_PASSWORD` environment variable.
 * `host` - (Required) IP Address of the SOLIDServer REST API endpoint. Can be stored in `SOLIDServer_HOST` environment variable.
-* `sslverify` - (Optionnal) Enable/Disable ssl certificate check. Can be stored in `SOLIDServer_SSLVERIFY` environment variable.
+* `sslverify` - (Optional) Enable/Disable ssl certificate check. Can be stored in `SOLIDServer_SSLVERIFY` environment variable.
 
 ```
 provider "solidserver" {
@@ -65,6 +65,7 @@ IP Subnet resource allows to create subnets from the following arguments:
 * `block` - (Required) The name of the block into which creating the IP subnet.
 * `size` - (Required) The expected IP subnet's prefix length (ex: 24 for a '/24').
 * `name` - (Required) The name of the IP subnet to create.
+* `gateway_offset` - (Optional) Offset for creating the gateway (positive value originate from first subnet's address, negative from the last one). Default is 0 (no gateway).
 
 ```
 resource "solidserver_ip_subnet" "my_first_subnet" {
@@ -109,7 +110,7 @@ IP Alias resource allows to register DNS alias associated to an IP address from 
 * `space` - (Required) The name of the space to which the address belong to.
 * `address` - (Required) The IP address for which the alias will be associated to.
 * `name` - (Required) The FQDN of the IP address alias to create.
-* `type` - (Optionnal) The type of the Alias to create (Supported: A, CNAME; Default: CNAME).
+* `type` - (Optional) The type of the Alias to create (Supported: A, CNAME; Default: CNAME).
 
 For convenience, the IP space name and IP address are expected, not their IDs.
 If you intend to create an IP Alias use the `depends_on` parameter to inform terraform of the expected dependency.
@@ -131,7 +132,7 @@ DNS Record resource allows to create records from the following arguments:
 * `name` - (Required) The Fully Qualified Domain Name of the RR to create.
 * `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME).
 * `value` - (Required) The value od the RR to create.
-* `ttl` - (Optionnal) The DNS Time To Live of the RR to create.
+* `ttl` - (Optional) The DNS Time To Live of the RR to create.
 
 ```
 resource "solidserver_dns_rr" "a_a_record" {
