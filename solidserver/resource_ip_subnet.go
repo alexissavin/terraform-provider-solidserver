@@ -48,6 +48,13 @@ func resourceipsubnet() *schema.Resource {
         ForceNew: false,
         Default: 0,
       },
+      "gateway_auto_delete":&schema.Schema{
+        Type:     schema.TypeBool,
+        Description: "Delete IP address associated with the Subnet's gateway computed with 'gateway_offset'.",
+        Optional: true,
+        ForceNew: true,
+        Default:  true,
+      },
       "name": &schema.Schema{
         Type:     schema.TypeString,
         Description: "The name of the IP subnet to create.",
@@ -103,8 +110,11 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
   if (goffset != 0) {
     if (goffset > 0) {
       class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(goffset)))
+      log.Printf("[DEBUG] SOLIDServer - Subnet Computed Gateway: %s", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(goffset)))
     } else {
-      class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset))))
+      class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset)) - 1))
+
+      log.Printf("[DEBUG] SOLIDServer - Subnet Computed Gateway: %s", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset)) - 1))
     }
   }
 
@@ -155,8 +165,10 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
   if (goffset != 0) {
     if (goffset > 0) {
       class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(goffset)))
+      log.Printf("[DEBUG] SOLIDServer - Subnet Computed Gateway: %s", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(goffset)))
     } else {
-      class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset))))
+      class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(prefixlengthtosize(d.Get("size").(int))) -  uint32(abs(goffset)) - 1))
+      log.Printf("[DEBUG] SOLIDServer - Subnet Computed Gateway: %s", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset)) - 1))
     }
   }
 
@@ -184,8 +196,41 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
   return fmt.Errorf("SOLIDServer - Unable to update IP Subnet: %s", d.Get("name").(string))
 }
 
+func resourceipsubnetgatewayDelete(d *schema.ResourceData, meta interface{}) error {
+  s := meta.(*SOLIDserver)
+
+  // Building parameters
+  parameters := url.Values{}
+  parameters.Add("site_name", d.Get("space").(string))
+  parameters.Add("hostaddr", d.Get("class_parameters").(map[string]interface{})["gateway"].(string))
+
+  // Sending the deletion request
+  http_resp, body, _ := s.Request("delete", "rest/ip_delete", &parameters)
+
+  var buf [](map[string]interface{})
+  json.Unmarshal([]byte(body), &buf)
+
+  // Checking the answer
+  if (http_resp.StatusCode != 204 && len(buf) > 0) {
+    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      log.Printf("[DEBUG] SOLIDServer - Unable to delete IP Subnet's Gateway: %s ", d.Get("class_parameters").(map[string]interface{})["gateway"].(string), errmsg)
+    }
+  }
+
+  // Log deletion
+  log.Printf("[DEBUG] SOLIDServer - Deleted IP Subnet's Gateway: %s", d.Get("class_parameters").(map[string]interface{})["gateway"].(string))
+
+  return nil
+}
+
 func resourceipsubnetDelete(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
+
+  // Deleting associated Gateway, if required
+  //if (d.Get("gateway_auto_delete").(bool) && d.Get("gateway_offset").(int) != 0) {
+    // Log deletion
+    //log.Printf("[DEBUG] SOLIDServer - Deleting IP Subnet's Gateway: %s", d.Get("class_parameters").(map[string]interface{})["gateway"].(string))
+  //}
 
   // Building parameters
   parameters := url.Values{}
