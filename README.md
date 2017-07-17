@@ -65,7 +65,7 @@ IP Subnet resource allows to create subnets from the following arguments:
 * `block` - (Required) The name of the block into which creating the IP subnet.
 * `size` - (Required) The expected IP subnet's prefix length (ex: 24 for a '/24').
 * `name` - (Required) The name of the IP subnet to create.
-* `gateway_offset` - (Optional) Offset for creating the gateway (positive value originate from first subnet's address, negative from the last one). Default is 0 (no gateway).
+* `gateway_offset` - (Optional) Offset for creating the gateway. Default is 0 (no gateway).
 
 ```
 resource "solidserver_ip_subnet" "my_first_subnet" {
@@ -80,6 +80,8 @@ resource "solidserver_ip_subnet" "my_first_subnet" {
   }
 }
 ```
+
+Note: The gateway_offset value can be positive (offset start at the first address of the subnet) or negative (offset start at the last address of the subnet).
 
 ### IP Address
 IP Address resource allows to assign an IP from the following arguments:
