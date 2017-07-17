@@ -9,6 +9,15 @@ import (
   "log"
 )
 
+// Integer Absolute value
+func abs(x int) int {
+  if (x < 0) {
+    return -x
+  }
+
+  return x
+}
+
 // Convert hexa IP address string into standard IP address string
 // Return an empty string in case of failure
 func hexiptoip(hexip string) string {
@@ -18,9 +27,9 @@ func hexiptoip(hexip string) string {
 
   if (count == 4) {
     return fmt.Sprintf("%d.%d.%d.%d", a, b, c, d)
-  } else {
-    return ""
   }
+
+  return ""
 }
 
 // Convert standard IP address string into hexa IP address string
@@ -35,10 +44,62 @@ func iptohexip(ip string) string {
     c, _ := strconv.Atoi(ip_dec[2])
     d, _ := strconv.Atoi(ip_dec[3])
 
-    return fmt.Sprintf("%02x%02x%02x%02x", a, b, c, d)
-  } else {
+    if (0 <= a && a <= 255 && 0 <= b && b <= 255 &&
+        0 <= c && c <= 255 && 0 <= d && d <= 255) {
+      return fmt.Sprintf("%02x%02x%02x%02x", a, b, c, d)
+    }
+
     return ""
   }
+
+  return ""
+}
+
+// Convert standard IP address string into unsigned int32
+// Return 0 in case of failure
+func iptolong(ip string) uint32 {
+  ip_dec := strings.Split(ip, ".")
+
+  if (len(ip_dec) == 4) {
+    a, _ := strconv.Atoi(ip_dec[0])
+    b, _ := strconv.Atoi(ip_dec[1])
+    c, _ := strconv.Atoi(ip_dec[2])
+    d, _ := strconv.Atoi(ip_dec[3])
+
+    var iplong uint32 = uint32(a) * 0x1000000
+    iplong += uint32(b) * 0x10000
+    iplong += uint32(c) * 0x100
+    iplong += uint32(d) * 0x1
+
+    return iplong
+  }
+
+  return 0
+}
+
+// Convert unsigned int32 into standard IP address string
+// Return an IP formated string
+func longtoip(iplong uint32) string {
+  a := (iplong & 0xFF000000) >> 24;
+  b := (iplong & 0xFF0000) >> 16;
+  c := (iplong & 0xFF00) >> 8;
+  d := (iplong & 0xFF);
+
+  if (a < 0) {
+    a = a + 0x100;
+  }
+
+  return fmt.Sprintf("%d.%d.%d.%d", a, b, c, d)
+}
+
+// Compute the actual size of a CIDR prefix from its length
+// Return -1 in case of failure
+func prefixlengthtosize(length int) int {
+  if (length <= 32) {
+    return (1 << (32 - uint32(length)));
+  }
+
+  return -1
 }
 
 // Return an available IP addresses from site_id, block_id and expected subnet_size
@@ -243,3 +304,4 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
 
   return ""
 }
+

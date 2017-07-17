@@ -40,6 +40,14 @@ func resourceipaddress() *schema.Resource {
         Required: true,
         ForceNew: false,
       },
+      "mac": &schema.Schema{
+        Type:     schema.TypeString,
+        Description: "The MAC Address of the IP address to create.",
+        Optional: true,
+        ForceNew: false,
+        Default:  "",
+      },
+
       "class": &schema.Schema{
         Type:     schema.TypeString,
         Description: "The class associated to the IP address.",
@@ -71,6 +79,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
     parameters.Add("site_id", site_id)
     parameters.Add("name", d.Get("name").(string))
     parameters.Add("hostaddr", ip_addresses[i])
+    parameters.Add("mac_addr", d.Get("mac").(string))
     parameters.Add("ip_class_name", d.Get("class").(string))
 
     // Building class_parameters
@@ -112,6 +121,7 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
   parameters := url.Values{}
   parameters.Add("ip_id", d.Id())
   parameters.Add("ip_name", d.Get("name").(string))
+  parameters.Add("mac_addr", d.Get("mac").(string))
   parameters.Add("ip_class_name", d.Get("class").(string))
 
   // Building class_parameters
@@ -188,6 +198,7 @@ func resourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
     d.Set("subnet", buf[0]["subnet_name"].(string))
     d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
     d.Set("name", buf[0]["name"].(string))
+    d.Set("mac", buf[0]["mac_addr"].(string))
     d.Set("class", buf[0]["ip_class_name"].(string))
 
     // Updating local class_parameters

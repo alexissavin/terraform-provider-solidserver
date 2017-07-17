@@ -63,7 +63,7 @@ IP Subnet resource allows to create subnets from the following arguments:
 
 * `space` - (Required) The name of the space into which creating the IP subnet.
 * `block` - (Required) The name of the block into which creating the IP subnet.
-* `size` - (Required) The expected IP subnet's prefix size (ex: 24 for a '/24').
+* `size` - (Required) The expected IP subnet's prefix length (ex: 24 for a '/24').
 * `name` - (Required) The name of the IP subnet to create.
 
 ```

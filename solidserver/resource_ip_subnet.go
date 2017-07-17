@@ -5,6 +5,7 @@ import (
   "encoding/json"
   "net/url"
   "strconv"
+  "strings"
   "fmt"
   "log"
 )
@@ -31,7 +32,7 @@ func resourceipsubnet() *schema.Resource {
       },
       "size": &schema.Schema{
         Type:     schema.TypeInt,
-        Description: "The expected IP subnet's prefix size (ex: 24 for a '/24').",
+        Description: "The expected IP subnet's prefix length (ex: 24 for a '/24').",
         Required: true,
         ForceNew: true,
       },
@@ -39,6 +40,13 @@ func resourceipsubnet() *schema.Resource {
         Type:     schema.TypeString,
         Description: "The provisionned IP prefix.",
         Computed: true,
+      },
+      "gateway_offset": &schema.Schema{
+        Type:     schema.TypeInt,
+        Description: "Offset for creating the gateway. Default is 0 (no gateway).",
+        Optional:  true,
+        ForceNew: false,
+        Default: 0,
       },
       "name": &schema.Schema{
         Type:     schema.TypeString,
@@ -88,6 +96,18 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
   // Building class_parameters
   class_parameters := url.Values{}
+
+  // Generate class parameter for the gateway if required
+  goffset := d.Get("gateway_offset").(int)
+
+  if (goffset != 0) {
+    if (goffset > 0) {
+      class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(goffset)))
+    } else {
+      class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset))))
+    }
+  }
+
   for k, v := range d.Get("class_parameters").(map[string]interface{}) {
     class_parameters.Add(k, v.(string))
   }
@@ -118,6 +138,8 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
+  var subnet_addr string = strings.Split(d.Get("prefix").(string), "/")[0]
+
   // Building parameters
   parameters := url.Values{}
   parameters.Add("subnet_id", d.Id())
@@ -126,6 +148,18 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 
   // Building class_parameters
   class_parameters := url.Values{}
+
+  // Generate class parameter for the gateway if required
+  goffset := d.Get("gateway_offset").(int)
+
+  if (goffset != 0) {
+    if (goffset > 0) {
+      class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(goffset)))
+    } else {
+      class_parameters.Add("gateway", longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset))))
+    }
+  }
+
   for k, v := range d.Get("class_parameters").(map[string]interface{}) {
     class_parameters.Add(k, v.(string))
   }
