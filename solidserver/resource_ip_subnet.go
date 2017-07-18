@@ -47,6 +47,12 @@ func resourceipsubnet() *schema.Resource {
         ForceNew: true,
         Default: 0,
       },
+      "gateway": &schema.Schema{
+        Type:     schema.TypeString,
+        Description: "The subnet's computed gateway.",
+        Computed: true,
+        ForceNew: true,
+      },
       "name": &schema.Schema{
         Type:     schema.TypeString,
         Description: "The name of the IP subnet to create.",
@@ -129,12 +135,8 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 
       d.SetId(oid)
       d.Set("prefix", hexiptoip(subnet_addr) + "/" + strconv.Itoa(d.Get("size").(int)))
-
-      // Update local class_parameters with computed gateway
       if (goffset != 0) {
-        local_class_parameters := d.Get("class_parameters").(map[string]interface{})
-        local_class_parameters["gateway"] = gateway
-        d.Set("class_parameters", local_class_parameters)
+        d.Set("gateway", gateway)
       }
 
       return nil
@@ -184,13 +186,11 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 func resourceipsubnetgatewayDelete(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
-  class_parameters := d.Get("class_parameters").(map[string]interface{})
-
-  if gateway, gateway_exist := class_parameters["gateway"].(string); (gateway_exist) {
+  if (d.Get("gateway") != nil) {
     // Building parameters
     parameters := url.Values{}
     parameters.Add("site_name", d.Get("space").(string))
-    parameters.Add("hostaddr", gateway)
+    parameters.Add("hostaddr", d.Get("gateway").(string))
 
     // Sending the deletion request
     http_resp, body, _ := s.Request("delete", "rest/ip_delete", &parameters)
@@ -201,12 +201,12 @@ func resourceipsubnetgatewayDelete(d *schema.ResourceData, meta interface{}) err
     // Checking the answer
     if (http_resp.StatusCode != 204 && len(buf) > 0) {
       if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-        log.Printf("[DEBUG] SOLIDServer - Unable to delete IP Subnet's Gateway : %s (%s)", gateway, errmsg)
+        log.Printf("[DEBUG] SOLIDServer - Unable to delete IP Subnet's Gateway : %s (%s)", d.Get("gateway").(string), errmsg)
       }
     }
 
     // Log deletion
-    log.Printf("[DEBUG] SOLIDServer - Deleted IP Subnet's Gateway: %s", gateway)
+    log.Printf("[DEBUG] SOLIDServer - Deleted IP Subnet's Gateway: %s", d.Get("gateway").(string))
   }
 
   return nil
@@ -278,7 +278,7 @@ func resourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
     computed_class_parameters := map[string]string{}
 
     if gateway, gateway_exist := retrieved_class_parameters["gateway"]; (gateway_exist) {
-      computed_class_parameters["gateway"] = gateway[0]
+      d.Set("gateway", gateway[0])
     }
 
     for ck, _ := range current_class_parameters {
