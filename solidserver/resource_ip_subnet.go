@@ -15,6 +15,10 @@ func resourceipsubnet() *schema.Resource {
     Read:   resourceipsubnetRead,
     Update: resourceipsubnetUpdate,
     Delete: resourceipsubnetDelete,
+    Exists: resourceipsubnetExists,
+    Importer: &schema.ResourceImporter{
+        State: resourceipsubnetImportState,
+    },
 
     Schema: map[string]*schema.Schema{
       "space": &schema.Schema{
@@ -82,6 +86,41 @@ func resourceipsubnet() *schema.Resource {
       },
     },
   }
+}
+
+func resourceipsubnetExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+  s := meta.(*SOLIDserver)
+
+  parameters := url.Values{}
+  parameters.Add("subnet_id", d.Id())
+
+  log.Printf("[DEBUG] Checking existence of IP Subnet (oid): %s", d.Id())
+
+  // Sending the read request
+  http_resp, body, _ := s.Request("get", "rest/ip_block_subnet_info", &parameters)
+
+  var buf [](map[string]interface{})
+  json.Unmarshal([]byte(body), &buf)
+
+  // Checking the answer
+  if http_resp.StatusCode == 200 && len(buf) > 0 {
+    return true, nil
+  }
+
+  if (len(buf) > 0) {
+    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      // Log the error
+      log.Printf("[DEBUG] SOLIDServer - Unable to find IP Subnet (oid): %s (%s)", d.Id(), errmsg)
+    }
+  } else {
+    // Log the error
+    log.Printf("[DEBUG] SOLIDServer - Unable to find IP Subnet (oid): %s", d.Id())
+  }
+
+  // Unset local ID
+  d.SetId("")
+
+  return false, nil
 }
 
 func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
@@ -309,3 +348,41 @@ func resourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
   // Reporting a failure
   return fmt.Errorf("SOLIDServer - Unable to find IP Subnet: %s", d.Get("name").(string))
 }
+
+func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+  s := meta.(*SOLIDserver)
+
+  // Building parameters
+  parameters := url.Values{}
+  parameters.Add("subnet_id", d.Id())
+
+  // Sending the read request
+  http_resp, body, _ := s.Request("get", "rest/ip_block_subnet_info", &parameters)
+
+  var buf [](map[string]interface{})
+  json.Unmarshal([]byte(body), &buf)
+
+  // Checking the answer
+  if (http_resp.StatusCode == 200 && len(buf) > 0) {
+    d.Set("space", buf[0]["site_name"].(string))
+    d.Set("block", buf[0]["parent_subnet_name"].(string))
+    d.Set("name", buf[0]["subnet_name"].(string))
+    d.Set("class",buf[0]["subnet_class_name"].(string))
+
+    return []*schema.ResourceData{d}, nil
+  }
+
+  if (len(buf) > 0) {
+    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      // Log the error
+      log.Printf("[DEBUG] SOLIDServer - Unable to import IP Subnet (oid): %s (%s)", d.Id(), errmsg)
+    }
+  } else {
+    // Log the error
+    log.Printf("[DEBUG] SOLIDServer - Unable to find and import IP Subnet (oid): %s", d.Id())
+  }
+
+  // Reporting a failure
+  return nil, fmt.Errorf("SOLIDServer - Unable to find and import IP Subnet (oid): %s", d.Id())
+}
+

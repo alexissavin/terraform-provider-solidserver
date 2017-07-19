@@ -241,6 +241,7 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
 func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
   s := meta.(*SOLIDserver)
 
+  // Building parameters
   parameters := url.Values{}
   parameters.Add("rr_id", d.Id())
 
