@@ -73,6 +73,7 @@ func resourceipaddress() *schema.Resource {
 func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, error) {
   s := meta.(*SOLIDserver)
 
+  // Building parameters
   parameters := url.Values{}
   parameters.Add("ip_id", d.Id())
 

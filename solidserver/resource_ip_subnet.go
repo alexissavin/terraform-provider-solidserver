@@ -91,6 +91,7 @@ func resourceipsubnet() *schema.Resource {
 func resourceipsubnetExists(d *schema.ResourceData, meta interface{}) (bool, error) {
   s := meta.(*SOLIDserver)
 
+  // Building parameters
   parameters := url.Values{}
   parameters.Add("subnet_id", d.Id())
 
@@ -138,6 +139,12 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("subnet_addr", hexiptoip(subnet_addr))
   parameters.Add("subnet_prefix", strconv.Itoa(d.Get("size").(int)))
   parameters.Add("subnet_class_name", d.Get("class").(string))
+
+  if (d.Get("terminal").(bool)) {
+    parameters.Add("is_terminal", "1")
+  } else {
+    parameters.Add("is_terminal", "0")
+  }
 
   // Building class_parameters
   class_parameters := url.Values{}
@@ -195,8 +202,22 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("subnet_name", d.Get("name").(string))
   parameters.Add("subnet_class_name", d.Get("class").(string))
 
+  if (d.Get("terminal").(bool)) {
+    parameters.Add("is_terminal", "1")
+  } else {
+    parameters.Add("is_terminal", "0")   
+  }
+
   // Building class_parameters
   class_parameters := url.Values{}
+
+  // Generate class parameter for the gateway if required
+  goffset := d.Get("gateway_offset").(int)
+
+  if (goffset != 0) {
+    class_parameters.Add("gateway", d.Get("gateway").(string))
+    log.Printf("[DEBUG] SOLIDServer - Subnet Updated Gateway: %s", d.Get("gateway").(string))
+  }
 
   for k, v := range d.Get("class_parameters").(map[string]interface{}) {
     class_parameters.Add(k, v.(string))
@@ -210,7 +231,7 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
+  if (http_resp.StatusCode == 201 && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
       log.Printf("[DEBUG] SOLIDServer - Updated IP Subnet (oid): %s", oid)
       d.SetId(oid)
@@ -368,6 +389,25 @@ func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*s
     d.Set("block", buf[0]["parent_subnet_name"].(string))
     d.Set("name", buf[0]["subnet_name"].(string))
     d.Set("class",buf[0]["subnet_class_name"].(string))
+
+    // Setting local class_parameters
+    current_class_parameters := d.Get("class_parameters").(map[string]interface{})
+    retrieved_class_parameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
+    computed_class_parameters := map[string]string{}
+
+    if gateway, gateway_exist := retrieved_class_parameters["gateway"]; (gateway_exist) {
+      d.Set("gateway", gateway[0])
+    }
+
+    for ck, _ := range current_class_parameters {
+      if rv, rv_exist := retrieved_class_parameters[ck]; (rv_exist) {
+        computed_class_parameters[ck] = rv[0]
+      } else {
+        computed_class_parameters[ck] = ""
+      }
+    }
+
+    d.Set("class_parameters", computed_class_parameters)
 
     return []*schema.ResourceData{d}, nil
   }

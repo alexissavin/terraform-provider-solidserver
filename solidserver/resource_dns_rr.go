@@ -74,6 +74,7 @@ func resourcednsrrvalidatetype(v interface{}, _ string) ([]string, []error) {
 func resourcednsrrExists(d *schema.ResourceData, meta interface{}) (bool, error) {
   s := meta.(*SOLIDserver)
 
+  // Building parameters
   parameters := url.Values{}
   parameters.Add("rr_id", d.Id())
 
@@ -155,7 +156,7 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
+  if (http_resp.StatusCode == 201 && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
       log.Printf("[DEBUG] SOLIDServer - Updated RR (oid): %s", oid)
       d.SetId(oid)
