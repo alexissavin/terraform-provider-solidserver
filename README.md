@@ -126,6 +126,23 @@ resource "solidserver_ip_alias" "my_first_alias" {
 }
 
 ```
+### DNS Zone
+DNS Zone resource allows to create zones from the following arguments:
+
+* `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the zone.
+* `view` - (Optional) The DNS view name hosting the zone (Default: none).
+* `name` - (Required) The Domain Name served by the zone.
+* `type` - (Optional) The type of the Zone to create (Supported: master; Default: master).
+* `createptr` - (Optional) Automaticaly create PTR records for the Zone (Default: false).
+
+```
+resource "solidserver_dns_zone" "my_first_zone" {
+  dnsserver = "ns.mycompany.priv"
+  name      = "myfirstzone.mycompany.priv"
+  type      = "master"
+  createptr = true
+}
+```
 
 ### DNS Record
 DNS Record resource allows to create records from the following arguments:
