@@ -98,7 +98,7 @@ func resourcednszoneExists(d *schema.ResourceData, meta interface{}) (bool, erro
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if http_resp.StatusCode == 200 && len(buf) > 0 {
+  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
     return true, nil
   }
 
@@ -154,7 +154,7 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (http_resp.StatusCode == 201 && len(buf) > 0) {
+  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
       log.Printf("[DEBUG] SOLIDServer - Created DNS Zone (oid): %s", oid)
       d.SetId(oid)

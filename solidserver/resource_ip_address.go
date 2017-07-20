@@ -4,6 +4,7 @@ import (
   "github.com/hashicorp/terraform/helper/schema"
   "encoding/json"
   "net/url"
+  "regexp"
   "fmt"
   "log"
 )
@@ -86,7 +87,7 @@ func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, er
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if http_resp.StatusCode == 200 && len(buf) > 0 {
+  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
     return true, nil
   }
 
@@ -136,7 +137,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
     json.Unmarshal([]byte(body), &buf)
 
     // Checking the answer
-    if (http_resp.StatusCode == 201 && len(buf) > 0) {
+  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
       if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
         log.Printf("[DEBUG] SOLIDServer - Created IP Address (oid): %s", oid)
 
@@ -178,7 +179,7 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
+  if (http_resp.StatusCode == 201 && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
       log.Printf("[DEBUG] SOLIDServer - Updated IP Address (oid): %s", oid)
       d.SetId(oid)
@@ -238,7 +239,13 @@ func resourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
     d.Set("subnet", buf[0]["subnet_name"].(string))
     d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
     d.Set("name", buf[0]["name"].(string))
-    d.Set("mac", buf[0]["mac_addr"].(string))
+
+    if mac_ignore, _ := regexp.MatchString("^EIP:", buf[0]["mac_addr"].(string)); (!mac_ignore) {
+      d.Set("mac", buf[0]["mac_addr"].(string))
+    } else {
+     d.Set("mac", "")
+    }
+
     d.Set("class", buf[0]["ip_class_name"].(string))
 
     // Updating local class_parameters
