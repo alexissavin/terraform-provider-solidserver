@@ -131,6 +131,9 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("dnszone_type", strings.ToLower(d.Get("type").(string)))
   parameters.Add("dnszone_class_name", d.Get("class").(string))
 
+  // New only
+  parameters.Add("add_flag", "new_only")
+
   // Building class_parameters
   class_parameters := url.Values{}
 
@@ -173,6 +176,9 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
   parameters := url.Values{}
   parameters.Add("dnszone_id", d.Id())
   parameters.Add("dnszone_class_name", d.Get("class").(string))
+
+  // Edit only
+  parameters.Add("add_flag", "edit_only")
 
   // Building class_parameters
   class_parameters := url.Values{}

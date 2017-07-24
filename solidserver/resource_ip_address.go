@@ -123,6 +123,9 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
     parameters.Add("mac_addr", d.Get("mac").(string))
     parameters.Add("ip_class_name", d.Get("class").(string))
 
+    // New only
+    parameters.Add("add_flag", "new_only")
+
     // Building class_parameters
     class_parameters := url.Values{}
     for k, v := range d.Get("class_parameters").(map[string]interface{}) {
@@ -164,6 +167,9 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("ip_name", d.Get("name").(string))
   parameters.Add("mac_addr", d.Get("mac").(string))
   parameters.Add("ip_class_name", d.Get("class").(string))
+
+  // Edit only
+  parameters.Add("add_flag", "edit_only")
 
   // Building class_parameters
   class_parameters := url.Values{}

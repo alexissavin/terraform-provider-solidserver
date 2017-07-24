@@ -118,6 +118,9 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("value1", d.Get("value").(string))
   parameters.Add("rr_ttl", strconv.Itoa(d.Get("ttl").(int)))
 
+  // New only
+  parameters.Add("add_flag", "new_only")
+
   // Sending the creation request
   http_resp, body, _ := s.Request("post", "rest/dns_rr_add", &parameters)
 
@@ -148,6 +151,9 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("rr_type", strings.ToUpper(d.Get("type").(string)))
   parameters.Add("value1", d.Get("value").(string))
   parameters.Add("rr_ttl", strconv.Itoa(d.Get("ttl").(int)))
+
+  // Edit only
+  parameters.Add("add_flag", "edit_only")
 
   // Sending the update request
   http_resp, body, _ := s.Request("put", "rest/dns_rr_add", &parameters)

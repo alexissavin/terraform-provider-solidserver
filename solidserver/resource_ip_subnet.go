@@ -146,6 +146,9 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
     parameters.Add("is_terminal", "0")
   }
 
+  // New only
+  parameters.Add("add_flag", "new_only")
+
   // Building class_parameters
   class_parameters := url.Values{}
 
@@ -201,6 +204,9 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("subnet_id", d.Id())
   parameters.Add("subnet_name", d.Get("name").(string))
   parameters.Add("subnet_class_name", d.Get("class").(string))
+
+  // Edit only
+  parameters.Add("add_flag", "edit_only")
 
   if (d.Get("terminal").(bool)) {
     parameters.Add("is_terminal", "1")
