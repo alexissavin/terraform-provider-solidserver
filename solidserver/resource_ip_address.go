@@ -110,8 +110,8 @@ func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, er
 func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
-  var site_id    string = ipsiteidbyname(d.Get("space").(string), meta)
-  var subnet_id  string = ipsubnetidbyname(site_id, d.Get("subnet").(string), true, meta)
+  var site_id         string = ipsiteidbyname(d.Get("space").(string), meta)
+  var subnet_id       string = ipsubnetidbyname(site_id, d.Get("subnet").(string), true, meta)
   var ip_addresses  []string = ipaddressfindfree(subnet_id, meta)
 
   for i := 0; i < len(ip_addresses); i++ {
@@ -140,7 +140,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
     json.Unmarshal([]byte(body), &buf)
 
     // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
       if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
         log.Printf("[DEBUG] SOLIDServer - Created IP Address (oid): %s", oid)
 

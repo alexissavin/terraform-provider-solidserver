@@ -118,8 +118,6 @@ func ipaddressfindfree(subnet_id string, meta interface{}) []string {
   var buf [](map[string]interface{})
   json.Unmarshal([]byte(body), &buf)
 
-  log.Printf("[DEBUG] SOLIDServer - Suggested IP Address: %#v", buf)
-
   // Checking the answer
   if (http_resp.StatusCode == 200 && len(buf) > 0) {
     addresses := []string{}
@@ -277,7 +275,7 @@ func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, 
 
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
-func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta interface{}) string {
+func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta interface{}) []string {
   s := meta.(*SOLIDserver)
 
   // Building parameters
@@ -285,6 +283,7 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
   parameters.Add("site_id", site_id)
   parameters.Add("block_id", block_id)
   parameters.Add("prefix", strconv.Itoa(prefix_size))
+  parameters.Add("max_find", "4")
 
   // Sending the creation request
   http_resp, body, _ := s.Request("get", "rpc/ip_find_free_subnet", &parameters)
@@ -294,14 +293,19 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
 
   // Checking the answer
   if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    if subnet_addr, subnet_addr_exist := buf[0]["start_ip_addr"].(string); (subnet_addr_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Suggested Subnet Address: %s", subnet_addr)
-      return subnet_addr
+    subnet_addresses := []string{}
+
+    for i := 0; i < len(buf); i++ {
+      if hexaddr, hexaddr_exist := buf[0]["start_ip_addr"].(string); (hexaddr_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Suggested Subnet Address: %s", hexiptoip(hexaddr))
+        subnet_addresses = append(subnet_addresses, hexaddr)
+      }
     }
+    return subnet_addresses
   }
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP Subnet in Space (oid): %s, Block (oid): %s, Size: ", site_id, block_id, strconv.Itoa(prefix_size))
 
-  return ""
+  return []string{}
 }
 

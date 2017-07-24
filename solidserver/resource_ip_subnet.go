@@ -127,68 +127,72 @@ func resourceipsubnetExists(d *schema.ResourceData, meta interface{}) (bool, err
 func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
-  var site_id     string = ipsiteidbyname(d.Get("space").(string), meta)
-  var block_id    string = ipsubnetidbyname(site_id, d.Get("block").(string), false, meta)
-  var subnet_addr string = ipsubnetfindbysize(site_id, block_id, d.Get("size").(int), meta)
-  var gateway     string = ""
+  var site_id            string = ipsiteidbyname(d.Get("space").(string), meta)
+  var block_id           string = ipsubnetidbyname(site_id, d.Get("block").(string), false, meta)
+  var subnet_addresses []string = ipsubnetfindbysize(site_id, block_id, d.Get("size").(int), meta)
+  var gateway            string = ""
 
-  // Building parameters
-  parameters := url.Values{}
-  parameters.Add("site_id", site_id)
-  parameters.Add("subnet_name", d.Get("name").(string))
-  parameters.Add("subnet_addr", hexiptoip(subnet_addr))
-  parameters.Add("subnet_prefix", strconv.Itoa(d.Get("size").(int)))
-  parameters.Add("subnet_class_name", d.Get("class").(string))
+  for i := 0; i < len(subnet_addresses); i++ {
+    // Building parameters
+    parameters := url.Values{}
+    parameters.Add("site_id", site_id)
+    parameters.Add("subnet_name", d.Get("name").(string))
+    parameters.Add("subnet_addr", hexiptoip(subnet_addresses[i]))
+    parameters.Add("subnet_prefix", strconv.Itoa(d.Get("size").(int)))
+    parameters.Add("subnet_class_name", d.Get("class").(string))
 
-  if (d.Get("terminal").(bool)) {
-    parameters.Add("is_terminal", "1")
-  } else {
-    parameters.Add("is_terminal", "0")
-  }
-
-  // New only
-  parameters.Add("add_flag", "new_only")
-
-  // Building class_parameters
-  class_parameters := url.Values{}
-
-  // Generate class parameter for the gateway if required
-  goffset := d.Get("gateway_offset").(int)
-
-  if (goffset != 0) {
-    if (goffset > 0) {
-      gateway = longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(goffset))
+    if (d.Get("terminal").(bool)) {
+      parameters.Add("is_terminal", "1")
     } else {
-      gateway = longtoip(iptolong(hexiptoip(subnet_addr)) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset)) - 1)
+      parameters.Add("is_terminal", "0")
     }
 
-    class_parameters.Add("gateway", gateway)
-    log.Printf("[DEBUG] SOLIDServer - Subnet Computed Gateway: %s", gateway)
-  }
+    // New only
+    parameters.Add("add_flag", "new_only")
 
-  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-    class_parameters.Add(k, v.(string))
-  }
-  parameters.Add("subnet_class_parameters", class_parameters.Encode())
+    // Building class_parameters
+    class_parameters := url.Values{}
 
-  // Sending the creation request
-  http_resp, body, _ := s.Request("post", "rest/ip_subnet_add", &parameters)
+    // Generate class parameter for the gateway if required
+    goffset := d.Get("gateway_offset").(int)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
-
-  // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
-    if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Created IP Subnet (oid): %s", oid)
-
-      d.SetId(oid)
-      d.Set("prefix", hexiptoip(subnet_addr) + "/" + strconv.Itoa(d.Get("size").(int)))
-      if (goffset != 0) {
-        d.Set("gateway", gateway)
+    if (goffset != 0) {
+      if (goffset > 0) {
+        gateway = longtoip(iptolong(hexiptoip(subnet_addresses[i])) + uint32(goffset))
+      } else {
+        gateway = longtoip(iptolong(hexiptoip(subnet_addresses[i])) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset)) - 1)
       }
 
-      return nil
+      class_parameters.Add("gateway", gateway)
+      log.Printf("[DEBUG] SOLIDServer - Subnet Computed Gateway: %s", gateway)
+    }
+
+    for k, v := range d.Get("class_parameters").(map[string]interface{}) {
+      class_parameters.Add(k, v.(string))
+    }
+    parameters.Add("subnet_class_parameters", class_parameters.Encode())
+
+    // Sending the creation request
+    http_resp, body, _ := s.Request("post", "rest/ip_subnet_add", &parameters)
+
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
+
+    // Checking the answer
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+      if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Created IP Subnet (oid): %s", oid)
+
+        d.SetId(oid)
+        d.Set("prefix", hexiptoip(subnet_addresses[i]) + "/" + strconv.Itoa(d.Get("size").(int)))
+        if (goffset != 0) {
+          d.Set("gateway", gateway)
+        }
+
+        return nil
+      }
+    } else {
+      log.Printf("[DEBUG] SOLIDServer - Failed IP Subnet registration, trying another one.")
     }
   }
 
