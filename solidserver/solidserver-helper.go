@@ -123,7 +123,7 @@ func ipaddressfindfree(subnet_id string, meta interface{}) []string {
     addresses := []string{}
 
     for i := 0; i < len(buf); i++ {
-      if addr, addr_exist := buf[0]["hostaddr"].(string); (addr_exist) {
+      if addr, addr_exist := buf[i]["hostaddr"].(string); (addr_exist) {
         log.Printf("[DEBUG] SOLIDServer - Suggested IP Address: %s", addr)
         addresses = append(addresses, addr)
       }
@@ -296,7 +296,7 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
     subnet_addresses := []string{}
 
     for i := 0; i < len(buf); i++ {
-      if hexaddr, hexaddr_exist := buf[0]["start_ip_addr"].(string); (hexaddr_exist) {
+      if hexaddr, hexaddr_exist := buf[i]["start_ip_addr"].(string); (hexaddr_exist) {
         log.Printf("[DEBUG] SOLIDServer - Suggested Subnet Address: %s", hexiptoip(hexaddr))
         subnet_addresses = append(subnet_addresses, hexaddr)
       }

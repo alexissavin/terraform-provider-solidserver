@@ -3,8 +3,10 @@ package solidserver
 import (
   "github.com/hashicorp/terraform/helper/schema"
   "encoding/json"
+  "math/rand"
   "net/url"
   "regexp"
+  "time"
   "fmt"
   "log"
 )
@@ -132,6 +134,9 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
       class_parameters.Add(k, v.(string))
     }
     parameters.Add("ip_class_parameters", class_parameters.Encode())
+
+    // Random Delay
+    time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 
     // Sending the creation request
     http_resp, body, _ := s.Request("post", "rest/ip_add", &parameters)
