@@ -18,7 +18,7 @@ func Provider() terraform.ResourceProvider {
         Type:        schema.TypeString,
         Required:    true,
         DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_PASSWORD", nil),
-        Description: "SOLIDServer API user's Password",
+        Description: "SOLIDServer API user's password",
       },
       "host": &schema.Schema{
         Type:        schema.TypeString,
@@ -39,6 +39,7 @@ func Provider() terraform.ResourceProvider {
       "solidserver_ip_subnet": resourceipsubnet(),
       "solidserver_ip_address": resourceipaddress(),
       "solidserver_ip_alias": resourceipalias(),
+      "solidserver_device": resourcedevice(),
       "solidserver_dns_zone": resourcednszone(),
       "solidserver_dns_rr": resourcednsrr(),
     },

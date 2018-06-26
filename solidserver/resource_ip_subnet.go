@@ -48,7 +48,7 @@ func resourceipsubnet() *schema.Resource {
       },
       "gateway_offset": &schema.Schema{
         Type:     schema.TypeInt,
-        Description: "Offset for creating the gateway. Default is 0 (no gateway).",
+        Description: "Offset for creating the gateway. Default is 0 (No gateway).",
         Optional:  true,
         ForceNew: true,
         Default: 0,
@@ -97,7 +97,7 @@ func resourceipsubnetExists(d *schema.ResourceData, meta interface{}) (bool, err
   parameters := url.Values{}
   parameters.Add("subnet_id", d.Id())
 
-  log.Printf("[DEBUG] Checking existence of IP Subnet (oid): %s", d.Id())
+  log.Printf("[DEBUG] Checking existence of IP subnet (oid): %s", d.Id())
 
   // Sending the read request
   http_resp, body, _ := s.Request("get", "rest/ip_block_subnet_info", &parameters)
@@ -106,18 +106,18 @@ func resourceipsubnetExists(d *schema.ResourceData, meta interface{}) (bool, err
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
     return true, nil
   }
 
   if (len(buf) > 0) {
     if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
       // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to find IP Subnet (oid): %s (%s)", d.Id(), errmsg)
+      log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet (oid): %s (%s)", d.Id(), errmsg)
     }
   } else {
     // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find IP Subnet (oid): %s", d.Id())
+    log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet (oid): %s", d.Id())
   }
 
   // Unset local ID
@@ -166,7 +166,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
       }
 
       class_parameters.Add("gateway", gateway)
-      log.Printf("[DEBUG] SOLIDServer - Subnet Computed Gateway: %s", gateway)
+      log.Printf("[DEBUG] SOLIDServer - Subnet computed gateway: %s", gateway)
     }
 
     for k, v := range d.Get("class_parameters").(map[string]interface{}) {
@@ -184,9 +184,9 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
     json.Unmarshal([]byte(body), &buf)
 
     // Checking the answer
-    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
       if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-        log.Printf("[DEBUG] SOLIDServer - Created IP Subnet (oid): %s", oid)
+        log.Printf("[DEBUG] SOLIDServer - Created IP subnet (oid): %s", oid)
 
         d.SetId(oid)
         d.Set("prefix", hexiptoip(subnet_addresses[i]) + "/" + strconv.Itoa(d.Get("size").(int)))
@@ -197,12 +197,12 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
         return nil
       }
     } else {
-      log.Printf("[DEBUG] SOLIDServer - Failed IP Subnet registration, trying another one.")
+      log.Printf("[DEBUG] SOLIDServer - Failed IP subnet registration, trying another one.")
     }
   }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to create IP Subnet: %s", d.Get("name").(string))
+  return fmt.Errorf("SOLIDServer - Unable to create IP subnet: %s", d.Get("name").(string))
 }
 
 func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -231,7 +231,7 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 
   if (goffset != 0) {
     class_parameters.Add("gateway", d.Get("gateway").(string))
-    log.Printf("[DEBUG] SOLIDServer - Subnet Updated Gateway: %s", d.Get("gateway").(string))
+    log.Printf("[DEBUG] SOLIDServer - Subnet updated gateway: %s", d.Get("gateway").(string))
   }
 
   for k, v := range d.Get("class_parameters").(map[string]interface{}) {
@@ -246,16 +246,16 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Updated IP Subnet (oid): %s", oid)
+      log.Printf("[DEBUG] SOLIDServer - Updated IP subnet (oid): %s", oid)
       d.SetId(oid)
       return nil
     }
   }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to update IP Subnet: %s", d.Get("name").(string))
+  return fmt.Errorf("SOLIDServer - Unable to update IP subnet: %s", d.Get("name").(string))
 }
 
 func resourceipsubnetgatewayDelete(d *schema.ResourceData, meta interface{}) error {
@@ -276,12 +276,12 @@ func resourceipsubnetgatewayDelete(d *schema.ResourceData, meta interface{}) err
     // Checking the answer
     if (http_resp.StatusCode != 204 && len(buf) > 0) {
       if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-        log.Printf("[DEBUG] SOLIDServer - Unable to delete IP Subnet's Gateway : %s (%s)", d.Get("gateway").(string), errmsg)
+        log.Printf("[DEBUG] SOLIDServer - Unable to delete IP subnet's gateway : %s (%s)", d.Get("gateway").(string), errmsg)
       }
     }
 
     // Log deletion
-    log.Printf("[DEBUG] SOLIDServer - Deleted IP Subnet's Gateway: %s", d.Get("gateway").(string))
+    log.Printf("[DEBUG] SOLIDServer - Deleted IP subnet's gateway: %s", d.Get("gateway").(string))
   }
 
   return nil
@@ -308,12 +308,12 @@ func resourceipsubnetDelete(d *schema.ResourceData, meta interface{}) error {
   // Checking the answer
   if (http_resp.StatusCode != 204 && len(buf) > 0) {
     if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Unable to delete IP Subnet : %s (%s)", d.Get("name"), errmsg)
+      log.Printf("[DEBUG] SOLIDServer - Unable to delete IP subnet : %s (%s)", d.Get("name"), errmsg)
     }
   }
 
   // Log deletion
-  log.Printf("[DEBUG] SOLIDServer - Deleted IP Subnet (oid): %s", d.Id())
+  log.Printf("[DEBUG] SOLIDServer - Deleted IP subnet (oid): %s", d.Id())
 
   // Unset local ID
   d.SetId("")
@@ -372,17 +372,17 @@ func resourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
   if (len(buf) > 0) {
     if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
       // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to find IP Subnet: %s (%s)", d.Get("name"), errmsg)
+      log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s (%s)", d.Get("name"), errmsg)
     }
   } else {
     // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find IP Subnet (oid): %s", d.Id())
+    log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet (oid): %s", d.Id())
   }
 
   // Do not unset the local ID to avoid inconsistency
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to find IP Subnet: %s", d.Get("name").(string))
+  return fmt.Errorf("SOLIDServer - Unable to find IP subnet: %s", d.Get("name").(string))
 }
 
 func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -430,14 +430,13 @@ func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*s
   if (len(buf) > 0) {
     if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
       // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to import IP Subnet (oid): %s (%s)", d.Id(), errmsg)
+      log.Printf("[DEBUG] SOLIDServer - Unable to import IP subnet (oid): %s (%s)", d.Id(), errmsg)
     }
   } else {
     // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find and import IP Subnet (oid): %s", d.Id())
+    log.Printf("[DEBUG] SOLIDServer - Unable to find and import IP subnet (oid): %s", d.Id())
   }
 
   // Reporting a failure
-  return nil, fmt.Errorf("SOLIDServer - Unable to find and import IP Subnet (oid): %s", d.Id())
+  return nil, fmt.Errorf("SOLIDServer - Unable to find and import IP subnet (oid): %s", d.Id())
 }
-

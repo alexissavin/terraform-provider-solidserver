@@ -87,7 +87,7 @@ func resourcednsrrExists(d *schema.ResourceData, meta interface{}) (bool, error)
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
     return true, nil
   }
 
@@ -128,7 +128,7 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
       log.Printf("[DEBUG] SOLIDServer - Created RR (oid): %s", oid)
       d.SetId(oid)
@@ -137,7 +137,7 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
   }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to create RR record: %s", d.Get("name").(string))
+  return fmt.Errorf("SOLIDServer - Unable to create RR: %s", d.Get("name").(string))
 }
 
 func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -162,7 +162,7 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
   json.Unmarshal([]byte(body), &buf)
 
   // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
       log.Printf("[DEBUG] SOLIDServer - Updated RR (oid): %s", oid)
       d.SetId(oid)
@@ -284,4 +284,3 @@ func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*sche
   // Reporting a failure
   return nil, fmt.Errorf("SOLIDServer - Unable to find and import RR (oid): %s", d.Id())
 }
-
