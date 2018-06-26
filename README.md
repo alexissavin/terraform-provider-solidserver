@@ -148,6 +148,7 @@ resource "solidserver_dns_zone" "my_first_zone" {
 DNS Record resource allows to create records from the following arguments:
 
 * `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the RR's zone.
+* `dnsview_name` - (Optional) The View name of the RR to create.
 * `name` - (Required) The Fully Qualified Domain Name of the RR to create.
 * `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME).
 * `value` - (Required) The value od the RR to create.
@@ -155,9 +156,10 @@ DNS Record resource allows to create records from the following arguments:
 
 ```
 resource "solidserver_dns_rr" "a_a_record" {
-  dnsserver = "ns.mycompany.priv"
-  name      = "myfirstarecord.mycompany.priv"
-  type      = "A"
-  value     = "127.0.0.1"
+  dnsserver    = "ns.mycompany.priv"
+  dnsview_name = "Internal"
+  name         = "myfirstarecord.mycompany.priv"
+  type         = "A"
+  value        = "127.0.0.1"
 }
 ```
