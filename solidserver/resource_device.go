@@ -30,14 +30,14 @@ func resourcedevice() *schema.Resource {
         Type:     schema.TypeString,
         Description: "The class associated to the device.",
         Optional: true,
-        ForceNew: false,
+        ForceNew: true,
         Default:  "",
       },
       "class_parameters": &schema.Schema{
         Type:     schema.TypeMap,
         Description: "The class parameters associated to device.",
         Optional: true,
-        ForceNew: false,
+        ForceNew: true,
         Default: map[string]string{},
       },
     },
@@ -152,7 +152,6 @@ func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
 //   // Reporting a failure
 //   return fmt.Errorf("SOLIDServer - Unable to update device: %s", d.Get("name").(string))
 // }
-
 
 func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
