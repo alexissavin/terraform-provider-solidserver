@@ -12,7 +12,7 @@ func resourcedevice() *schema.Resource {
   return &schema.Resource{
     Create: resourcedeviceCreate,
     Read:   resourcedeviceRead,
-    //Update: resourcedeviceUpdate,
+    Update: resourcedeviceUpdate,
     Delete: resourcedeviceDelete,
     Exists: resourcedeviceExists,
     Importer: &schema.ResourceImporter{
@@ -30,14 +30,14 @@ func resourcedevice() *schema.Resource {
         Type:     schema.TypeString,
         Description: "The class associated to the device.",
         Optional: true,
-        ForceNew: true,
+        ForceNew: false,
         Default:  "",
       },
       "class_parameters": &schema.Schema{
         Type:     schema.TypeMap,
         Description: "The class parameters associated to device.",
         Optional: true,
-        ForceNew: true,
+        ForceNew: false,
         Default: map[string]string{},
       },
     },
@@ -54,30 +54,34 @@ func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error
   log.Printf("[DEBUG] Checking existence of device (oid): %s", d.Id())
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/hostdev_info", &parameters)
+  http_resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
-    return true, nil
-  }
-
-  if (len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-      // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s (%s)", d.Id(), errmsg)
+    // Checking the answer
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+      return true, nil
     }
-  } else {
-    // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s", d.Id())
+
+    if (len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        // Log the error
+        log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s (%s)", d.Id(), errmsg)
+      }
+    } else {
+      // Log the error
+      log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s", d.Id())
+    }
+
+    // Unset local ID
+    d.SetId("")
+
+    return false, nil
   }
 
-  // Unset local ID
-  d.SetId("")
-
-  return false, nil
+  return false, fmt.Errorf("SOLIDServer - Error initiating API call")
 }
 
 func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
@@ -98,60 +102,69 @@ func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("hostdev_class_parameters", class_parameters.Encode())
 
   // Sending the creation request
-  http_resp, body, _ := s.Request("post", "rest/hostdev_add", &parameters)
+  http_resp, body, err := s.Request("post", "rest/hostdev_add", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
-    if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Created device (oid): %s", oid)
-      d.SetId(oid)
-      return nil
+    // Checking the answer
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
+      if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Created device (oid): %s", oid)
+        d.SetId(oid)
+        return nil
+      }
     }
+
+    // Reporting a failure
+    return fmt.Errorf("SOLIDServer - Unable to create device: %s", d.Get("name").(string))
   }
 
-  // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to create device: %s", d.Get("name").(string))
+  return fmt.Errorf("SOLIDServer - Error initiating API call")
 }
 
-// func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
-//   s := meta.(*SOLIDserver)
+func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
+  s := meta.(*SOLIDserver)
 
-//   // Building parameters
-//   parameters := url.Values{}
-//   parameters.Add("hostdev_name", d.Get("name").(string))
-//   parameters.Add("hostdev_class_name", d.Get("class").(string))
+  // Building parameters
+  parameters := url.Values{}
+  parameters.Add("hostdev_id", d.Id())
+  parameters.Add("hostdev_name", d.Get("name").(string))
+  parameters.Add("hostdev_class_name", d.Get("class").(string))
 
-//   // Edit only
-//   parameters.Add("add_flag", "edit_only")
+  // Edit only
+  parameters.Add("add_flag", "edit_only")
 
-//   // Building class_parameters
-//   class_parameters := url.Values{}
-//   for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-//     class_parameters.Add(k, v.(string))
-//   }
-//   parameters.Add("hostdev_class_parameters", class_parameters.Encode())
+  // Building class_parameters
+  class_parameters := url.Values{}
+  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
+    class_parameters.Add(k, v.(string))
+  }
+  parameters.Add("hostdev_class_parameters", class_parameters.Encode())
 
-//   // Sending the update request
-//   http_resp, body, _ := s.Request("put", "rest/hostdev_add", &parameters)
+  // Sending the update request
+  http_resp, body, err := s.Request("put", "rest/hostdev_add", &parameters)
 
-//   var buf [](map[string]interface{})
-//   json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-//   // Checking the answer
-//   if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
-//     if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-//       log.Printf("[DEBUG] SOLIDServer - Updated device (oid): %s", oid)
-//       d.SetId(oid)
-//       return nil
-//     }
-//   }
+    // Checking the answer
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+      if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Updated device (oid): %s", oid)
+        d.SetId(oid)
+        return nil
+      }
+    }
 
-//   // Reporting a failure
-//   return fmt.Errorf("SOLIDServer - Unable to update device: %s", d.Get("name").(string))
-// }
+    // Reporting a failure
+    return fmt.Errorf("SOLIDServer - Unable to update device: %s", d.Get("name").(string))
+  }
+
+  return fmt.Errorf("SOLIDServer - Error initiating API call")
+}
 
 func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
@@ -161,25 +174,29 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("hostdev_id", d.Id())
 
   // Sending the deletion request
-  http_resp, body, _ := s.Request("delete", "rest/hostdev_delete", &parameters)
+  http_resp, body, err := s.Request("delete", "rest/hostdev_delete", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode != 204 && len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Unable to delete device : %s (%s)", d.Get("name"), errmsg)
+    // Checking the answer
+    if (http_resp.StatusCode != 204 && len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        // Reporting a failure
+        return fmt.Errorf("SOLIDServer - Unable to update delete device : %s (%s)", d.Get("name"), errmsg)
+      }
     }
+
+    // Log deletion
+    log.Printf("[DEBUG] SOLIDServer - Deleted device (oid): %s", d.Id())
+
+    // Unset local ID
+    d.SetId("")
+    return nil
   }
 
-  // Log deletion
-  log.Printf("[DEBUG] SOLIDServer - Deleted device (oid): %s", d.Id())
-
-  // Unset local ID
-  d.SetId("")
-
-  return nil
+  return fmt.Errorf("SOLIDServer - Error initiating API call")
 }
 
 func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
@@ -190,48 +207,53 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("hostdev_id", d.Id())
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/hostdev_info", &parameters)
+  http_resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    d.Set("name", buf[0]["hostdev_name"].(string))
-    d.Set("class",buf[0]["hostdev_class_name"].(string))
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      d.Set("name", buf[0]["hostdev_name"].(string))
+      d.Set("class",buf[0]["hostdev_class_name"].(string))
 
     // Updating local class_parameters
-    current_class_parameters := d.Get("class_parameters").(map[string]interface{})
-    retrieved_class_parameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
-    computed_class_parameters := map[string]string{}
+      current_class_parameters := d.Get("class_parameters").(map[string]interface{})
+      retrieved_class_parameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
+      computed_class_parameters := map[string]string{}
 
-    for ck, _ := range current_class_parameters {
-      if rv, rv_exist := retrieved_class_parameters[ck]; (rv_exist) {
-        computed_class_parameters[ck] = rv[0]
-      } else {
-        computed_class_parameters[ck] = ""
+      for ck, _ := range current_class_parameters {
+        if rv, rv_exist := retrieved_class_parameters[ck]; (rv_exist) {
+          computed_class_parameters[ck] = rv[0]
+        } else {
+          computed_class_parameters[ck] = ""
+        }
       }
+
+      d.Set("class_parameters", computed_class_parameters)
+
+      return nil
     }
 
-    d.Set("class_parameters", computed_class_parameters)
-
-    return nil
-  }
-
-  if (len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+    if (len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
       // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)", d.Get("name"), errmsg)
-    }
-  } else {
+        log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)", d.Get("name"), errmsg)
+      }
+    } else {
     // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s", d.Id())
-  }
+      log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s", d.Id())
+    }
 
-  // Do not unset the local ID to avoid inconsistency
+    // Do not unset the local ID to avoid inconsistency
+
+    // Reporting a failure
+    return fmt.Errorf("SOLIDServer - Unable to find device: %s", d.Get("name").(string))
+  }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to find device: %s", d.Get("name").(string))
+  return fmt.Errorf("SOLIDServer - Error initiating API call")
 }
 
 func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -242,44 +264,49 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
   parameters.Add("hostdev_id", d.Id())
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/hostdev_info", &parameters)
+  http_resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    d.Set("name", buf[0]["hostdev_name"].(string))
-    d.Set("class",buf[0]["hostdev_class_name"].(string))
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      d.Set("name", buf[0]["hostdev_name"].(string))
+      d.Set("class",buf[0]["hostdev_class_name"].(string))
 
-    // Updating local class_parameters
-    current_class_parameters := d.Get("class_parameters").(map[string]interface{})
-    retrieved_class_parameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
-    computed_class_parameters := map[string]string{}
+      // Updating local class_parameters
+      current_class_parameters := d.Get("class_parameters").(map[string]interface{})
+      retrieved_class_parameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
+      computed_class_parameters := map[string]string{}
 
-    for ck, _ := range current_class_parameters {
-      if rv, rv_exist := retrieved_class_parameters[ck]; (rv_exist) {
-        computed_class_parameters[ck] = rv[0]
-      } else {
-        computed_class_parameters[ck] = ""
+      for ck, _ := range current_class_parameters {
+        if rv, rv_exist := retrieved_class_parameters[ck]; (rv_exist) {
+          computed_class_parameters[ck] = rv[0]
+        } else {
+          computed_class_parameters[ck] = ""
+        }
       }
+
+      d.Set("class_parameters", computed_class_parameters)
+
+      return []*schema.ResourceData{d}, nil
     }
 
-    d.Set("class_parameters", computed_class_parameters)
-
-    return []*schema.ResourceData{d}, nil
-  }
-
-  if (len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+    if (len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        // Log the error
+        log.Printf("[DEBUG] SOLIDServer - Unable to import device(oid): %s (%s)", d.Id(), errmsg)
+      }
+    } else {
       // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to import device(oid): %s (%s)", d.Id(), errmsg)
+      log.Printf("[DEBUG] SOLIDServer - Unable to find and import device (oid): %s", d.Id())
     }
-  } else {
-    // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find and import device (oid): %s", d.Id())
+
+    // Reporting a failure
+    return nil, fmt.Errorf("SOLIDServer - Unable to find and import device (oid): %s", d.Id())
   }
 
   // Reporting a failure
-  return nil, fmt.Errorf("SOLIDServer - Unable to find and import device (oid): %s", d.Id())
+  return nil, fmt.Errorf("SOLIDServer - Error initiating API call")
 }
