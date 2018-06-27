@@ -33,6 +33,13 @@ func Provider() terraform.ResourceProvider {
         DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_SSLVERIFY", true),
         Description: "Enable/Disable ssl verify (Default : enabled)",
       },
+      "additional_trust_certs_file": &schema.Schema{
+        Type:        schema.TypeString,
+        Required:    false,
+        Optional:    true,
+        DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_ADDITIONALTRUSTCERTSFILE", nil),
+        Description: "PEM formatted file with additional certificates to trust for TLS connection",
+      },
     },
 
     ResourcesMap: map[string]*schema.Resource{
@@ -54,6 +61,7 @@ func ProviderConfigure(d *schema.ResourceData) (interface{}, error) {
     d.Get("username").(string),
     d.Get("password").(string),
     d.Get("sslverify").(bool),
+    d.Get("additional_trust_certs_file").(string),
   )
 
   return s, nil
