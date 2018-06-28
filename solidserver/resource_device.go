@@ -53,55 +53,45 @@ func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error
 
   log.Printf("[DEBUG] Checking existence of device (oid): %s", d.Id())
 
-  // Sending the read request
+  // Sending read request
   http_resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
 
   if (err == nil) {
     var buf [](map[string]interface{})
     json.Unmarshal([]byte(body), &buf)
 
-    // Checking the answer
-    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+    // Checking answer
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
       return true, nil
     }
 
     if (len(buf) > 0) {
       if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-        // Log the error
         log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s (%s)", d.Id(), errmsg)
       }
     } else {
-      // Log the error
       log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s", d.Id())
     }
 
     // Unset local ID
     d.SetId("")
-
-    return false, nil
   }
 
-  return false, fmt.Errorf("SOLIDServer - Error initiating API call")
+  // Reporting a failure
+  return false, err
 }
 
 func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
+  // Building parameters
   parameters := url.Values{}
+  parameters.Add("add_flag", "new_only")
   parameters.Add("hostdev_name", d.Get("name").(string))
   parameters.Add("hostdev_class_name", d.Get("class").(string))
+  parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
-  // New only
-  parameters.Add("add_flag", "new_only")
-
-  // Building class_parameters
-  class_parameters := url.Values{}
-  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-    class_parameters.Add(k, v.(string))
-  }
-  parameters.Add("hostdev_class_parameters", class_parameters.Encode())
-
-  // Sending the creation request
+  // Sending creation request
   http_resp, body, err := s.Request("post", "rest/hostdev_add", &parameters)
 
   if (err == nil) {
@@ -121,7 +111,8 @@ func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
     return fmt.Errorf("SOLIDServer - Unable to create device: %s", d.Get("name").(string))
   }
 
-  return fmt.Errorf("SOLIDServer - Error initiating API call")
+  // Reporting a failure
+  return err
 }
 
 func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -130,18 +121,10 @@ func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
   // Building parameters
   parameters := url.Values{}
   parameters.Add("hostdev_id", d.Id())
+  parameters.Add("add_flag", "edit_only")
   parameters.Add("hostdev_name", d.Get("name").(string))
   parameters.Add("hostdev_class_name", d.Get("class").(string))
-
-  // Edit only
-  parameters.Add("add_flag", "edit_only")
-
-  // Building class_parameters
-  class_parameters := url.Values{}
-  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-    class_parameters.Add(k, v.(string))
-  }
-  parameters.Add("hostdev_class_parameters", class_parameters.Encode())
+  parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
   // Sending the update request
   http_resp, body, err := s.Request("put", "rest/hostdev_add", &parameters)
@@ -151,7 +134,7 @@ func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
     json.Unmarshal([]byte(body), &buf)
 
     // Checking the answer
-    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201)&& len(buf) > 0) {
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
       if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
         log.Printf("[DEBUG] SOLIDServer - Updated device (oid): %s", oid)
         d.SetId(oid)
@@ -163,7 +146,8 @@ func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
     return fmt.Errorf("SOLIDServer - Unable to update device: %s", d.Get("name").(string))
   }
 
-  return fmt.Errorf("SOLIDServer - Error initiating API call")
+  // Reporting a failure
+  return err
 }
 
 func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
@@ -193,10 +177,13 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
 
     // Unset local ID
     d.SetId("")
+
+    // Reporting a success
     return nil
   }
 
-  return fmt.Errorf("SOLIDServer - Error initiating API call")
+  // Reporting a failure
+  return err
 }
 
 func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
@@ -218,7 +205,7 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
       d.Set("name", buf[0]["hostdev_name"].(string))
       d.Set("class",buf[0]["hostdev_class_name"].(string))
 
-    // Updating local class_parameters
+      // Updating local class_parameters
       current_class_parameters := d.Get("class_parameters").(map[string]interface{})
       retrieved_class_parameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
       computed_class_parameters := map[string]string{}
@@ -238,11 +225,11 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 
     if (len(buf) > 0) {
       if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-      // Log the error
+        // Log the error
         log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)", d.Get("name"), errmsg)
       }
     } else {
-    // Log the error
+      // Log the error
       log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s", d.Id())
     }
 
@@ -253,7 +240,7 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
   }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Error initiating API call")
+  return err
 }
 
 func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -308,5 +295,5 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
   }
 
   // Reporting a failure
-  return nil, fmt.Errorf("SOLIDServer - Error initiating API call")
+  return nil, err
 }
