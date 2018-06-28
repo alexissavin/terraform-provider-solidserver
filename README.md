@@ -58,6 +58,25 @@ provider "solidserver" {
 ## Available Resources
 SOLIDServer provider allows to manage several resources listed below.
 
+### Device
+Device resource allows to track devices on the network and link them with IP addresses. It support the following arguments:
+
+*`name` - (Required) The name of the device to create.
+
+```
+resource "solidserver_device" "my_first_device" {
+  name   = "my_device"
+  class  = "AWS_EC2_INSTANCE"
+  class_parameters {
+    cloudaz = "eu-west-1a"
+    instanceid = "i-03d4bd36f915b0322"
+    instancetype = "t2.micro"
+  }
+}
+```
+
+Note: Using this resources requires a specific license.
+
 ### IP Subnet
 IP Subnet resource allows to create subnets from the following arguments:
 
@@ -101,7 +120,7 @@ resource "solidserver_ip_address" "my_first_ip" {
   name             = "myfirstip.mycompany.priv"
   class            = "AWS_VPC_ADDRESS"
   class_parameters {
-    instanceclouduid = "i-0121e79997521079c"
+    instanceid = "i-0121e79997521079c"
   }
 }
 ```
