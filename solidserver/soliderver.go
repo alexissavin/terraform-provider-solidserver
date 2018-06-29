@@ -34,18 +34,22 @@ func NewSOLIDserver(host string, username string, password string, sslverify boo
   return s
 }
 
-func (s *SOLIDserver) Request(method string, service string, parameters *url.Values) (*http.Response, string, []error) {
+func (s *SOLIDserver) Request(method string, service string, parameters *url.Values) (*http.Response, string, error) {
+  var response *http.Response = nil
+  var body string = ""
+  var err []error = nil
+
   // Get the SystemCertPool, continue with an empty pool on error
   log.Printf("[DEBUG] AdditionalTrustCertsFile = %s", s.AdditionalTrustCertsFile)
-  rootCAs, err := x509.SystemCertPool()
-  if rootCAs == nil || err != nil {
+  rootCAs, x509err := x509.SystemCertPool()
+  if rootCAs == nil || x509err != nil {
     rootCAs = x509.NewCertPool()
   }
   if s.AdditionalTrustCertsFile != "" {
-    certs, err := ioutil.ReadFile(s.AdditionalTrustCertsFile)
+    certs, readErr := ioutil.ReadFile(s.AdditionalTrustCertsFile)
     log.Printf("[DEBUG] Certificates = %s", certs)
-    if err != nil {
-      log.Fatalf("Failed to append %q to RootCAs: %v", s.AdditionalTrustCertsFile, err)
+    if readErr != nil {
+      log.Fatalf("Failed to append %q to RootCAs: %v", s.AdditionalTrustCertsFile, readErr)
     }
 
     log.Printf("[DEBUG] Cert Subjects Before Append = %d", len(rootCAs.Subjects()))
@@ -54,34 +58,41 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
     }
     log.Printf("[DEBUG] Cert Subjects After Append = %d", len(rootCAs.Subjects()))
   }
+
   apiclient := gorequest.New()
 
   switch method {
   case "post":
-    return apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+    response, body, err = apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
     TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
     Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
     Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
     End()
   case "put":
-    return apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+    response, body, err = apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
     TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
     Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
     Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
     End()
   case "delete":
-    return apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+    response, body, err = apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
     TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
     Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
     Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
     End()
   case "get":
-    return apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+    response, body, err = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
     TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
     Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
     Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
     End()
   default:
-    return nil, "", nil
+    return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call, unsupported HTTP request")
   }
+
+  if (err != nil) {
+    return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call")
+  }
+
+  return response, body, nil
 }

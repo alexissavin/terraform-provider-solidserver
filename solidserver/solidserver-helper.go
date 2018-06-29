@@ -102,6 +102,18 @@ func prefixlengthtosize(length int) int {
   return -1
 }
 
+// Build url value object from class parameters
+// Return an url.Values{} object
+func urlfromclassparams(parameters interface{}) url.Values {
+  class_parameters := url.Values{}
+
+  for k, v := range parameters.(map[string]interface{}) {
+    class_parameters.Add(k, v.(string))
+  }
+
+  return class_parameters
+}
+
 // Return an available IP addresses from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
 func ipaddressfindfree(subnet_id string, meta interface{}) []string {

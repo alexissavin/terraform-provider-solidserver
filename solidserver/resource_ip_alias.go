@@ -61,8 +61,17 @@ func resourcealiasvalidatetype(v interface{}, _ string) ([]string, []error) {
 func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
-  var site_id    string = ipsiteidbyname(d.Get("space").(string), meta)
-  var address_id  string = ipaddressidbyip(site_id, d.Get("address").(string), meta)
+  // FIXME - Replace following line by the one following
+  var site_id string = ipsiteidbyname(d.Get("space").(string), meta)
+  var address_id string = ipaddressidbyip(site_id, d.Get("address").(string), meta)
+
+  // Gather required ID(s) from provided information
+  // if site_id, err := ipsiteidbyname(d.Get("space").(string), meta); (err != nil) {
+  //   return err
+  // }
+  // if address_id, err := ipaddressidbyip(site_id, d.Get("address").(string), meta); (err != nil) {
+  //   return err
+  // }
 
   // Building parameters
   parameters := url.Values{}
@@ -71,32 +80,29 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("ip_name_type", d.Get("type").(string))
 
   // Sending the creation request
-  http_resp, body, _ := s.Request("post", "rest/ip_alias_add", &parameters)
+  http_resp, body, err := s.Request("post", "rest/ip_alias_add", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
-    if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-      //ip_name_id := ipaliasidbyinfo(oid, d.Get("name").(string), d.Get("type").(string), meta)
+    // Checking the answer
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
+      if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Created IP alias (oid): %s", oid)
+        d.SetId(oid)
 
-      log.Printf("[DEBUG] SOLIDServer - Created IP alias (oid): %s", oid)
-
-      d.SetId(oid)
-
-      return nil
+        return nil
+      }
     }
+
+    // Reporting a failure
+    return fmt.Errorf("SOLIDServer - Unable to create IP alias: %s - %s (associated to IP address with ID: %s)", d.Get("name").(string), d.Get("type"), address_id)
   }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to create IP alias: %s - %s (associated to IP address with ID: %s)", d.Get("name").(string), d.Get("type"), address_id)
+  return err    
 }
-
-//func resourceipaliasUpdate(d *schema.ResourceData, meta interface{}) error {
-  // Not necessary
-//  return nil
-//}
 
 func resourceipaliasDelete(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
@@ -106,87 +112,107 @@ func resourceipaliasDelete(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("ip_name_id", d.Id())
 
   // Sending the deletion request
-  http_resp, body, _ := s.Request("delete", "rest/ip_alias_delete", &parameters)
+  http_resp, body, err := s.Request("delete", "rest/ip_alias_delete", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode != 204 && len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)", d.Get("name"), d.Get("type"), errmsg)
+    // Checking the answer
+    if (http_resp.StatusCode != 204 && len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)", d.Get("name"), d.Get("type"), errmsg)
+      }
     }
+
+    // Log deletion
+    log.Printf("[DEBUG] SOLIDServer - Deleted IP alias with oid: %s", d.Id())
+
+    // Unset local ID
+    d.SetId("")
+
+    // Reporting a success
+    return nil
   }
 
-  // Log deletion
-  log.Printf("[DEBUG] SOLIDServer - Deleted IP alias with oid: %s", d.Id())
-
-  // Unset local ID
-  d.SetId("")
-
-  return nil
+  // Reporting a failure
+  return err
 }
 
 func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
+  // FIXME - Replace following line by the one following
   var site_id    string = ipsiteidbyname(d.Get("space").(string), meta)
   var address_id  string = ipaddressidbyip(site_id, d.Get("address").(string), meta)
+
+  // Gather required ID(s) from provided information
+  // if site_id, err := ipsiteidbyname(d.Get("space").(string), meta); (err != nil) {
+  //   return err
+  // }
+  // if address_id, err := ipaddressidbyip(site_id, d.Get("address").(string), meta); (err != nil) {
+  //   return err
+  // }
 
   // Building parameters
   parameters := url.Values{}
   parameters.Add("ip_id", address_id)
-  // Bug - Ticket 18653
+  // Bug - Ticket 18653 (Fixed in 6.0.2.P2) to be changed soon
   //parameters.Add("WHERE", "ip_name_id='" + d.Id() + "'")
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/ip_alias_list", &parameters)
+  http_resp, body, err := s.Request("get", "rest/ip_alias_list", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Shall be removed once Ticket 18653 is closed
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    for i := 0; i < len(buf); i++ {
-      r_ip_name_id, r_ip_name_id_exist := buf[i]["ip_name_id"].(string)
-      r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
-      r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
+    // Shall be removed once Ticket 18653 is closed
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      for i := 0; i < len(buf); i++ {
+        r_ip_name_id, r_ip_name_id_exist := buf[i]["ip_name_id"].(string)
+        r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
+        r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
 
-      if (r_ip_name_id_exist && strings.Compare(d.Id(), r_ip_name_id) == 0) {
-        if (r_alias_name_exist) {
-          d.Set("name", r_alias_name)
+        if (r_ip_name_id_exist && strings.Compare(d.Id(), r_ip_name_id) == 0) {
+          if (r_alias_name_exist) {
+            d.Set("name", r_alias_name)
+          }
+          if (r_ip_name_type_exist) {
+            d.Set("type", r_ip_name_type)
+          }
+
+          return nil
         }
-        if (r_ip_name_type_exist) {
-          d.Set("type", r_ip_name_type)
-        }
-
-        return nil
       }
     }
-  }
 
-  // Shall be restored once Ticket 18653 is closed
-  // Checking the answer
-  //if (http_resp.StatusCode == 200 && len(buf) > 0) {
-  //  d.Set("name", buf[0]["alias_name"].(string))
-  //  d.Set("type", buf[0]["ip_name_type"].(string))
-  //
-  //  return nil
-  //}
+    // Shall be restored once Ticket 18653 is closed
+    // Checking the answer
+    //if (http_resp.StatusCode == 200 && len(buf) > 0) {
+    //  d.Set("name", buf[0]["alias_name"].(string))
+    //  d.Set("type", buf[0]["ip_name_type"].(string))
+    //
+    //  return nil
+    //}
 
-  if (len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+    if (len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        // Log the error
+        log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s (%s)", d.Get("name"), errmsg)
+      }
+    } else {
       // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s (%s)", d.Get("name"), errmsg)
+      log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias (oid): %s", d.Id())
     }
-  } else {
-    // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias (oid): %s", d.Id())
-  }
 
-  // Do not unset the local ID to avoid inconsistency
+    // Do not unset the local ID to avoid inconsistency
+
+    // Reporting a failure
+    return fmt.Errorf("SOLIDServer - Unable to find IP alias: %s", d.Get("name").(string))
+  }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to find IP alias: %s", d.Get("name").(string))
+  return err
 }
