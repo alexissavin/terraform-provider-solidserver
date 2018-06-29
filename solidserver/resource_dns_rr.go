@@ -87,30 +87,33 @@ func resourcednsrrExists(d *schema.ResourceData, meta interface{}) (bool, error)
   log.Printf("[DEBUG] Checking existence of RR (oid): %s", d.Id())
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/dns_rr_info", &parameters)
+  http_resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
-    return true, nil
-  }
-
-  if (len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-      // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s (%s)", d.Id(), errmsg)
+    // Checking the answer
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
+      return true, nil
     }
-  } else {
-    // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s", d.Id())
+
+    if (len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        // Log the error
+        log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s (%s)", d.Id(), errmsg)
+      }
+    } else {
+      // Log the error
+      log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s", d.Id())
+    }
+
+    // Unset local ID
+    d.SetId("")
   }
 
-  // Unset local ID
-  d.SetId("")
-
-  return false, nil
+  // Reporting a failure
+  return false, err
 }
 
 func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
@@ -118,6 +121,7 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
 
   // Building parameters
   parameters := url.Values{}
+  parameters.Add("add_flag", "new_only")
   parameters.Add("dns_name", d.Get("dnsserver").(string))
   parameters.Add("rr_name", d.Get("name").(string))
   parameters.Add("rr_type", strings.ToUpper(d.Get("type").(string)))
@@ -129,26 +133,28 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
     parameters.Add("dnsview_name", d.Get("dnsview_name").(string))
   }
 
-  // New only
-  parameters.Add("add_flag", "new_only")
-
   // Sending the creation request
-  http_resp, body, _ := s.Request("post", "rest/dns_rr_add", &parameters)
+  http_resp, body, err := s.Request("post", "rest/dns_rr_add", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
-    if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Created RR (oid): %s", oid)
-      d.SetId(oid)
-      return nil
+    // Checking the answer
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
+      if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Created RR (oid): %s", oid)
+        d.SetId(oid)
+        return nil
+      }
     }
+
+    // Reporting a failure
+    return fmt.Errorf("SOLIDServer - Unable to create RR: %s", d.Get("name").(string))
   }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to create RR: %s", d.Get("name").(string))
+  return err
 }
 
 func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -157,6 +163,7 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
   // Building parameters
   parameters := url.Values{}
   parameters.Add("rr_id", d.Id())
+  parameters.Add("add_flag", "edit_only")
   parameters.Add("dns_name", d.Get("dnsserver").(string))
   parameters.Add("rr_name", d.Get("name").(string))
   parameters.Add("rr_type", strings.ToUpper(d.Get("type").(string)))
@@ -168,26 +175,28 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
     parameters.Add("dnsview_name", d.Get("dnsview_name").(string))
   }
 
-  // Edit only
-  parameters.Add("add_flag", "edit_only")
-
   // Sending the update request
-  http_resp, body, _ := s.Request("put", "rest/dns_rr_add", &parameters)
+  http_resp, body, err := s.Request("put", "rest/dns_rr_add", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
-    if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Updated RR (oid): %s", oid)
-      d.SetId(oid)
-      return nil
+    // Checking the answer
+    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
+      if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Updated RR (oid): %s", oid)
+        d.SetId(oid)
+        return nil
+      }
     }
-  }
+
+    // Reporting a failure
+    return fmt.Errorf("SOLIDServer - Unable to update RR: %s", d.Get("name").(string))
+    }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to update RR: %s", d.Get("name").(string))
+  return err
 }
 
 func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
@@ -203,25 +212,31 @@ func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
   }
 
   // Sending the deletion request
-  http_resp, body, _ := s.Request("delete", "rest/dns_rr_delete", &parameters)
+  http_resp, body, err := s.Request("delete", "rest/dns_rr_delete", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode != 204 && len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-      log.Printf("[DEBUG] SOLIDServer - Unable to delete RR: %s (%s)", d.Get("name"), errmsg)
+    // Checking the answer
+    if (http_resp.StatusCode != 204 && len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        log.Printf("[DEBUG] SOLIDServer - Unable to delete RR: %s (%s)", d.Get("name"), errmsg)
+      }
     }
+
+    // Log deletion
+    log.Printf("[DEBUG] SOLIDServer - Deleted RR (oid): %s", d.Id())
+
+    // Unset local ID
+    d.SetId("")
+
+    // Reporting a success
+    return nil
   }
 
-  // Log deletion
-  log.Printf("[DEBUG] SOLIDServer - Deleted RR (oid): %s", d.Id())
-
-  // Unset local ID
-  d.SetId("")
-
-  return nil
+  // Reporting a failure
+  return err
 }
 
 func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
@@ -232,38 +247,43 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
   parameters.Add("rr_id", d.Id())
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/dns_rr_info", &parameters)
+  http_resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    ttl, _ := strconv.Atoi(buf[0]["ttl"].(string))
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      ttl, _ := strconv.Atoi(buf[0]["ttl"].(string))
 
-    d.Set("dnsserver", buf[0]["dns_name"].(string))
-    d.Set("name", buf[0]["rr_full_name"].(string))
-    d.Set("type", buf[0]["rr_type"].(string))
-    d.Set("value", buf[0]["value1"].(string))
-    d.Set("ttl", ttl)
+      d.Set("dnsserver", buf[0]["dns_name"].(string))
+      d.Set("name", buf[0]["rr_full_name"].(string))
+      d.Set("type", buf[0]["rr_type"].(string))
+      d.Set("value", buf[0]["value1"].(string))
+      d.Set("ttl", ttl)
 
-    return nil
-  }
-
-  if (len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-      // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to find RR: %s (%s)", d.Get("name"), errmsg)
+      return nil
     }
-  } else {
-    // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s", d.Id())
-  }
 
-  // Do not unset the local ID to avoid inconsistency
+    if (len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        // Log the error
+        log.Printf("[DEBUG] SOLIDServer - Unable to find RR: %s (%s)", d.Get("name"), errmsg)
+      }
+    } else {
+      // Log the error
+      log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s", d.Id())
+    }
+
+    // Do not unset the local ID to avoid inconsistency
+
+    // Reporting a failure
+    return fmt.Errorf("SOLIDServer - Unable to find RR: %s", d.Get("name").(string))
+  }
 
   // Reporting a failure
-  return fmt.Errorf("SOLIDServer - Unable to find RR: %s", d.Get("name").(string))
+  return err
 }
 
 func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -274,39 +294,44 @@ func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*sche
   parameters.Add("rr_id", d.Id())
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/dns_rr_info", &parameters)
+  http_resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    ttl, _ := strconv.Atoi(buf[0]["ttl"].(string))
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      ttl, _ := strconv.Atoi(buf[0]["ttl"].(string))
 
-    d.Set("dnsserver", buf[0]["dns_name"].(string))
-    d.Set("name", buf[0]["rr_full_name"].(string))
-    d.Set("type", buf[0]["rr_type"].(string))
-    d.Set("value", buf[0]["value1"].(string))
-    d.Set("ttl", ttl)
+      d.Set("dnsserver", buf[0]["dns_name"].(string))
+      d.Set("name", buf[0]["rr_full_name"].(string))
+      d.Set("type", buf[0]["rr_type"].(string))
+      d.Set("value", buf[0]["value1"].(string))
+      d.Set("ttl", ttl)
 
-    // Add dnsview_name parameter if it is supplied
-    if (len(d.Get("dnsview_name").(string)) != 0) {
-      d.Set("dnsview_name", buf[0]["dnsview_name"].(string))
+      // Add dnsview_name parameter if it is supplied
+      if (len(d.Get("dnsview_name").(string)) != 0) {
+        d.Set("dnsview_name", buf[0]["dnsview_name"].(string))
+      }
+
+      return []*schema.ResourceData{d}, nil
     }
 
-    return []*schema.ResourceData{d}, nil
-  }
-
-  if (len(buf) > 0) {
-    if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+    if (len(buf) > 0) {
+      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+        // Log the error
+        log.Printf("[DEBUG] SOLIDServer - Unable to import RR (oid): %s (%s)", d.Id(), errmsg)
+      }
+    } else {
       // Log the error
-      log.Printf("[DEBUG] SOLIDServer - Unable to import RR (oid): %s (%s)", d.Id(), errmsg)
+      log.Printf("[DEBUG] SOLIDServer - Unable to find and import RR (oid): %s", d.Id())
     }
-  } else {
-    // Log the error
-    log.Printf("[DEBUG] SOLIDServer - Unable to find and import RR (oid): %s", d.Id())
+
+    // Reporting a failure
+    return nil, fmt.Errorf("SOLIDServer - Unable to find and import RR (oid): %s", d.Id())
   }
 
   // Reporting a failure
-  return nil, fmt.Errorf("SOLIDServer - Unable to find and import RR (oid): %s", d.Id())
+  return nil, err
 }
