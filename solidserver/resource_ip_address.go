@@ -38,8 +38,9 @@ func resourceipaddress() *schema.Resource {
       "address": &schema.Schema{
         Type:     schema.TypeString,
         Description: "The provisionned IP address.",
-        Required: false,
-        Computed: true,
+        Optional: true,
+        ForceNew: true,
+        Default: "",
       },
       /*
       ** "device_id": &schema.Schema{
@@ -122,7 +123,14 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 
   var site_id         string = ipsiteidbyname(d.Get("space").(string), meta)
   var subnet_id       string = ipsubnetidbyname(site_id, d.Get("subnet").(string), true, meta)
-  var ip_addresses  []string = ipaddressfindfree(subnet_id, meta)
+  var ip_addresses  []string
+
+  // Determine if the IP was passed in or we should generate it
+  if len(d.Get("address").(string)) > 0 {
+    ip_addresses = []string{d.Get("address").(string)}
+  } else {
+    ip_addresses = ipaddressfindfree(subnet_id, meta)
+  }
 
   for i := 0; i < len(ip_addresses); i++ {
     // Building parameters
