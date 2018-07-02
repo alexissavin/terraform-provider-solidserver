@@ -45,6 +45,7 @@ SOLIDServer provider supports the following arguments:
 * `password` - (Required) Password associated with the username. Can be stored in `SOLIDServer_PASSWORD` environment variable.
 * `host` - (Required) IP Address of the SOLIDServer REST API endpoint. Can be stored in `SOLIDServer_HOST` environment variable.
 * `sslverify` - (Optional) Enable/Disable ssl certificate check. Can be stored in `SOLIDServer_SSLVERIFY` environment variable.
+* `additional_trust_certs_file` - (Optional) Path to a file containing concatenated PEM-formatted certificates that will be trusted in addition to system defaults.
 
 ```
 provider "solidserver" {
