@@ -129,10 +129,26 @@ func resourceipsubnetExists(d *schema.ResourceData, meta interface{}) (bool, err
 func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
-  var site_id            string = ipsiteidbyname(d.Get("space").(string), meta)
-  var block_id           string = ipsubnetidbyname(site_id, d.Get("block").(string), false, meta)
-  var subnet_addresses []string = ipsubnetfindbysize(site_id, block_id, d.Get("size").(int), meta)
-  var gateway            string = ""
+  var gateway string = ""
+
+  // Gather required ID(s) from provided information
+  site_id, err := ipsiteidbyname(d.Get("space").(string), meta)
+  if (err != nil) {
+    // Reporting a failure
+    return err
+  }
+
+  block_id, err := ipsubnetidbyname(site_id, d.Get("block").(string), false, meta)
+  if (err != nil) {
+    // Reporting a failure
+    return err
+  }
+
+  subnet_addresses, err := ipsubnetfindbysize(site_id, block_id, d.Get("size").(int), meta)
+  if (err != nil) {
+    // Reporting a failure
+    return err
+  }
 
   for i := 0; i < len(subnet_addresses); i++ {
     // Building parameters

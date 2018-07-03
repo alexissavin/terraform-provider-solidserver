@@ -116,7 +116,7 @@ func urlfromclassparams(parameters interface{}) url.Values {
 
 // Return an available IP addresses from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
-func ipaddressfindfree(subnet_id string, meta interface{}) []string {
+func ipaddressfindfree(subnet_id string, meta interface{}) ([]string, error) {
   s := meta.(*SOLIDserver)
 
   // Building parameters
@@ -125,32 +125,34 @@ func ipaddressfindfree(subnet_id string, meta interface{}) []string {
   parameters.Add("max_find", "4")
 
   // Sending the creation request
-  http_resp, body, _ := s.Request("get", "rpc/ip_find_free_address", &parameters)
+  http_resp, body, err := s.Request("get", "rpc/ip_find_free_address", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    addresses := []string{}
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      addresses := []string{}
 
-    for i := 0; i < len(buf); i++ {
-      if addr, addr_exist := buf[i]["hostaddr"].(string); (addr_exist) {
-        log.Printf("[DEBUG] SOLIDServer - Suggested IP address: %s", addr)
-        addresses = append(addresses, addr)
+      for i := 0; i < len(buf); i++ {
+        if addr, addr_exist := buf[i]["hostaddr"].(string); (addr_exist) {
+          log.Printf("[DEBUG] SOLIDServer - Suggested IP address: %s", addr)
+          addresses = append(addresses, addr)
+        }
       }
+      return addresses, nil
     }
-    return addresses
   }
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP address in subnet (oid): %s", subnet_id)
 
-  return []string{}
+  return []string{}, err
 }
 
 // Return the oid of a space from site_name
 // Or an empty string in case of failure
-func ipsiteidbyname(site_name string, meta interface{}) string {
+func ipsiteidbyname(site_name string, meta interface{}) (string, error) {
   s := meta.(*SOLIDserver)
 
   // Building parameters
@@ -159,26 +161,28 @@ func ipsiteidbyname(site_name string, meta interface{}) string {
 
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/ip_site_list", &parameters)
+  http_resp, body, err := s.Request("get", "rest/ip_site_list", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    if site_id, site_id_exist := buf[0]["site_id"].(string); (site_id_exist) {
-      return site_id
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      if site_id, site_id_exist := buf[0]["site_id"].(string); (site_id_exist) {
+        return site_id, nil
+      }
     }
   }
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find IP space: %s", site_name)
 
-  return ""
+  return "", err
 }
 
 // Return the oid of a subnet from site_id, subnet_name and is_terminal property
 // Or an empty string in case of failure
-func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta interface{}) string {
+func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta interface{}) (string, error) {
   s := meta.(*SOLIDserver)
 
   // Building parameters
@@ -191,26 +195,28 @@ func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta in
   }
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/ip_block_subnet_list", &parameters)
+  http_resp, body, err := s.Request("get", "rest/ip_block_subnet_list", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    if subnet_id, subnet_id_exist := buf[0]["subnet_id"].(string); (subnet_id_exist) {
-      return subnet_id
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      if subnet_id, subnet_id_exist := buf[0]["subnet_id"].(string); (subnet_id_exist) {
+        return subnet_id, nil
+      }
     }
   }
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s", subnet_name)
 
-  return ""
+  return "", err
 }
 
 // Return the oid of an address from site_id, ip_address
 // Or an empty string in case of failure
-func ipaddressidbyip(site_id string, ip_address string, meta interface{}) string {
+func ipaddressidbyip(site_id string, ip_address string, meta interface{}) (string, error) {
   s := meta.(*SOLIDserver)
 
   // Building parameters
@@ -218,26 +224,28 @@ func ipaddressidbyip(site_id string, ip_address string, meta interface{}) string
   parameters.Add("WHERE", "site_id='" + site_id + "' AND " + "ip_addr='" + iptohexip(ip_address) + "'")
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/ip_address_list", &parameters)
+  http_resp, body, err := s.Request("get", "rest/ip_address_list", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    if ip_id, ip_id_exist := buf[0]["ip_id"].(string); (ip_id_exist) {
-      return ip_id
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      if ip_id, ip_id_exist := buf[0]["ip_id"].(string); (ip_id_exist) {
+        return ip_id, nil
+      }
     }
   }
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find IP address: %s", ip_address)
 
-  return ""
+  return "", err
 }
 
 // Return the oid of an address from ip_id, ip_name_type, alias_name
 // Or an empty string in case of failure
-func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, meta interface{}) string {
+func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, meta interface{}) (string, error) {
   s := meta.(*SOLIDserver)
 
   // Building parameters
@@ -247,27 +255,28 @@ func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, 
   // parameters.Add("WHERE", "ip_name_type='" + ip_name_type + "' AND " + "alias_name='" + alias_name + "'")
 
   // Sending the read request
-  http_resp, body, _ := s.Request("get", "rest/ip_alias_list", &parameters)
+  http_resp, body, err := s.Request("get", "rest/ip_alias_list", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Shall be removed once Ticket 18653 is closed
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    for i := 0; i < len(buf); i++ {
-      r_ip_name_id, r_ip_name_id_exist := buf[i]["ip_name_id"].(string)
-      r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
-      r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
+    // Shall be removed once Ticket 18653 is closed
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      for i := 0; i < len(buf); i++ {
+        r_ip_name_id, r_ip_name_id_exist := buf[i]["ip_name_id"].(string)
+        r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
+        r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
 
-      log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s", alias_name, r_alias_name, address_id)
-      log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s", ip_name_type, r_ip_name_type, address_id)
+        log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s", alias_name, r_alias_name, address_id)
+        log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s", ip_name_type, r_ip_name_type, address_id)
 
-      if (r_ip_name_type_exist && strings.Compare(ip_name_type, r_ip_name_type) == 0 &&
-          r_alias_name_exist   && strings.Compare(alias_name, r_alias_name) == 0 &&
-          r_ip_name_id_exist) {
-
-        return r_ip_name_id
+        if (r_ip_name_type_exist && strings.Compare(ip_name_type, r_ip_name_type) == 0 &&
+            r_alias_name_exist   && strings.Compare(alias_name, r_alias_name) == 0 &&
+            r_ip_name_id_exist) {
+          return r_ip_name_id, nil
+        }
       }
     }
   }
@@ -282,12 +291,12 @@ func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, 
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s - %s associated with IP address ID %s", alias_name, ip_name_type, address_id)
 
-  return ""
+  return "", err
 }
 
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
-func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta interface{}) []string {
+func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta interface{}) ([]string, error) {
   s := meta.(*SOLIDserver)
 
   // Building parameters
@@ -298,25 +307,27 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
   parameters.Add("max_find", "4")
 
   // Sending the creation request
-  http_resp, body, _ := s.Request("get", "rpc/ip_find_free_subnet", &parameters)
+  http_resp, body, err := s.Request("get", "rpc/ip_find_free_subnet", &parameters)
 
-  var buf [](map[string]interface{})
-  json.Unmarshal([]byte(body), &buf)
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
 
-  // Checking the answer
-  if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    subnet_addresses := []string{}
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      subnet_addresses := []string{}
 
-    for i := 0; i < len(buf); i++ {
-      if hexaddr, hexaddr_exist := buf[i]["start_ip_addr"].(string); (hexaddr_exist) {
-        log.Printf("[DEBUG] SOLIDServer - Suggested subnet address: %s", hexiptoip(hexaddr))
-        subnet_addresses = append(subnet_addresses, hexaddr)
+      for i := 0; i < len(buf); i++ {
+        if hexaddr, hexaddr_exist := buf[i]["start_ip_addr"].(string); (hexaddr_exist) {
+          log.Printf("[DEBUG] SOLIDServer - Suggested subnet address: %s", hexiptoip(hexaddr))
+          subnet_addresses = append(subnet_addresses, hexaddr)
+        }
       }
+      return subnet_addresses, nil
     }
-    return subnet_addresses
   }
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP subnet in space (oid): %s, block (oid): %s, size: ", site_id, block_id, strconv.Itoa(prefix_size))
 
-  return []string{}
+  return []string{}, err
 }

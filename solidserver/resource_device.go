@@ -282,11 +282,9 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
 
     if (len(buf) > 0) {
       if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
-        // Log the error
         log.Printf("[DEBUG] SOLIDServer - Unable to import device(oid): %s (%s)", d.Id(), errmsg)
       }
     } else {
-      // Log the error
       log.Printf("[DEBUG] SOLIDServer - Unable to find and import device (oid): %s", d.Id())
     }
 

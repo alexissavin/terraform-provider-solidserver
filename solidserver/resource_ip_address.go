@@ -123,55 +123,70 @@ func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, er
 func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
-  var site_id         string = ipsiteidbyname(d.Get("space").(string), meta)
-  var subnet_id       string = ipsubnetidbyname(site_id, d.Get("subnet").(string), true, meta)
   var ip_addresses  []string = nil
 
-  // Determine if an IP address was submitted in or if we should get one from the IPAM
+  // Gather required ID(s) from provided information
+  site_id, err := ipsiteidbyname(d.Get("space").(string), meta)
+  if (err != nil) {
+    // Reporting a failure
+    return err
+  }
+
+  subnet_id, err := ipsubnetidbyname(site_id, d.Get("subnet").(string), true, meta)
+  if (err != nil) {
+    // Reporting a failure
+    return err
+  }
+
+  // Determining if an IP address was submitted in or if we should get one from the IPAM
   if len(d.Get("address").(string)) > 0 {
     ip_addresses = []string{d.Get("address").(string)}
   } else {
-    ip_addresses = ipaddressfindfree(subnet_id, meta)
+    ip_addresses, err = ipaddressfindfree(subnet_id, meta)
+
+    if (err != nil) {
+      // Reporting a failure
+      return err
+    }
   }
 
   for i := 0; i < len(ip_addresses); i++ {
     // Building parameters
     parameters := url.Values{}
     parameters.Add("site_id", site_id)
+    parameters.Add("add_flag", "new_only")
     parameters.Add("name", d.Get("name").(string))
     parameters.Add("hostaddr", ip_addresses[i])
     parameters.Add("mac_addr", d.Get("mac").(string))
     parameters.Add("ip_class_name", d.Get("class").(string))
 
-    // New only
-    parameters.Add("add_flag", "new_only")
-
     // Building class_parameters
-    class_parameters := url.Values{}
-    for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-      class_parameters.Add(k, v.(string))
-    }
-    parameters.Add("ip_class_parameters", class_parameters.Encode())
+    parameters.Add("ip_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
     // Random Delay
     time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 
     // Sending the creation request
-    http_resp, body, _ := s.Request("post", "rest/ip_add", &parameters)
+    http_resp, body, err := s.Request("post", "rest/ip_add", &parameters)
 
-    var buf [](map[string]interface{})
-    json.Unmarshal([]byte(body), &buf)
+    if (err == nil) {
+      var buf [](map[string]interface{})
+      json.Unmarshal([]byte(body), &buf)
 
-    // Checking the answer
-    if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
-      if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
-        log.Printf("[DEBUG] SOLIDServer - Created IP address (oid): %s", oid)
-        d.SetId(oid)
-        d.Set("address", ip_addresses[i])
-        return nil
+      // Checking the answer
+      if ((http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0) {
+        if oid, oid_exist := buf[0]["ret_oid"].(string); (oid_exist) {
+          log.Printf("[DEBUG] SOLIDServer - Created IP address (oid): %s", oid)
+          d.SetId(oid)
+          d.Set("address", ip_addresses[i])
+          return nil
+        }
+      } else {
+        log.Printf("[DEBUG] SOLIDServer - Failed IP address registration, trying another one.")
       }
     } else {
-      log.Printf("[DEBUG] SOLIDServer - Failed IP address registration, trying another one.")
+        // Reporting a failure
+        return err
     }
   }
 
@@ -185,19 +200,13 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
   // Building parameters
   parameters := url.Values{}
   parameters.Add("ip_id", d.Id())
+  parameters.Add("add_flag", "edit_only")
   parameters.Add("ip_name", d.Get("name").(string))
   parameters.Add("mac_addr", d.Get("mac").(string))
   parameters.Add("ip_class_name", d.Get("class").(string))
 
-  // Edit only
-  parameters.Add("add_flag", "edit_only")
-
   // Building class_parameters
-  class_parameters := url.Values{}
-  for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-    class_parameters.Add(k, v.(string))
-  }
-  parameters.Add("ip_class_parameters", class_parameters.Encode())
+  parameters.Add("ip_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
   // Sending the update request
   http_resp, body, err := s.Request("put", "rest/ip_add", &parameters)

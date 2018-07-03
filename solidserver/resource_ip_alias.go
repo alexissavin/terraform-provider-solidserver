@@ -61,17 +61,18 @@ func resourcealiasvalidatetype(v interface{}, _ string) ([]string, []error) {
 func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
-  // FIXME - Replace following line by the one following
-  var site_id string = ipsiteidbyname(d.Get("space").(string), meta)
-  var address_id string = ipaddressidbyip(site_id, d.Get("address").(string), meta)
-
   // Gather required ID(s) from provided information
-  // if site_id, err := ipsiteidbyname(d.Get("space").(string), meta); (err != nil) {
-  //   return err
-  // }
-  // if address_id, err := ipaddressidbyip(site_id, d.Get("address").(string), meta); (err != nil) {
-  //   return err
-  // }
+  site_id, err := ipsiteidbyname(d.Get("space").(string), meta)
+  if (err != nil) {
+    // Reporting a failure
+    return err
+   }
+
+  address_id, err := ipaddressidbyip(site_id, d.Get("address").(string), meta)
+  if (err != nil) {
+    // Reporting a failure
+    return err
+  }
 
   // Building parameters
   parameters := url.Values{}
@@ -142,17 +143,18 @@ func resourceipaliasDelete(d *schema.ResourceData, meta interface{}) error {
 func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
-  // FIXME - Replace following line by the one following
-  var site_id    string = ipsiteidbyname(d.Get("space").(string), meta)
-  var address_id  string = ipaddressidbyip(site_id, d.Get("address").(string), meta)
-
   // Gather required ID(s) from provided information
-  // if site_id, err := ipsiteidbyname(d.Get("space").(string), meta); (err != nil) {
-  //   return err
-  // }
-  // if address_id, err := ipaddressidbyip(site_id, d.Get("address").(string), meta); (err != nil) {
-  //   return err
-  // }
+  site_id, err := ipsiteidbyname(d.Get("space").(string), meta)
+  if (err != nil) {
+    // Reporting a failure
+    return err
+   }
+
+  address_id, err := ipaddressidbyip(site_id, d.Get("address").(string), meta)
+  if (err != nil) {
+    // Reporting a failure
+    return err
+  }
 
   // Building parameters
   parameters := url.Values{}
