@@ -42,14 +42,13 @@ func resourceipaddress() *schema.Resource {
         ForceNew: true,
         Default: "",
       },
-      /*
-      ** "device_id": &schema.Schema{
-      **  Type:     schema.TypeString,
-      **  Description: "Device Name to associate with the IP address (Require a 'Device Manager' license).",
-      **  Required: false,
-      **  Computed: false,
-      ** },
-      */
+       "device": &schema.Schema{
+        Type:     schema.TypeString,
+        Description: "Device Name to associate with the IP address (Require a 'Device Manager' license).",
+        Required: false,
+        Computed: false,
+        Default: "",
+      },
       "name": &schema.Schema{
         Type:     schema.TypeString,
         Description: "The short name or FQDN of the IP address to create.",
@@ -124,6 +123,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
   var ip_addresses  []string = nil
+  var device_id     string = ""
 
   // Gather required ID(s) from provided information
   site_id, err := ipsiteidbyname(d.Get("space").(string), meta)
@@ -136,6 +136,16 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
   if (err != nil) {
     // Reporting a failure
     return err
+  }
+
+  // Retrieving device ID 
+  if len(d.Get("device").(string)) > 0 {
+    device_id, err = hostdevidbyname(d.Get("device").(string), meta)
+
+    if (err != nil) {
+      // Reporting a failure
+      return err
+    }
   }
 
   // Determining if an IP address was submitted in or if we should get one from the IPAM
@@ -158,6 +168,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
     parameters.Add("name", d.Get("name").(string))
     parameters.Add("hostaddr", ip_addresses[i])
     parameters.Add("mac_addr", d.Get("mac").(string))
+    parameters.Add("hostdev_id", device_id)
     parameters.Add("ip_class_name", d.Get("class").(string))
 
     // Building class_parameters
@@ -197,12 +208,26 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
   s := meta.(*SOLIDserver)
 
+  var device_id string = ""
+  var err        error = nil
+
+  // Retrieving device ID 
+  if len(d.Get("device").(string)) > 0 {
+    device_id, err = hostdevidbyname(d.Get("device").(string), meta)
+
+    if (err != nil) {
+      // Reporting a failure
+      return err
+    }
+  }
+
   // Building parameters
   parameters := url.Values{}
   parameters.Add("ip_id", d.Id())
   parameters.Add("add_flag", "edit_only")
   parameters.Add("ip_name", d.Get("name").(string))
   parameters.Add("mac_addr", d.Get("mac").(string))
+  parameters.Add("hostdev_id", device_id)
   parameters.Add("ip_class_name", d.Get("class").(string))
 
   // Building class_parameters

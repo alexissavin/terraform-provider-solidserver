@@ -114,6 +114,36 @@ func urlfromclassparams(parameters interface{}) url.Values {
   return class_parameters
 }
 
+// Return the oid of a device from hostdev_name
+// Or an empty string in case of failure
+func hostdevidbyname(hostdev_name string, meta interface{}) (string, error) {
+  s := meta.(*SOLIDserver)
+
+  // Building parameters
+  parameters := url.Values{}
+  parameters.Add("WHERE", "hostdev_name='" + strings.ToLower(hostdev_name) + "'")
+
+
+  // Sending the read request
+  http_resp, body, err := s.Request("get", "rest/hostdev_list", &parameters)
+
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
+
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      if hostdev_id, hostdev_id_exist := buf[0]["hostdev_id"].(string); (hostdev_id_exist) {
+        return hostdev_id, nil
+      }
+    }
+  }
+
+  log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s", hostdev_name)
+
+  return "", err
+}
+
 // Return an available IP addresses from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
 func ipaddressfindfree(subnet_id string, meta interface{}) ([]string, error) {

@@ -110,6 +110,7 @@ IP Address resource allows to assign an IP from the following arguments:
 * `space` - (Required) The name of the space into which creating the IP address.
 * `subnet` - (Required) The name of the subnet into which creating the IP address.
 * `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
+* `device` - (Optional) Device Name to associate with the IP address (Require a 'Device Manager' license).
 
 For convenience, the IP address' subnet name is expected, not its ID. This allow to create IP addresses within existing subnets.
 If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
