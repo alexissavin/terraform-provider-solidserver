@@ -121,9 +121,10 @@ resource "solidserver_ip_address" "my_first_ip" {
   space            = "my_space"
   subnet           = "my_first_subnet"
   name             = "myfirstip.mycompany.priv"
+  device           = "${solidserver_device.my_first_device.name}"
   class            = "AWS_VPC_ADDRESS"
   class_parameters {
-    instanceid = "i-0121e79997521079c"
+    interfaceid = "eni-d5b961d5"
   }
 }
 ```
