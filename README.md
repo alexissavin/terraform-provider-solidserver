@@ -106,9 +106,9 @@ Note: The gateway_offset value can be positive (offset start at the first addres
 ### IP Address
 IP Address resource allows to assign an IP from the following arguments:
 
-* `address` - (Optional) Specify the IP address to use. If omitted, one will be assigned by SOLIDServer.
 * `space` - (Required) The name of the space into which creating the IP address.
 * `subnet` - (Required) The name of the subnet into which creating the IP address.
+* `request` - (Optional) An optional request for a specific IP address, if unavailable, provisionning will fail.
 * `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
 * `device` - (Optional) Device Name to associate with the IP address (Require a 'Device Manager' license).
 

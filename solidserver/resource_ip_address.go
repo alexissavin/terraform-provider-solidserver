@@ -5,6 +5,7 @@ import (
   "encoding/json"
   "math/rand"
   "net/url"
+  "strings"
   "regexp"
   "time"
   "fmt"
@@ -35,18 +36,25 @@ func resourceipaddress() *schema.Resource {
         Required: true,
         ForceNew: true,
       },
-      "address": &schema.Schema{
+      "request": &schema.Schema{
         Type:     schema.TypeString,
-        Description: "The provisionned IP address.",
+        Description: "The optional requested IP address.",
+        ValidateFunc: resourceipaddressrequestvalidateformat,
         Optional: true,
         ForceNew: true,
         Default: "",
       },
-       "device": &schema.Schema{
+      "address": &schema.Schema{
+        Type:     schema.TypeString,
+        Description: "The provisionned IP address.",
+        Computed: true,
+        ForceNew: true,
+      },
+      "device": &schema.Schema{
         Type:     schema.TypeString,
         Description: "Device Name to associate with the IP address (Require a 'Device Manager' license).",
-        Required: false,
-        Computed: false,
+        Optional: true,
+        ForceNew: false,
         Default: "",
       },
       "name": &schema.Schema{
@@ -79,6 +87,14 @@ func resourceipaddress() *schema.Resource {
       },
     },
   }
+}
+
+func resourceipaddressrequestvalidateformat(v interface{}, _ string) ([]string, []error) {
+  if match, _ := regexp.MatchString(`([0-9]{1,3}\.){3,3}[0-9]{1,3}`, strings.ToUpper(v.(string))); (match == true) {
+    return nil, nil
+  }
+
+  return nil, []error{fmt.Errorf("Unsupported IP address request format.")}
 }
 
 func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, error) {
@@ -149,8 +165,8 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
   }
 
   // Determining if an IP address was submitted in or if we should get one from the IPAM
-  if len(d.Get("address").(string)) > 0 {
-    ip_addresses = []string{d.Get("address").(string)}
+  if len(d.Get("request").(string)) > 0 {
+    ip_addresses = []string{d.Get("request").(string)}
   } else {
     ip_addresses, err = ipaddressfindfree(subnet_id, meta)
 
