@@ -145,7 +145,7 @@ func hostdevidbyname(hostdev_name string, meta interface{}) (string, error) {
 }
 
 // Return an available IP addresses from site_id, block_id and expected subnet_size
-// Or an empty string in case of failure
+// Or an empty table of string in case of failure
 func ipaddressfindfree(subnet_id string, meta interface{}) ([]string, error) {
   s := meta.(*SOLIDserver)
 
@@ -180,6 +180,43 @@ func ipaddressfindfree(subnet_id string, meta interface{}) ([]string, error) {
   return []string{}, err
 }
 
+// Return an available vlan from specified vlmdomain_name
+// Or an empty table strings in case of failure
+func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
+  s := meta.(*SOLIDserver)
+
+  // Building parameters
+  parameters := url.Values{}
+  parameters.Add("limit", "4")
+  //https://192.168.1.2:443/rest/vlmvlan_list?WHERE=vlmdomain_name%3D'local' and row_enabled%3D'2'&limit=2
+  parameters.Add("WHERE", "vlmdomain_name='" + strings.ToLower(vlmdomain_name) + "' AND row_enabled='2'")
+
+  // Sending the creation request
+  http_resp, body, err := s.Request("get", "rest/vlmvlan_list", &parameters)
+
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
+
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      vnids := []string{}
+
+      for i := 0; i < len(buf); i++ {
+        if vnid, vnid_exist := buf[i]["vlmvlan_vlan_id"].(string); (vnid_exist) {
+          log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s", vnid)
+          vnids = append(vnids, vnid)
+        }
+      }
+      return vnids, nil
+    }
+  }
+
+  log.Printf("[DEBUG] SOLIDServer - Unable to find a free vlan ID in vlan domain: %s", vlmdomain_name)
+
+  return []string{}, err
+}
+
 // Return the oid of a space from site_name
 // Or an empty string in case of failure
 func ipsiteidbyname(site_name string, meta interface{}) (string, error) {
@@ -206,6 +243,36 @@ func ipsiteidbyname(site_name string, meta interface{}) (string, error) {
   }
 
   log.Printf("[DEBUG] SOLIDServer - Unable to find IP space: %s", site_name)
+
+  return "", err
+}
+
+// Return the oid of a vlan domain from vlmdomain_name
+// Or an empty string in case of failure
+func vlandomainidbyname(vlmdomain_name string, meta interface{}) (string, error) {
+  s := meta.(*SOLIDserver)
+
+  // Building parameters
+  parameters := url.Values{}
+  parameters.Add("WHERE", "vlmdomain_name='" + strings.ToLower(vlmdomain_name) + "'")
+
+
+  // Sending the read request
+  http_resp, body, err := s.Request("get", "rest/vlmdomain_name", &parameters)
+
+  if (err == nil) {
+    var buf [](map[string]interface{})
+    json.Unmarshal([]byte(body), &buf)
+
+    // Checking the answer
+    if (http_resp.StatusCode == 200 && len(buf) > 0) {
+      if vlmdomain_id, vlmdomain_id_exist := buf[0]["vlmdomain_id"].(string); (vlmdomain_id_exist) {
+        return vlmdomain_id, nil
+      }
+    }
+  }
+
+  log.Printf("[DEBUG] SOLIDServer - Unable to find vlan domain: %s", vlmdomain_name)
 
   return "", err
 }

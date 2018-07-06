@@ -78,6 +78,20 @@ resource "solidserver_device" "my_first_device" {
 
 Note: Using this resources requires a specific license.
 
+### VLAN
+VLAN resource allows to create vlans from the following arguments:
+
+* `vlan_domain` - (Required) The name of the vlan domain into which creating the vlan.
+* `request_id` - (Optional) An optional request for a specific vlan ID. If this vlan ID is unavailable the provisioning request will fail.
+* `name` - (Required) The name of the vlan to create.
+
+```
+resource "solidserver_vlan" "my_first_vlan" {
+  vlan_domain      = "my_vlan_domain"
+  name             = "myfirstip.mycompany.priv"
+}
+```
+
 ### IP Subnet
 IP Subnet resource allows to create subnets from the following arguments:
 
@@ -108,7 +122,7 @@ IP Address resource allows to assign an IP from the following arguments:
 
 * `space` - (Required) The name of the space into which creating the IP address.
 * `subnet` - (Required) The name of the subnet into which creating the IP address.
-* `request` - (Optional) An optional request for a specific IP address, if unavailable, provisionning will fail.
+* `request_ip` - (Optional) An optional request for a specific IP address. If this address is unavailable the provisioning request will fail.
 * `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
 * `device` - (Optional) Device Name to associate with the IP address (Require a 'Device Manager' license).
 

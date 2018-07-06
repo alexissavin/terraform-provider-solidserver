@@ -168,7 +168,7 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
     if (http_resp.StatusCode != 204 && len(buf) > 0) {
       if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
         // Reporting a failure
-        return fmt.Errorf("SOLIDServer - Unable to update delete device : %s (%s)", d.Get("name"), errmsg)
+        return fmt.Errorf("SOLIDServer - Unable to delete device : %s (%s)", d.Get("name"), errmsg)
       }
     }
 

@@ -36,9 +36,9 @@ func resourceipaddress() *schema.Resource {
         Required: true,
         ForceNew: true,
       },
-      "request": &schema.Schema{
+      "request_ip": &schema.Schema{
         Type:     schema.TypeString,
-        Description: "The optional requested IP address.",
+        Description: "The optionally requested IP address.",
         ValidateFunc: resourceipaddressrequestvalidateformat,
         Optional: true,
         ForceNew: true,
@@ -165,8 +165,8 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
   }
 
   // Determining if an IP address was submitted in or if we should get one from the IPAM
-  if len(d.Get("request").(string)) > 0 {
-    ip_addresses = []string{d.Get("request").(string)}
+  if (len(d.Get("request_ip").(string)) > 0) {
+    ip_addresses = []string{d.Get("request_ip").(string)}
   } else {
     ip_addresses, err = ipaddressfindfree(subnet_id, meta)
 
@@ -209,7 +209,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
           return nil
         }
       } else {
-        log.Printf("[DEBUG] SOLIDServer - Failed IP address registration, trying another one.")
+        log.Printf("[DEBUG] SOLIDServer - Failed IP address registration (%s), trying another one.", ip_addresses[i])
       }
     } else {
         // Reporting a failure
