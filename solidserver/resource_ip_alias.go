@@ -203,6 +203,10 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
       if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
         // Log the error
         log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s (%s)", d.Get("name"), errmsg)
+      } else {
+        // There were no errors, but there isn't a matching alias.
+        d.SetId("")
+        return nil
       }
     } else {
       // Log the error
