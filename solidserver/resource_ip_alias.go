@@ -159,8 +159,7 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
   // Building parameters
   parameters := url.Values{}
   parameters.Add("ip_id", address_id)
-  // Bug - Ticket 18653 (Fixed in 6.0.2.P2) to be changed soon
-  //parameters.Add("WHERE", "ip_name_id='" + d.Id() + "'")
+  parameters.Add("WHERE", "ip_name_id='" + d.Id() + "'")
 
   // Sending the read request
   http_resp, body, err := s.Request("get", "rest/ip_alias_list", &parameters)
@@ -169,35 +168,13 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
     var buf [](map[string]interface{})
     json.Unmarshal([]byte(body), &buf)
 
-    // Shall be removed once Ticket 18653 is closed
     // Checking the answer
     if (http_resp.StatusCode == 200 && len(buf) > 0) {
-      for i := 0; i < len(buf); i++ {
-        r_ip_name_id, r_ip_name_id_exist := buf[i]["ip_name_id"].(string)
-        r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
-        r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
-
-        if (r_ip_name_id_exist && strings.Compare(d.Id(), r_ip_name_id) == 0) {
-          if (r_alias_name_exist) {
-            d.Set("name", r_alias_name)
-          }
-          if (r_ip_name_type_exist) {
-            d.Set("type", r_ip_name_type)
-          }
-
-          return nil
-        }
-      }
+      d.Set("name", buf[0]["alias_name"].(string))
+      d.Set("type", buf[0]["ip_name_type"].(string))
+    
+      return nil
     }
-
-    // Shall be restored once Ticket 18653 is closed
-    // Checking the answer
-    //if (http_resp.StatusCode == 200 && len(buf) > 0) {
-    //  d.Set("name", buf[0]["alias_name"].(string))
-    //  d.Set("type", buf[0]["ip_name_type"].(string))
-    //
-    //  return nil
-    //}
 
     if (len(buf) > 0) {
       if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {

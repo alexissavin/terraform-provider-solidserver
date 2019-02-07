@@ -188,10 +188,12 @@ func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
   // Building parameters
   parameters := url.Values{}
   parameters.Add("limit", "4")
-  // SOLIDserver < 7.0
-  //parameters.Add("WHERE", "vlmdomain_name='" + strings.ToLower(vlmdomain_name) + "' AND row_enabled='2'")
-  // SOLIDserver >= 7.0
-  parameters.Add("WHERE", "vlmdomain_name='" + strings.ToLower(vlmdomain_name) + "' AND type='free'")
+
+  if (s.Version < 700) {
+    parameters.Add("WHERE", "vlmdomain_name='" + strings.ToLower(vlmdomain_name) + "' AND row_enabled='2'")
+  } else {
+    parameters.Add("WHERE", "vlmdomain_name='" + strings.ToLower(vlmdomain_name) + "' AND type='free'")
+  }
 
   // Sending the creation request
   http_resp, body, err := s.Request("get", "rest/vlmvlan_list", &parameters)
@@ -205,21 +207,22 @@ func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
       vnids := []string{}
 
       for i := 0; i < len(buf); i++ {
-        // SOLIDserver < 7.0
-        //if vnid, vnid_exist := buf[i]["vlmvlan_vlan_id"].(string); (vnid_exist) {
-        //  log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s", vnid)
-        //  vnids = append(vnids, vnid)
-        //}
-        // SOLIDserver => 7.0
-        if start_vlan_id, start_vlan_id_exist := buf[i]["free_start_vlan_id"].(string); (start_vlan_id_exist) {
-          if end_vlan_id, end_vlan_id_exist := buf[i]["free_end_vlan_id"].(string); (end_vlan_id_exist) {
-            vnid, _ := strconv.Atoi(start_vlan_id)
-            max_vnid, _ := strconv.Atoi(end_vlan_id)
+        if (s.Version < 700) {
+          if vnid, vnid_exist := buf[i]["vlmvlan_vlan_id"].(string); (vnid_exist) {
+            log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s", vnid)
+            vnids = append(vnids, vnid)
+          }
+        } else {
+          if start_vlan_id, start_vlan_id_exist := buf[i]["free_start_vlan_id"].(string); (start_vlan_id_exist) {
+            if end_vlan_id, end_vlan_id_exist := buf[i]["free_end_vlan_id"].(string); (end_vlan_id_exist) {
+              vnid, _ := strconv.Atoi(start_vlan_id)
+              max_vnid, _ := strconv.Atoi(end_vlan_id)
 
-            for vnid < max_vnid {
-              log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s", vnid)
-              vnids = append(vnids, strconv.Itoa(vnid))
-              vnid++
+              for vnid < max_vnid {
+                log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s", vnid)
+                vnids = append(vnids, strconv.Itoa(vnid))
+                vnid++
+              }
             }
           }
         }
