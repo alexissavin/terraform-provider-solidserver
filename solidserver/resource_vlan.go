@@ -107,7 +107,7 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
   var vlan_ids  []string = nil
   var err error = nil
 
-    // Determining if an IP address was submitted in or if we should get one from the IPAM
+  // Determining if a VLAN ID was submitted in or if we should get one from the VLAN Manager
   if (d.Get("request_id").(int) > 0) {
     vlan_ids = []string{d.Get("request_id").(string)}
   } else {

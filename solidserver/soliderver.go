@@ -1,7 +1,7 @@
 package solidserver
 
 import (
-  "github.com/alexissavin/gorequest"
+  "github.com/parnurzeal/gorequest"
   "encoding/base64"
   "crypto/tls"
   "crypto/x509"
