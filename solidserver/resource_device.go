@@ -51,7 +51,7 @@ func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error
 	parameters := url.Values{}
 	parameters.Add("hostdev_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of device (oid): %s", d.Id())
+	log.Printf("[DEBUG] Checking existence of device (oid): %s\n", d.Id())
 
 	// Sending read request
 	http_resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
@@ -67,10 +67,10 @@ func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error
 
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s (%s)", d.Id(), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s (%s)\n", d.Id(), errmsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -101,14 +101,14 @@ func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
-				log.Printf("[DEBUG] SOLIDServer - Created device (oid): %s", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created device (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to create device: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to create device: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -136,14 +136,14 @@ func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
-				log.Printf("[DEBUG] SOLIDServer - Updated device (oid): %s", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated device (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to update device: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to update device: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -173,7 +173,7 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted device (oid): %s", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted device (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -226,17 +226,17 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)\n", d.Get("name"), errmsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find device: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find device: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -282,14 +282,14 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
 
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to import device(oid): %s (%s)", d.Id(), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import device(oid): %s (%s)\n", d.Id(), errmsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import device (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import device (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import device (oid): %s", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import device (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure

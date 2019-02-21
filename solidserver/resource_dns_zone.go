@@ -89,7 +89,7 @@ func resourcednszoneExists(d *schema.ResourceData, meta interface{}) (bool, erro
 	parameters := url.Values{}
 	parameters.Add("dnszone_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of DNS zone (oid): %s", d.Id())
+	log.Printf("[DEBUG] Checking existence of DNS zone (oid): %s\n", d.Id())
 
 	// Sending the read request
 	http_resp, body, err := s.Request("get", "rest/dns_zone_info", &parameters)
@@ -105,10 +105,10 @@ func resourcednszoneExists(d *schema.ResourceData, meta interface{}) (bool, erro
 
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone (oid): %s (%s)", d.Id(), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone (oid): %s (%s)\n", d.Id(), errmsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -153,14 +153,14 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
-				log.Printf("[DEBUG] SOLIDServer - Created DNS zone (oid): %s", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created DNS zone (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to create DNS zone: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to create DNS zone: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -195,7 +195,7 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
-				log.Printf("[DEBUG] SOLIDServer - Updated DNS Zone (oid): %s", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated DNS Zone (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -226,12 +226,12 @@ func resourcednszoneDelete(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if http_resp.StatusCode != 204 && len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete Zone: %s (%s)", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to delete Zone: %s (%s)\n", d.Get("name"), errmsg)
 			}
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted Zone (oid): %s", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted Zone (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -294,17 +294,17 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone: %s (%s)", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone: %s (%s)\n", d.Get("name"), errmsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find DNS zone: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find DNS zone: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -352,14 +352,14 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to import DNS zone (oid): %s (%s)", d.Id(), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import DNS zone (oid): %s (%s)\n", d.Id(), errmsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import DNS zone (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import DNS zone (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import DNS zone (oid): %s", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import DNS zone (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure

@@ -90,7 +90,7 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
-				log.Printf("[DEBUG] SOLIDServer - Created IP alias (oid): %s", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created IP alias (oid): %s\n", oid)
 				d.SetId(oid)
 
 				return nil
@@ -98,7 +98,7 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to create IP alias: %s - %s (associated to IP address with ID: %s)", d.Get("name").(string), d.Get("type"), address_id)
+		return fmt.Errorf("SOLIDServer - Unable to create IP alias: %s - %s (associated to IP address with ID: %s)\n", d.Get("name").(string), d.Get("type"), address_id)
 	}
 
 	// Reporting a failure
@@ -122,12 +122,12 @@ func resourceipaliasDelete(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if http_resp.StatusCode != 204 && len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)", d.Get("name"), d.Get("type"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errmsg)
 			}
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted IP alias with oid: %s", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted IP alias with oid: %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -179,17 +179,17 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s (%s)", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s (%s)\n", d.Get("name"), errmsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find IP alias: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IP alias: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure

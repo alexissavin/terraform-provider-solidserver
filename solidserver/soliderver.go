@@ -55,18 +55,18 @@ func (s *SOLIDserver) GetVersion() error {
 
 	if s.AdditionalTrustCertsFile != "" {
 		certs, readErr := ioutil.ReadFile(s.AdditionalTrustCertsFile)
-		log.Println("[DEBUG] Certificates = %s", certs)
+		log.Printf("[DEBUG] Certificates = %s\n", certs)
 
 		if readErr != nil {
-			log.Fatalf("Failed to append %q to RootCAs: %v", s.AdditionalTrustCertsFile, readErr)
+			log.Fatalf("Failed to append %q to RootCAs: %v\n", s.AdditionalTrustCertsFile, readErr)
 		}
 
-		log.Println("[DEBUG] Cert Subjects Before Append = %d", len(rootCAs.Subjects()))
+		log.Printf("[DEBUG] Cert Subjects Before Append = %d\n", len(rootCAs.Subjects()))
 
 		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
-			log.Println("No certs appended, using system certs only")
+			log.Printf("No certs appended, using system certs only\n")
 		}
-		log.Println("[DEBUG] Cert Subjects After Append = %d", len(rootCAs.Subjects()))
+		log.Printf("[DEBUG] Cert Subjects After Append = %d\n", len(rootCAs.Subjects()))
 	}
 
 	apiclient := gorequest.New()
@@ -85,7 +85,7 @@ func (s *SOLIDserver) GetVersion() error {
 		json.Unmarshal([]byte(body), &buf)
 
 		if version, version_exist := buf[0]["member_version"].(string); version_exist {
-			log.Println("[DEBUG] SOLIDServer - Version: %s", version)
+			log.Printf("[DEBUG] SOLIDServer - Version: %s\n", version)
 
 			StrVersion := strings.Split(version, ".")
 
@@ -96,13 +96,13 @@ func (s *SOLIDserver) GetVersion() error {
 				}
 			}
 
-			log.Println("[DEBUG] SOLIDServer - Version: %i", s.Version)
+			log.Printf("[DEBUG] SOLIDServer - Version: %d\n", s.Version)
 
 			return nil
 		}
 	}
 
-	return fmt.Errorf("SOLIDServer - Error retrieving SOLIDserver Version")
+	return fmt.Errorf("SOLIDServer - Error retrieving SOLIDserver Version\n")
 }
 
 func (s *SOLIDserver) Request(method string, service string, parameters *url.Values) (*http.Response, string, error) {
@@ -119,18 +119,18 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 
 	if s.AdditionalTrustCertsFile != "" {
 		certs, readErr := ioutil.ReadFile(s.AdditionalTrustCertsFile)
-		log.Println("[DEBUG] Certificates = %s", certs)
+		log.Printf("[DEBUG] Certificates = %s\n", certs)
 
 		if readErr != nil {
-			log.Fatalf("Failed to append %q to RootCAs: %v", s.AdditionalTrustCertsFile, readErr)
+			log.Fatalf("Failed to append %q to RootCAs: %v\n", s.AdditionalTrustCertsFile, readErr)
 		}
 
-		log.Println("[DEBUG] Cert Subjects Before Append = %d", len(rootCAs.Subjects()))
+		log.Printf("[DEBUG] Cert Subjects Before Append = %d\n", len(rootCAs.Subjects()))
 
 		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
-			log.Println("No certs appended, using system certs only")
+			log.Printf("No certs appended, using system certs only\n")
 		}
-		log.Println("[DEBUG] Cert Subjects After Append = %d", len(rootCAs.Subjects()))
+		log.Printf("[DEBUG] Cert Subjects After Append = %d\n", len(rootCAs.Subjects()))
 	}
 
 	apiclient := gorequest.New()
@@ -161,11 +161,11 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 			End()
 	default:
-		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call, unsupported HTTP request")
+		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call, unsupported HTTP request\n")
 	}
 
 	if err != nil {
-		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call")
+		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call\n")
 	}
 
 	return response, body, nil

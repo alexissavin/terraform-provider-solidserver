@@ -84,7 +84,7 @@ func resourcednsrrExists(d *schema.ResourceData, meta interface{}) (bool, error)
 	parameters := url.Values{}
 	parameters.Add("rr_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of RR (oid): %s", d.Id())
+	log.Printf("[DEBUG] Checking existence of RR (oid): %s\n", d.Id())
 
 	// Sending the read request
 	http_resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
@@ -101,11 +101,11 @@ func resourcednsrrExists(d *schema.ResourceData, meta interface{}) (bool, error)
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s (%s)", d.Id(), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s (%s)\n", d.Id(), errmsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -143,14 +143,14 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
-				log.Printf("[DEBUG] SOLIDServer - Created RR (oid): %s", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created RR (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to create RR: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to create RR: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -185,14 +185,14 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
-				log.Printf("[DEBUG] SOLIDServer - Updated RR (oid): %s", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated RR (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to update RR: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to update RR: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -221,12 +221,12 @@ func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if http_resp.StatusCode != 204 && len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete RR: %s (%s)", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to delete RR: %s (%s)\n", d.Get("name"), errmsg)
 			}
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted RR (oid): %s", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted RR (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -269,17 +269,17 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find RR: %s (%s)", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find RR: %s (%s)\n", d.Get("name"), errmsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find RR (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find RR: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find RR: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -321,15 +321,15 @@ func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*sche
 		if len(buf) > 0 {
 			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to import RR (oid): %s (%s)", d.Id(), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import RR (oid): %s (%s)\n", d.Id(), errmsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import RR (oid): %s", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import RR (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import RR (oid): %s", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import RR (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure

@@ -138,7 +138,7 @@ func hostdevidbyname(hostdev_name string, meta interface{}) (string, error) {
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s", hostdev_name)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s\n", hostdev_name)
 
 	return "", err
 }
@@ -166,7 +166,7 @@ func ipaddressfindfree(subnet_id string, meta interface{}) ([]string, error) {
 
 			for i := 0; i < len(buf); i++ {
 				if addr, addr_exist := buf[i]["hostaddr"].(string); addr_exist {
-					log.Printf("[DEBUG] SOLIDServer - Suggested IP address: %s", addr)
+					log.Printf("[DEBUG] SOLIDServer - Suggested IP address: %s\n", addr)
 					addresses = append(addresses, addr)
 				}
 			}
@@ -174,7 +174,7 @@ func ipaddressfindfree(subnet_id string, meta interface{}) ([]string, error) {
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP address in subnet (oid): %s", subnet_id)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP address in subnet (oid): %s\n", subnet_id)
 
 	return []string{}, err
 }
@@ -208,7 +208,7 @@ func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
 			for i := 0; i < len(buf); i++ {
 				if s.Version < 700 {
 					if vnid, vnid_exist := buf[i]["vlmvlan_vlan_id"].(string); vnid_exist {
-						log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s", vnid)
+						log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s\n", vnid)
 						vnids = append(vnids, vnid)
 					}
 				} else {
@@ -218,7 +218,7 @@ func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
 							max_vnid, _ := strconv.Atoi(end_vlan_id)
 
 							for vnid < max_vnid {
-								log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s", vnid)
+								log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %d\n", vnid)
 								vnids = append(vnids, strconv.Itoa(vnid))
 								vnid++
 							}
@@ -230,7 +230,7 @@ func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free vlan ID in vlan domain: %s", vlmdomain_name)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free vlan ID in vlan domain: %s\n", vlmdomain_name)
 
 	return []string{}, err
 }
@@ -259,7 +259,7 @@ func ipsiteidbyname(site_name string, meta interface{}) (string, error) {
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP space: %s", site_name)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP space: %s\n", site_name)
 
 	return "", err
 }
@@ -288,7 +288,7 @@ func vlandomainidbyname(vlmdomain_name string, meta interface{}) (string, error)
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find vlan domain: %s", vlmdomain_name)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find vlan domain: %s\n", vlmdomain_name)
 
 	return "", err
 }
@@ -322,7 +322,7 @@ func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta in
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s", subnet_name)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s\n", subnet_name)
 
 	return "", err
 }
@@ -351,7 +351,7 @@ func ipaddressidbyip(site_id string, ip_address string, meta interface{}) (strin
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP address: %s", ip_address)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP address: %s\n", ip_address)
 
 	return "", err
 }
@@ -382,8 +382,8 @@ func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, 
 				r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
 				r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
 
-				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s", alias_name, r_alias_name, address_id)
-				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s", ip_name_type, r_ip_name_type, address_id)
+				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s\n", alias_name, r_alias_name, address_id)
+				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s\n", ip_name_type, r_ip_name_type, address_id)
 
 				if r_ip_name_type_exist && strings.Compare(ip_name_type, r_ip_name_type) == 0 &&
 					r_alias_name_exist && strings.Compare(alias_name, r_alias_name) == 0 &&
@@ -402,7 +402,7 @@ func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, 
 	//  }
 	//}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s - %s associated with IP address ID %s", alias_name, ip_name_type, address_id)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s - %s associated with IP address ID %s\n", alias_name, ip_name_type, address_id)
 
 	return "", err
 }
@@ -432,7 +432,7 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
 
 			for i := 0; i < len(buf); i++ {
 				if hexaddr, hexaddr_exist := buf[i]["start_ip_addr"].(string); hexaddr_exist {
-					log.Printf("[DEBUG] SOLIDServer - Suggested subnet address: %s", hexiptoip(hexaddr))
+					log.Printf("[DEBUG] SOLIDServer - Suggested subnet address: %s\n", hexiptoip(hexaddr))
 					subnet_addresses = append(subnet_addresses, hexaddr)
 				}
 			}
@@ -440,7 +440,7 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP subnet in space (oid): %s, block (oid): %s, size: ", site_id, block_id, strconv.Itoa(prefix_size))
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP subnet in space (oid): %s, block (oid): %s, size: %s\n", site_id, block_id, strconv.Itoa(prefix_size))
 
 	return []string{}, err
 }
