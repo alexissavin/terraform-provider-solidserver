@@ -78,8 +78,8 @@ resource "solidserver_device" "my_first_device" {
 
 Note: Using this resources requires a specific license.
 
-### VLAN
-VLAN resource allows to create vlans from the following arguments:
+### VLAN/VXLAN
+VLAN/VXLAN resource allows to create vlans from the following arguments:
 
 * `vlan_domain` - (Required) The name of the vlan domain into which creating the vlan.
 * `request_id` - (Optional) An optional request for a specific vlan ID. If this vlan ID is unavailable the provisioning request will fail.
