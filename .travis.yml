@@ -1,13 +1,20 @@
 language: go
 go:
-  - "1.9"
-  - "1.10"
-install:
-  - echo ""
-script:
-  - go build
+- '1.9'
+- '1.10'
+- 'tip'
+env:
+  global:
+    secure: dT8ohGQ1kaE9dhMdsVUduzw1SMSqUFElkP3vdzwFqxDFaV0eQ28ACnk/wrdg5gMOwA8wKcAliYHab0WsKoST6brsPYJDcD9ZO0Zeu9kqcA5ksLiWP9IwzCT17DbAYXY5AZAB0xNk1qON6sPpPEO2cWaCTd2jFU6lmJmRf6HsyEx9mBKIVDcE+B5HWNcVwtYK32mTA3Jre6yB/loGX04lxyMt8DuHFSeJUfSJW3Dop6sftmaCpTDjPonThAni7BliZk2C9+LSxJqcWKxr0FAeOOzRj8dzQVGAvByNZJBm4IaYvOV7PX2y54yVF5WeI6woo2cLkj/MbVavz+rMRwnqG5l6rQrxCMXw6AyVzaBY1uoc39BkUuVGkSbc31r66jdFFHnLbwsV6vv1eXklviXNHUCMz+7GmRwHHRHufjB5VnQfIPIJwUcwHiqLVQH94q5NuIlYvX81IHlMLQpu3J1PiGfR80jgO5st4lzR5F8j4jk6WktLkZh2VyCMkztnavr0XyOi+RyS0xa7Odd0/IEVcFDFz9tIPkuj+v4YclmwVDYLmaF2r7h+iovFwSSgcyeq/nYI9ACvMm3VMnDShBti2vAa5V1f43ysl3luOZbuSFaVHsWSvcWlaqzKB2yHYAVG23ocGD7NplO9gOxGIbcCXJdJm1yVtHAHYQfQcFINwcI=
 before_install:
-  - go get
+- go get -t -v ./...
+install:
+- echo ""
+script:
+- go build
+- go test -race -coverprofile=coverage.txt -covermode=atomic
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 branches:
   only:
-    - master
+  - master
