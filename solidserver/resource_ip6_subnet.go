@@ -3,9 +3,9 @@ package solidserver
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
+	"math/big"
 	"math/rand"
 	"net/url"
 	"strconv"

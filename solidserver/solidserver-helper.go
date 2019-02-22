@@ -2,9 +2,9 @@ package solidserver
 
 import (
 	"encoding/json"
-	"math/big"
 	"fmt"
 	"log"
+	"math/big"
 	"net/url"
 	"strconv"
 	"strings"
@@ -151,13 +151,12 @@ func prefixlengthtosize(length int) int {
 // Return -1 in case of failure
 func prefix6lengthtosize(length int64) *big.Int {
 	sufix := big.NewInt(128 - length)
-	size  := big.NewInt(16)
+	size := big.NewInt(16)
 
 	size = size.Exp(size, sufix, nil)
 
 	return size
 }
-
 
 // Build url value object from class parameters
 // Return an url.Values{} object
