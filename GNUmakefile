@@ -1,4 +1,4 @@
-SHELL := /usr/bin/bash
+SHELL := /bin/bash
 GO_FILES?=$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=solidserver
 
