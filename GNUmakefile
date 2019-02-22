@@ -1,8 +1,7 @@
-TEST?=$$(go list ./... |grep -v 'vendor')
-TESTARGS?=''
 GO_FILES?=$$(find . -name '*.go' |grep -v vendor)
 WEBSITE_REPO=github.com/hashicorp/terraform-website
 PKG_NAME=template
+TESTARGS?=''
 
 default: build
 
@@ -11,9 +10,7 @@ build:
 	go build -o ./_test/terraform-provider-solidserver
 
 test: fmtcheck
-	go test -i $(TEST) || exit 1
-	echo $(TEST) | \
-		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
+	go test -v ./... || exit 1
 
 fmt:
 	gofmt -w $(GO_FILES)
