@@ -187,7 +187,7 @@ DNS Record resource allows to create records from the following arguments:
 * `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the RR's zone.
 * `dnsview_name` - (Optional) The View name of the RR to create.
 * `name` - (Required) The Fully Qualified Domain Name of the RR to create.
-* `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME).
+* `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME, DNAME, TXT, NS).
 * `value` - (Required) The value od the RR to create.
 * `ttl` - (Optional) The DNS Time To Live of the RR to create.
 

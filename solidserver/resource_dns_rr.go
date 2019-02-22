@@ -42,7 +42,7 @@ func resourcednsrr() *schema.Resource {
 			},
 			"type": &schema.Schema{
 				Type:         schema.TypeString,
-				Description:  "The type of the RR to create (Supported: A, AAAA, CNAME).",
+				Description:  "The type of the RR to create (Supported: A, AAAA, CNAME, TXT).",
 				ValidateFunc: resourcednsrrvalidatetype,
 				Required:     true,
 				ForceNew:     true,
@@ -71,6 +71,12 @@ func resourcednsrrvalidatetype(v interface{}, _ string) ([]string, []error) {
 	case "AAAA":
 		return nil, nil
 	case "CNAME":
+		return nil, nil
+	case "DNAME":
+		return nil, nil
+	case "TXT":
+		return nil, nil
+	case "NS":
 		return nil, nil
 	default:
 		return nil, []error{fmt.Errorf("Unsupported RR type.")}

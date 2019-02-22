@@ -15,8 +15,7 @@ fmt:
 	gofmt -w $(GO_FILES)
 
 vet:
-	go tool vet &> /dev/null ; if [ $$? -eq 3 ]; then go get golang.org/x/tools/cmd/vet; fi
-	go tool vet -all ./solidserver
+	go vet -all ./solidserver
 
 fmtcheck:
 	./scripts/gofmtcheck.sh
