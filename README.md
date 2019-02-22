@@ -1,5 +1,7 @@
 [![Build status](https://travis-ci.org/alexissavin/terraform-provider-solidserver.svg)](https://travis-ci.org/alexissavin/terraform-provider-solidserver)
 
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
+
 # EfficientIP SOLIDserver Provider
 
 This provider allows to easily interact with [SOLIDserver](http://www.efficientip.com/products/solidserver/)'s REST API.
