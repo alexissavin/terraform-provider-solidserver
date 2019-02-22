@@ -1,4 +1,4 @@
-[![Build status](https://travis-ci.org/alexissavin/terraform-provider-solidserver.svg)](https://travis-ci.org/alexissavin/terraform-provider-solidserver) [![License](https://img.shields.io/badge/License-BSD%202--Clause-green.svg)](https://opensource.org/licenses/BSD-2-Clause)
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-blue.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build status](https://travis-ci.org/alexissavin/terraform-provider-solidserver.svg)](https://travis-ci.org/alexissavin/terraform-provider-solidserver) [![Go Report Card](https://goreportcard.com/badge/github.com/alexissavin/terraform-provider-solidserver)](https://goreportcard.com/report/github.com/alexissavin/terraform-provider-solidserver)
 
 # EfficientIP SOLIDserver Provider
 
@@ -111,6 +111,31 @@ resource "solidserver_ip_subnet" "my_first_subnet" {
   class_parameters {
     cloudaz        = "eu-west-1a"
     subnetclouduid = "subnet-56f261f1"
+  }
+}
+```
+
+Note: The gateway_offset value can be positive (offset start at the first address of the subnet) or negative (offset start at the last address of the subnet).
+
+### IPv6 Subnet
+IPv6 Subnet resource allows to create IPv6 subnets from the following arguments:
+
+* `space` - (Required) The name of the space into which creating the IPv6 subnet.
+* `block` - (Required) The name of the block into which creating the IPv6 subnet.
+* `size` - (Required) The expected IPv6 subnet's prefix length (ex: 64 for a '/64').
+* `name` - (Required) The name of the IPv6 subnet to create.
+* `gateway_offset` - (Optional) Offset for creating the gateway. Default is 0 (no gateway).
+
+```
+resource "solidserver_ip6_subnet" "my_first_subnet" {
+  space            = "my_space"
+  block            = "my_block"
+  size             = "56"
+  name             = "my_first_piv6_subnet"
+  gateway_offset   = 1
+  class            = "VIRTUAL"
+  class_parameters {
+    vnid = "12666"
   }
 }
 ```

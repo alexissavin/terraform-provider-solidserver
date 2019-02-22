@@ -2,6 +2,7 @@ package solidserver
 
 import (
 	"encoding/json"
+	"math/big"
 	"fmt"
 	"log"
 	"net/url"
@@ -18,7 +19,17 @@ func abs(x int) int {
 	return x
 }
 
-// Convert hexa IP address string into standard IP address string
+// Big Integer to Hexa String
+func BigIntToHexStr(bigInt *big.Int) string {
+	return fmt.Sprintf("%x", bigInt)
+}
+
+// Big Integer to Decimal String
+func BigIntToStr(bigInt *big.Int) string {
+	return fmt.Sprintf("%v", bigInt)
+}
+
+// Convert hexa IP v6 address string into standard IP v6 address string
 // Return an empty string in case of failure
 func hexiptoip(hexip string) string {
 	a, b, c, d := 0, 0, 0, 0
@@ -30,6 +41,23 @@ func hexiptoip(hexip string) string {
 	}
 
 	return ""
+}
+
+// Convert hexa IP v6 address string into standard IP v6 address string
+// Return an empty string in case of failure
+func hexip6toip6(hexip string) string {
+	res := ""
+
+	for i, c := range hexip {
+		if (i == 0) || ((i % 4) != 0) {
+			res += string(c)
+		} else {
+			res += ":"
+			res += string(c)
+		}
+	}
+
+	return res
 }
 
 // Convert standard IP address string into hexa IP address string
@@ -50,6 +78,23 @@ func iptohexip(ip string) string {
 		}
 
 		return ""
+	}
+
+	return ""
+}
+
+// Convert standard IP v6 address string into hexa IP v6 address string
+// Return an empty string in case of failure
+func ip6tohexip6(ip string) string {
+	ip_dec := strings.Split(ip, ":")
+	res := ""
+
+	if len(ip_dec) == 8 {
+		for _, b := range ip_dec {
+			res += b
+		}
+
+		return res
 	}
 
 	return ""
@@ -101,6 +146,18 @@ func prefixlengthtosize(length int) int {
 
 	return -1
 }
+
+// Compute the actual size of an IPv6 CIDR prefix from its length
+// Return -1 in case of failure
+func prefix6lengthtosize(length int64) *big.Int {
+	sufix := big.NewInt(128 - length)
+	size  := big.NewInt(16)
+
+	size = size.Exp(size, sufix, nil)
+
+	return size
+}
+
 
 // Build url value object from class parameters
 // Return an url.Values{} object
@@ -327,6 +384,40 @@ func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta in
 	return "", err
 }
 
+// Return the oid of a subnet from site_id, subnet_name and is_terminal property
+// Or an empty string in case of failure
+func ip6subnetidbyname(site_id string, subnet_name string, terminal bool, meta interface{}) (string, error) {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+site_id+"' AND "+"subnet6_name='"+strings.ToLower(subnet_name)+"'")
+	if terminal {
+		parameters.Add("is_terminal", "1")
+	} else {
+		parameters.Add("is_terminal", "0")
+	}
+
+	// Sending the read request
+	http_resp, body, err := s.Request("get", "rest/ip6_block6_subnet6_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if http_resp.StatusCode == 200 && len(buf) > 0 {
+			if subnet_id, subnet_id_exist := buf[0]["subnet6_id"].(string); subnet_id_exist {
+				return subnet_id, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet: %s\n", subnet_name)
+
+	return "", err
+}
+
 // Return the oid of an address from site_id, ip_address
 // Or an empty string in case of failure
 func ipaddressidbyip(site_id string, ip_address string, meta interface{}) (string, error) {
@@ -432,7 +523,7 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
 
 			for i := 0; i < len(buf); i++ {
 				if hexaddr, hexaddr_exist := buf[i]["start_ip_addr"].(string); hexaddr_exist {
-					log.Printf("[DEBUG] SOLIDServer - Suggested subnet address: %s\n", hexiptoip(hexaddr))
+					log.Printf("[DEBUG] SOLIDServer - Suggested IP subnet address: %s\n", hexiptoip(hexaddr))
 					subnet_addresses = append(subnet_addresses, hexaddr)
 				}
 			}
@@ -441,6 +532,44 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
 	}
 
 	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP subnet in space (oid): %s, block (oid): %s, size: %s\n", site_id, block_id, strconv.Itoa(prefix_size))
+
+	return []string{}, err
+}
+
+// Return an available subnet address from site_id, block_id and expected subnet_size
+// Or an empty string in case of failure
+func ip6subnetfindbysize(site_id string, block_id string, prefix_size int, meta interface{}) ([]string, error) {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("site_id", site_id)
+	parameters.Add("block6_id", block_id)
+	parameters.Add("prefix", strconv.Itoa(prefix_size))
+	parameters.Add("max_find", "4")
+
+	// Sending the creation request
+	http_resp, body, err := s.Request("get", "rpc/ip6_find_free_subnet6", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if http_resp.StatusCode == 200 && len(buf) > 0 {
+			subnet_addresses := []string{}
+
+			for i := 0; i < len(buf); i++ {
+				if hexaddr, hexaddr_exist := buf[i]["start_ip6_addr"].(string); hexaddr_exist {
+					log.Printf("[DEBUG] SOLIDServer - Suggested IP v6 subnet address: %s\n", hexip6toip6(hexaddr))
+					subnet_addresses = append(subnet_addresses, hexaddr)
+				}
+			}
+			return subnet_addresses, nil
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP v6 subnet in space (oid): %s, block (oid): %s, size: %s\n", site_id, block_id, strconv.Itoa(prefix_size))
 
 	return []string{}, err
 }

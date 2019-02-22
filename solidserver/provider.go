@@ -43,13 +43,14 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"solidserver_ip_subnet":  resourceipsubnet(),
-			"solidserver_ip_address": resourceipaddress(),
-			"solidserver_ip_alias":   resourceipalias(),
-			"solidserver_device":     resourcedevice(),
-			"solidserver_vlan":       resourcevlan(),
-			"solidserver_dns_zone":   resourcednszone(),
-			"solidserver_dns_rr":     resourcednsrr(),
+			"solidserver_ip_subnet":   resourceipsubnet(),
+			"solidserver_ip6_subnet":  resourceip6subnet(),
+			"solidserver_ip_address":  resourceipaddress(),
+			"solidserver_ip_alias":    resourceipalias(),
+			"solidserver_device":      resourcedevice(),
+			"solidserver_vlan":        resourcevlan(),
+			"solidserver_dns_zone":    resourcednszone(),
+			"solidserver_dns_rr":      resourcednsrr(),
 		},
 
 		ConfigureFunc: ProviderConfigure,

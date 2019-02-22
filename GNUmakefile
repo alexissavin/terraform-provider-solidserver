@@ -12,7 +12,8 @@ test: fmtcheck vet
 	go test -v ./... || exit 1
 
 fmt:
-	gofmt -w $(GO_FILES)
+	gofmt -s -w ./*.go
+	gofmt -s -w ./solidserver/*.go
 
 vet:
 	go vet -all ./solidserver
