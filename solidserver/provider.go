@@ -8,32 +8,32 @@ import (
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"username": &schema.Schema{
+			"username": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_USERNAME", nil),
 				Description: "SOLIDServer API user's ID",
 			},
-			"password": &schema.Schema{
+			"password": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_PASSWORD", nil),
 				Description: "SOLIDServer API user's password",
 			},
-			"host": &schema.Schema{
+			"host": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_HOST", nil),
 				Description: "SOLIDServer API hostname or IP address",
 			},
-			"sslverify": &schema.Schema{
+			"sslverify": {
 				Type:        schema.TypeBool,
 				Required:    false,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_SSLVERIFY", true),
 				Description: "Enable/Disable ssl verify (Default : enabled)",
 			},
-			"additional_trust_certs_file": &schema.Schema{
+			"additional_trust_certs_file": {
 				Type:        schema.TypeString,
 				Required:    false,
 				Optional:    true,

@@ -23,63 +23,63 @@ func resourceipsubnet() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"space": &schema.Schema{
+			"space": {
 				Type:        schema.TypeString,
 				Description: "The name of the space into which creating the subnet.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"block": &schema.Schema{
+			"block": {
 				Type:        schema.TypeString,
 				Description: "The name of the block intyo which creating the IP subnet.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"size": &schema.Schema{
+			"size": {
 				Type:        schema.TypeInt,
 				Description: "The expected IP subnet's prefix length (ex: 24 for a '/24').",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"prefix": &schema.Schema{
+			"prefix": {
 				Type:        schema.TypeString,
 				Description: "The provisionned IP prefix.",
 				Computed:    true,
 			},
-			"gateway_offset": &schema.Schema{
+			"gateway_offset": {
 				Type:        schema.TypeInt,
 				Description: "Offset for creating the gateway. Default is 0 (No gateway).",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     0,
 			},
-			"gateway": &schema.Schema{
+			"gateway": {
 				Type:        schema.TypeString,
 				Description: "The subnet's computed gateway.",
 				Computed:    true,
 				ForceNew:    true,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Description: "The name of the IP subnet to create.",
 				Required:    true,
 				ForceNew:    false,
 			},
-			"terminal": &schema.Schema{
+			"terminal": {
 				Type:        schema.TypeBool,
 				Description: "The terminal property of the IP subnet.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     true,
 			},
-			"class": &schema.Schema{
+			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the IP subnet.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
-			"class_parameters": &schema.Schema{
+			"class_parameters": {
 				Type:        schema.TypeMap,
 				Description: "The class parameters associated to the IP subnet.",
 				Optional:    true,
@@ -398,7 +398,7 @@ func resourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("gateway", gateway[0])
 			}
 
-			for ck, _ := range current_class_parameters {
+			for ck := range current_class_parameters {
 				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
 					computed_class_parameters[ck] = rv[0]
 				} else {
@@ -461,7 +461,7 @@ func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*s
 				d.Set("gateway", gateway[0])
 			}
 
-			for ck, _ := range current_class_parameters {
+			for ck := range current_class_parameters {
 				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
 					computed_class_parameters[ck] = rv[0]
 				} else {

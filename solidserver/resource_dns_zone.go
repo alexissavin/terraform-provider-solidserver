@@ -21,26 +21,26 @@ func resourcednszone() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"dnsserver": &schema.Schema{
+			"dnsserver": {
 				Type:        schema.TypeString,
 				Description: "The managed SMART DNS server name, or DNS server name hosting the zone.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"view": &schema.Schema{
+			"view": {
 				Type:        schema.TypeString,
 				Description: "The DNS view name hosting the zone.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     "#",
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Description: "The Domain Name served by the zone.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"type": &schema.Schema{
+			"type": {
 				Type:         schema.TypeString,
 				Description:  "The type of the zone to create (Supported: Master).",
 				ValidateFunc: resourcednszonevalidatetype,
@@ -48,21 +48,21 @@ func resourcednszone() *schema.Resource {
 				ForceNew:     true,
 				Default:      "Master",
 			},
-			"createptr": &schema.Schema{
+			"createptr": {
 				Type:        schema.TypeBool,
 				Description: "Automaticaly create PTR records for the zone.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     false,
 			},
-			"class": &schema.Schema{
+			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the zone.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
-			"class_parameters": &schema.Schema{
+			"class_parameters": {
 				Type:        schema.TypeMap,
 				Description: "The class parameters associated to the zone.",
 				Optional:    true,
@@ -278,7 +278,7 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 				}
 			}
 
-			for ck, _ := range current_class_parameters {
+			for ck := range current_class_parameters {
 				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
 					computed_class_parameters[ck] = rv[0]
 				} else {
@@ -337,7 +337,7 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			retrieved_class_parameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
 			computed_class_parameters := map[string]string{}
 
-			for ck, _ := range current_class_parameters {
+			for ck := range current_class_parameters {
 				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
 					computed_class_parameters[ck] = rv[0]
 				} else {

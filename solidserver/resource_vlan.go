@@ -21,26 +21,26 @@ func resourcevlan() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"vlan_domain": &schema.Schema{
+			"vlan_domain": {
 				Type:        schema.TypeString,
 				Description: "The name of the vlan domain.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"request_id": &schema.Schema{
+			"request_id": {
 				Type:        schema.TypeInt,
 				Description: "The optionally requested vlan ID.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     0,
 			},
-			"vlan_id": &schema.Schema{
+			"vlan_id": {
 				Type:        schema.TypeInt,
 				Description: "The vlan ID.",
 				Computed:    true,
 				ForceNew:    true,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Description: "The name of the vlan to create.",
 				Required:    true,

@@ -24,19 +24,19 @@ func resourceipaddress() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"space": &schema.Schema{
+			"space": {
 				Type:        schema.TypeString,
 				Description: "The name of the space into which creating the IP address.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"subnet": &schema.Schema{
+			"subnet": {
 				Type:        schema.TypeString,
 				Description: "The name of the subnet into which creating the IP address.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"request_ip": &schema.Schema{
+			"request_ip": {
 				Type:         schema.TypeString,
 				Description:  "The optionally requested IP address.",
 				ValidateFunc: resourceipaddressrequestvalidateformat,
@@ -44,26 +44,26 @@ func resourceipaddress() *schema.Resource {
 				ForceNew:     true,
 				Default:      "",
 			},
-			"address": &schema.Schema{
+			"address": {
 				Type:        schema.TypeString,
 				Description: "The provisionned IP address.",
 				Computed:    true,
 				ForceNew:    true,
 			},
-			"device": &schema.Schema{
+			"device": {
 				Type:        schema.TypeString,
 				Description: "Device Name to associate with the IP address (Require a 'Device Manager' license).",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Description: "The short name or FQDN of the IP address to create.",
 				Required:    true,
 				ForceNew:    false,
 			},
-			"mac": &schema.Schema{
+			"mac": {
 				Type:        schema.TypeString,
 				Description: "The MAC Address of the IP address to create.",
 				Optional:    true,
@@ -71,14 +71,14 @@ func resourceipaddress() *schema.Resource {
 				Default:     "",
 			},
 
-			"class": &schema.Schema{
+			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the IP address.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
-			"class_parameters": &schema.Schema{
+			"class_parameters": {
 				Type:        schema.TypeMap,
 				Description: "The class parameters associated to the IP address.",
 				Optional:    true,
@@ -342,7 +342,7 @@ func resourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 			retrieved_class_parameters, _ := url.ParseQuery(buf[0]["ip_class_parameters"].(string))
 			computed_class_parameters := map[string]string{}
 
-			for ck, _ := range current_class_parameters {
+			for ck := range current_class_parameters {
 				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
 					computed_class_parameters[ck] = rv[0]
 				} else {
@@ -403,7 +403,7 @@ func resourceipaddressImportState(d *schema.ResourceData, meta interface{}) ([]*
 			retrieved_class_parameters, _ := url.ParseQuery(buf[0]["ip_class_parameters"].(string))
 			computed_class_parameters := map[string]string{}
 
-			for ck, _ := range current_class_parameters {
+			for ck := range current_class_parameters {
 				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
 					computed_class_parameters[ck] = rv[0]
 				} else {

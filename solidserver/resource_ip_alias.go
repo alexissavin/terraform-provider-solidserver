@@ -17,25 +17,25 @@ func resourceipalias() *schema.Resource {
 		Delete: resourceipaliasDelete,
 
 		Schema: map[string]*schema.Schema{
-			"space": &schema.Schema{
+			"space": {
 				Type:        schema.TypeString,
 				Description: "The name of the space to which the address belong to.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"address": &schema.Schema{
+			"address": {
 				Type:        schema.TypeString,
 				Description: "The IP address for which the alias will be associated to.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Description: "The FQDN of the IP address alias to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"type": &schema.Schema{
+			"type": {
 				Type:         schema.TypeString,
 				Description:  "The type of the Alias to create (Supported: A, CNAME; Default: CNAME).",
 				ValidateFunc: resourcealiasvalidatetype,

@@ -22,39 +22,39 @@ func resourcednsrr() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"dnsserver": &schema.Schema{
+			"dnsserver": {
 				Type:        schema.TypeString,
 				Description: "The managed SMART DNS server name, or DNS server name hosting the RR's zone.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"dnsview_name": &schema.Schema{
+			"dnsview_name": {
 				Type:        schema.TypeString,
 				Description: "The View name of the RR to create.",
 				Optional:    true,
 				Default:     "",
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Description: "The Fully Qualified Domain Name of the RR to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"type": &schema.Schema{
+			"type": {
 				Type:         schema.TypeString,
 				Description:  "The type of the RR to create (Supported: A, AAAA, CNAME, TXT).",
 				ValidateFunc: resourcednsrrvalidatetype,
 				Required:     true,
 				ForceNew:     true,
 			},
-			"value": &schema.Schema{
+			"value": {
 				Type:        schema.TypeString,
 				Description: "The value od the RR to create.",
 				Computed:    false,
 				Required:    true,
 				ForceNew:    true,
 			},
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:        schema.TypeInt,
 				Description: "The DNS Time To Live of the RR to create.",
 				Optional:    true,

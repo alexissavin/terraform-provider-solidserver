@@ -20,20 +20,20 @@ func resourcedevice() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": &schema.Schema{
+			"name": {
 				Type:        schema.TypeString,
 				Description: "The name of the device to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"class": &schema.Schema{
+			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the device.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
-			"class_parameters": &schema.Schema{
+			"class_parameters": {
 				Type:        schema.TypeMap,
 				Description: "The class parameters associated to device.",
 				Optional:    true,
@@ -210,7 +210,7 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 			retrieved_class_parameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
 			computed_class_parameters := map[string]string{}
 
-			for ck, _ := range current_class_parameters {
+			for ck := range current_class_parameters {
 				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
 					computed_class_parameters[ck] = rv[0]
 				} else {
@@ -267,7 +267,7 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
 			retrieved_class_parameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
 			computed_class_parameters := map[string]string{}
 
-			for ck, _ := range current_class_parameters {
+			for ck := range current_class_parameters {
 				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
 					computed_class_parameters[ck] = rv[0]
 				} else {
