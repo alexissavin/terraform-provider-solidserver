@@ -91,7 +91,7 @@ func ip6tohexip6(ip string) string {
 
 	if len(ip_dec) == 8 {
 		for _, b := range ip_dec {
-			res += b
+			res += fmt.Sprintf("%04s", b)
 		}
 
 		return res
@@ -231,6 +231,42 @@ func ipaddressfindfree(subnet_id string, meta interface{}) ([]string, error) {
 	}
 
 	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP address in subnet (oid): %s\n", subnet_id)
+
+	return []string{}, err
+}
+
+// Return an available IP addresses from site_id, block_id and expected subnet_size
+// Or an empty table of string in case of failure
+func ip6addressfindfree(subnet_id string, meta interface{}) ([]string, error) {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("subnet6_id", subnet_id)
+	parameters.Add("max_find", "4")
+
+	// Sending the creation request
+	http_resp, body, err := s.Request("get", "rpc/ip6_find_free_address6", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if http_resp.StatusCode == 200 && len(buf) > 0 {
+			addresses := []string{}
+
+			for i := 0; i < len(buf); i++ {
+				if addr, addr_exist := buf[i]["hostaddr6"].(string); addr_exist {
+					log.Printf("[DEBUG] SOLIDServer - Suggested IP address: %s\n", addr)
+					addresses = append(addresses, addr)
+				}
+			}
+			return addresses, nil
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP v6 address in subnet (oid): %s\n", subnet_id)
 
 	return []string{}, err
 }

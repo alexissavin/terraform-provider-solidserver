@@ -241,7 +241,7 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("ip_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
-	parameters.Add("ip_name", d.Get("name").(string))
+	parameters.Add("name", d.Get("name").(string))
 	parameters.Add("mac_addr", d.Get("mac").(string))
 	parameters.Add("hostdev_id", device_id)
 	parameters.Add("ip_class_name", d.Get("class").(string))
