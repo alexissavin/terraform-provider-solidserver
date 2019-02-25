@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"net/url"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -87,14 +86,6 @@ func resourceipaddress() *schema.Resource {
 			},
 		},
 	}
-}
-
-func resourceipaddressrequestvalidateformat(v interface{}, _ string) ([]string, []error) {
-	if match, _ := regexp.MatchString(`([0-9]{1,3}\.){3,3}[0-9]{1,3}`, strings.ToUpper(v.(string))); match == true {
-		return nil, nil
-	}
-
-	return nil, []error{fmt.Errorf("Unsupported IP address request format.")}
 }
 
 func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, error) {

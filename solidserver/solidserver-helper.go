@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/big"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -135,6 +136,36 @@ func longtoip(iplong uint32) string {
 	}
 
 	return fmt.Sprintf("%d.%d.%d.%d", a, b, c, d)
+}
+
+// Validate IPv4 format
+func resourceipaddressrequestvalidateformat(v interface{}, _ string) ([]string, []error) {
+	if match, _ := regexp.MatchString(`([0-9]{1,3}\.){3,3}[0-9]{1,3}`, strings.ToUpper(v.(string))); match == true {
+		return nil, nil
+	}
+
+	return nil, []error{fmt.Errorf("Unsupported IP address request format.")}
+}
+
+// Validate IPv6 format
+func resourceip6addressrequestvalidateformat(v interface{}, _ string) ([]string, []error) {
+	if match, _ := regexp.MatchString(`([0-9A-F]{1,4}:){7,7}([0-9A-F]{1,4})`, strings.ToUpper(v.(string))); match == true {
+		return nil, nil
+	}
+
+	return nil, []error{fmt.Errorf("Unsupported IP v6 address request format (Only non-compressed format is supported).")}
+}
+
+// Validate the alias format
+func resourcealiasvalidatetype(v interface{}, _ string) ([]string, []error) {
+	switch strings.ToUpper(v.(string)) {
+	case "A":
+		return nil, nil
+	case "CNAME":
+		return nil, nil
+	default:
+		return nil, []error{fmt.Errorf("Unsupported Alias type.")}
+	}
 }
 
 // Compute the actual size of a CIDR prefix from its length
@@ -457,12 +488,12 @@ func ip6subnetidbyname(siteID string, subnet_name string, terminal bool, meta in
 
 // Return the oid of an address from site_id, ip_address
 // Or an empty string in case of failure
-func ipaddressidbyip(siteID string, ip_address string, meta interface{}) (string, error) {
+func ipaddressidbyip(siteID string, ipAddress string, meta interface{}) (string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"ip_addr='"+iptohexip(ip_address)+"'")
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"ip_addr='"+iptohexip(ipAddress)+"'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip_address_list", &parameters)
@@ -473,13 +504,42 @@ func ipaddressidbyip(siteID string, ip_address string, meta interface{}) (string
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			if ip_id, ip_id_exist := buf[0]["ip_id"].(string); ip_id_exist {
-				return ip_id, nil
+			if ipID, ipIDExist := buf[0]["ip_id"].(string); ipIDExist {
+				return ipID, nil
 			}
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP address: %s\n", ip_address)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP address: %s\n", ipAddress)
+
+	return "", err
+}
+
+// Return the oid of an address from site_id, ip_address
+// Or an empty string in case of failure
+func ip6addressidbyip6(siteID string, ipAddress string, meta interface{}) (string, error) {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"ip6_addr='"+ip6tohexip6(ipAddress)+"'")
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/ip6_address6_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if ipID, ipIDExist := buf[0]["ip6_id"].(string); ipIDExist {
+				return ipID, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 address: %s\n", ipAddress)
 
 	return "", err
 }

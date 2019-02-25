@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"net/url"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -87,14 +86,6 @@ func resourceip6address() *schema.Resource {
 			},
 		},
 	}
-}
-
-func resourceip6addressrequestvalidateformat(v interface{}, _ string) ([]string, []error) {
-	if match, _ := regexp.MatchString(`([0-9A-F]{1,4}:){7,7}([0-9A-F]{1,4})`, strings.ToUpper(v.(string))); match == true {
-		return nil, nil
-	}
-
-	return nil, []error{fmt.Errorf("Unsupported IP v6 address request format (Only non-compressed format is supported).")}
 }
 
 func resourceip6addressExists(d *schema.ResourceData, meta interface{}) (bool, error) {
