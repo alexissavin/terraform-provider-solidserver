@@ -51,6 +51,11 @@ func resourceapplicationExists(d *schema.ResourceData, meta interface{}) (bool, 
 	parameters := url.Values{}
 	parameters.Add("appapplication_id", d.Id())
 
+	if s.Version < 710 {
+		// Reporting a failure
+		return false, err
+	}
+
 	log.Printf("[DEBUG] Checking existence of application (oid): %s\n", d.Id())
 
 	// Sending read request
