@@ -62,13 +62,13 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Gather required ID(s) from provided information
-	site_id, err := ipsiteidbyname(d.Get("space").(string), meta)
+	siteID, err := ipsiteidbyname(d.Get("space").(string), meta)
 	if err != nil {
 		// Reporting a failure
 		return err
 	}
 
-	address_id, err := ipaddressidbyip(site_id, d.Get("address").(string), meta)
+	addressID, err := ipaddressidbyip(siteID, d.Get("address").(string), meta)
 	if err != nil {
 		// Reporting a failure
 		return err
@@ -76,7 +76,7 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("ip_id", address_id)
+	parameters.Add("ip_id", addressID)
 	parameters.Add("ip_name", d.Get("name").(string))
 	parameters.Add("ip_name_type", d.Get("type").(string))
 
@@ -89,7 +89,7 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
-			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
+			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 				log.Printf("[DEBUG] SOLIDServer - Created IP alias (oid): %s\n", oid)
 				d.SetId(oid)
 
@@ -98,7 +98,7 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to create IP alias: %s - %s (associated to IP address with ID: %s)\n", d.Get("name").(string), d.Get("type"), address_id)
+		return fmt.Errorf("SOLIDServer - Unable to create IP alias: %s - %s (associated to IP address with ID: %s)\n", d.Get("name").(string), d.Get("type"), addressID)
 	}
 
 	// Reporting a failure
@@ -121,8 +121,8 @@ func resourceipaliasDelete(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errmsg)
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errMsg)
 			}
 		}
 
@@ -144,13 +144,13 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Gather required ID(s) from provided information
-	site_id, err := ipsiteidbyname(d.Get("space").(string), meta)
+	siteID, err := ipsiteidbyname(d.Get("space").(string), meta)
 	if err != nil {
 		// Reporting a failure
 		return err
 	}
 
-	address_id, err := ipaddressidbyip(site_id, d.Get("address").(string), meta)
+	addressID, err := ipaddressidbyip(siteID, d.Get("address").(string), meta)
 	if err != nil {
 		// Reporting a failure
 		return err
@@ -158,7 +158,7 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("ip_id", address_id)
+	parameters.Add("ip_id", addressID)
 	parameters.Add("WHERE", "ip_name_id='"+d.Id()+"'")
 
 	// Sending the read request
@@ -177,9 +177,9 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s (%s)\n", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error

@@ -345,8 +345,8 @@ func ipsiteidbyname(site_name string, meta interface{}) (string, error) {
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			if site_id, site_id_exist := buf[0]["site_id"].(string); site_id_exist {
-				return site_id, nil
+			if siteID, siteIDExist := buf[0]["site_id"].(string); siteIDExist {
+				return siteID, nil
 			}
 		}
 	}
@@ -387,12 +387,12 @@ func vlandomainidbyname(vlmdomain_name string, meta interface{}) (string, error)
 
 // Return the oid of a subnet from site_id, subnet_name and is_terminal property
 // Or an empty string in case of failure
-func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta interface{}) (string, error) {
+func ipsubnetidbyname(siteID string, subnet_name string, terminal bool, meta interface{}) (string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "site_id='"+site_id+"' AND "+"subnet_name='"+strings.ToLower(subnet_name)+"'")
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet_name='"+strings.ToLower(subnet_name)+"'")
 	if terminal {
 		parameters.Add("is_terminal", "1")
 	} else {
@@ -421,12 +421,12 @@ func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta in
 
 // Return the oid of a subnet from site_id, subnet_name and is_terminal property
 // Or an empty string in case of failure
-func ip6subnetidbyname(site_id string, subnet_name string, terminal bool, meta interface{}) (string, error) {
+func ip6subnetidbyname(siteID string, subnet_name string, terminal bool, meta interface{}) (string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "site_id='"+site_id+"' AND "+"subnet6_name='"+strings.ToLower(subnet_name)+"'")
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet6_name='"+strings.ToLower(subnet_name)+"'")
 	if terminal {
 		parameters.Add("is_terminal", "1")
 	} else {
@@ -455,12 +455,12 @@ func ip6subnetidbyname(site_id string, subnet_name string, terminal bool, meta i
 
 // Return the oid of an address from site_id, ip_address
 // Or an empty string in case of failure
-func ipaddressidbyip(site_id string, ip_address string, meta interface{}) (string, error) {
+func ipaddressidbyip(siteID string, ip_address string, meta interface{}) (string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "site_id='"+site_id+"' AND "+"ip_addr='"+iptohexip(ip_address)+"'")
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"ip_addr='"+iptohexip(ip_address)+"'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip_address_list", &parameters)
@@ -535,13 +535,13 @@ func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, 
 
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
-func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta interface{}) ([]string, error) {
+func ipsubnetfindbysize(siteID string, blockID string, prefix_size int, meta interface{}) ([]string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("site_id", site_id)
-	parameters.Add("block_id", block_id)
+	parameters.Add("site_id", siteID)
+	parameters.Add("block_id", blockID)
 	parameters.Add("prefix", strconv.Itoa(prefix_size))
 	parameters.Add("max_find", "4")
 
@@ -554,32 +554,32 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			subnet_addresses := []string{}
+			subnetAddresses := []string{}
 
 			for i := 0; i < len(buf); i++ {
 				if hexaddr, hexaddr_exist := buf[i]["start_ip_addr"].(string); hexaddr_exist {
 					log.Printf("[DEBUG] SOLIDServer - Suggested IP subnet address: %s\n", hexiptoip(hexaddr))
-					subnet_addresses = append(subnet_addresses, hexaddr)
+					subnetAddresses = append(subnetAddresses, hexaddr)
 				}
 			}
-			return subnet_addresses, nil
+			return subnetAddresses, nil
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP subnet in space (oid): %s, block (oid): %s, size: %s\n", site_id, block_id, strconv.Itoa(prefix_size))
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP subnet in space (oid): %s, block (oid): %s, size: %s\n", siteID, blockID, strconv.Itoa(prefix_size))
 
 	return []string{}, err
 }
 
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
-func ip6subnetfindbysize(site_id string, block_id string, prefix_size int, meta interface{}) ([]string, error) {
+func ip6subnetfindbysize(siteID string, blockID string, prefix_size int, meta interface{}) ([]string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("site_id", site_id)
-	parameters.Add("block6_id", block_id)
+	parameters.Add("site_id", siteID)
+	parameters.Add("block6_id", blockID)
 	parameters.Add("prefix", strconv.Itoa(prefix_size))
 	parameters.Add("max_find", "4")
 
@@ -592,19 +592,19 @@ func ip6subnetfindbysize(site_id string, block_id string, prefix_size int, meta 
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			subnet_addresses := []string{}
+			subnetAddresses := []string{}
 
 			for i := 0; i < len(buf); i++ {
 				if hexaddr, hexaddr_exist := buf[i]["start_ip6_addr"].(string); hexaddr_exist {
 					log.Printf("[DEBUG] SOLIDServer - Suggested IP v6 subnet address: %s\n", hexip6toip6(hexaddr))
-					subnet_addresses = append(subnet_addresses, hexaddr)
+					subnetAddresses = append(subnetAddresses, hexaddr)
 				}
 			}
-			return subnet_addresses, nil
+			return subnetAddresses, nil
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP v6 subnet in space (oid): %s, block (oid): %s, size: %s\n", site_id, block_id, strconv.Itoa(prefix_size))
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP v6 subnet in space (oid): %s, block (oid): %s, size: %s\n", siteID, blockID, strconv.Itoa(prefix_size))
 
 	return []string{}, err
 }

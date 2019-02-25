@@ -66,8 +66,8 @@ func resourceapplicationExists(d *schema.ResourceData, meta interface{}) (bool, 
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to find application (oid): %s (%s)\n", d.Id(), errmsg)
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to find application (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			log.Printf("[DEBUG] SOLIDServer - Unable to find application (oid): %s\n", d.Id())
@@ -100,7 +100,7 @@ func resourceapplicationCreate(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
-			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
+			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 				log.Printf("[DEBUG] SOLIDServer - Created application (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
@@ -135,7 +135,7 @@ func resourceapplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
-			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
+			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 				log.Printf("[DEBUG] SOLIDServer - Updated application (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
@@ -166,9 +166,9 @@ func resourceapplicationDelete(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Reporting a failure
-				return fmt.Errorf("SOLIDServer - Unable to delete application : %s (%s)\n", d.Get("name"), errmsg)
+				return fmt.Errorf("SOLIDServer - Unable to delete application : %s (%s)\n", d.Get("name"), errMsg)
 			}
 		}
 
@@ -224,9 +224,9 @@ func resourceapplicationRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find application: %s (%s)\n", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find application: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
@@ -281,8 +281,8 @@ func resourceapplicationImportState(d *schema.ResourceData, meta interface{}) ([
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to import application(oid): %s (%s)\n", d.Id(), errmsg)
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to import application(oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			log.Printf("[DEBUG] SOLIDServer - Unable to find and import application (oid): %s\n", d.Id())

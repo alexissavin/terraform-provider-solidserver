@@ -119,9 +119,9 @@ func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, er
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP address (oid): %s (%s)\n", d.Id(), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IP address (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			// Log the error
@@ -138,17 +138,17 @@ func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, er
 func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
-	var ip_addresses []string = nil
-	var device_id string = ""
+	var ipAddresses []string = nil
+	var deviceID string = ""
 
 	// Gather required ID(s) from provided information
-	site_id, err := ipsiteidbyname(d.Get("space").(string), meta)
+	siteID, err := ipsiteidbyname(d.Get("space").(string), meta)
 	if err != nil {
 		// Reporting a failure
 		return err
 	}
 
-	subnet_id, err := ipsubnetidbyname(site_id, d.Get("subnet").(string), true, meta)
+	subnetID, err := ipsubnetidbyname(siteID, d.Get("subnet").(string), true, meta)
 	if err != nil {
 		// Reporting a failure
 		return err
@@ -156,7 +156,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Retrieving device ID
 	if len(d.Get("device").(string)) > 0 {
-		device_id, err = hostdevidbyname(d.Get("device").(string), meta)
+		deviceID, err = hostdevidbyname(d.Get("device").(string), meta)
 
 		if err != nil {
 			// Reporting a failure
@@ -166,9 +166,9 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Determining if an IP address was submitted in or if we should get one from the IPAM
 	if len(d.Get("request_ip").(string)) > 0 {
-		ip_addresses = []string{d.Get("request_ip").(string)}
+		ipAddresses = []string{d.Get("request_ip").(string)}
 	} else {
-		ip_addresses, err = ipaddressfindfree(subnet_id, meta)
+		ipAddresses, err = ipaddressfindfree(subnetID, meta)
 
 		if err != nil {
 			// Reporting a failure
@@ -176,15 +176,15 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	for i := 0; i < len(ip_addresses); i++ {
+	for i := 0; i < len(ipAddresses); i++ {
 		// Building parameters
 		parameters := url.Values{}
-		parameters.Add("site_id", site_id)
+		parameters.Add("site_id", siteID)
 		parameters.Add("add_flag", "new_only")
 		parameters.Add("name", d.Get("name").(string))
-		parameters.Add("hostaddr", ip_addresses[i])
+		parameters.Add("hostaddr", ipAddresses[i])
 		parameters.Add("mac_addr", d.Get("mac").(string))
-		parameters.Add("hostdev_id", device_id)
+		parameters.Add("hostdev_id", deviceID)
 		parameters.Add("ip_class_name", d.Get("class").(string))
 
 		// Building class_parameters
@@ -202,14 +202,14 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 
 			// Checking the answer
 			if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
-				if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
+				if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 					log.Printf("[DEBUG] SOLIDServer - Created IP address (oid): %s\n", oid)
 					d.SetId(oid)
-					d.Set("address", ip_addresses[i])
+					d.Set("address", ipAddresses[i])
 					return nil
 				}
 			} else {
-				log.Printf("[DEBUG] SOLIDServer - Failed IP address registration (%s), trying another one.\n", ip_addresses[i])
+				log.Printf("[DEBUG] SOLIDServer - Failed IP address registration (%s), trying another one.\n", ipAddresses[i])
 			}
 		} else {
 			// Reporting a failure
@@ -224,12 +224,12 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
-	var device_id string = ""
+	var deviceID string = ""
 	var err error = nil
 
 	// Retrieving device ID
 	if len(d.Get("device").(string)) > 0 {
-		device_id, err = hostdevidbyname(d.Get("device").(string), meta)
+		deviceID, err = hostdevidbyname(d.Get("device").(string), meta)
 
 		if err != nil {
 			// Reporting a failure
@@ -243,7 +243,7 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("name", d.Get("name").(string))
 	parameters.Add("mac_addr", d.Get("mac").(string))
-	parameters.Add("hostdev_id", device_id)
+	parameters.Add("hostdev_id", deviceID)
 	parameters.Add("ip_class_name", d.Get("class").(string))
 
 	// Building class_parameters
@@ -258,7 +258,7 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
-			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
+			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 				log.Printf("[DEBUG] SOLIDServer - Updated IP address (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
@@ -289,8 +289,8 @@ func resourceipaddressDelete(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP address : %s (%s)\n", d.Get("name"), errmsg)
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP address : %s (%s)\n", d.Get("name"), errMsg)
 			}
 		}
 
@@ -356,9 +356,9 @@ func resourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP address: %s (%s)\n", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IP address: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
@@ -417,9 +417,9 @@ func resourceipaddressImportState(d *schema.ResourceData, meta interface{}) ([]*
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to import IP address (oid): %s (%s)\n", d.Id(), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import IP address (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			// Log the error

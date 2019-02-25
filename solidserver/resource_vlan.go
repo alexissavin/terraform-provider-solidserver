@@ -86,8 +86,8 @@ func resourcevlanExists(d *schema.ResourceData, meta interface{}) (bool, error) 
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to find vlan (oid): %s (%s)\n", d.Id(), errmsg)
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to find vlan (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			log.Printf("[DEBUG] SOLIDServer - Unable to find vlan (oid): %s\n", d.Id())
@@ -138,7 +138,7 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 
 			// Checking the answer
 			if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
-				if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
+				if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 					log.Printf("[DEBUG] SOLIDServer - Created vlan (oid): %s\n", oid)
 					d.SetId(oid)
 					return nil
@@ -177,7 +177,7 @@ func resourcevlanUpdate(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
-			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
+			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 				log.Printf("[DEBUG] SOLIDServer - Updated vlan (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
@@ -208,9 +208,9 @@ func resourcevlanDelete(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Reporting a failure
-				return fmt.Errorf("SOLIDServer - Unable to delete vlan : %s (%s)", d.Get("name"), errmsg)
+				return fmt.Errorf("SOLIDServer - Unable to delete vlan : %s (%s)", d.Get("name"), errMsg)
 			}
 		}
 
@@ -269,9 +269,9 @@ func resourcevlanRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find vlan: %s (%s)\n", d.Get("name"), errmsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find vlan: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
@@ -326,8 +326,8 @@ func resourcevlanImportState(d *schema.ResourceData, meta interface{}) ([]*schem
 		}
 
 		if len(buf) > 0 {
-			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to import vlan(oid): %s (%s)\n", d.Id(), errmsg)
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to import vlan(oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			log.Printf("[DEBUG] SOLIDServer - Unable to find and import vlan (oid): %s\n", d.Id())
