@@ -104,14 +104,14 @@ func resourcevlanExists(d *schema.ResourceData, meta interface{}) (bool, error) 
 func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
-	var vlan_ids []string = nil
+	var vlanIDs []string = nil
 	var err error = nil
 
 	// Determining if a VLAN ID was submitted in or if we should get one from the VLAN Manager
 	if d.Get("request_id").(int) > 0 {
-		vlan_ids = []string{d.Get("request_id").(string)}
+		vlanIDs = []string{d.Get("request_id").(string)}
 	} else {
-		vlan_ids, err = vlanidfindfree(d.Get("vlan_domain").(string), meta)
+		vlanIDs, err = vlanidfindfree(d.Get("vlan_domain").(string), meta)
 
 		if err != nil {
 			// Reporting a failure
@@ -119,12 +119,12 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	for i := 0; i < len(vlan_ids); i++ {
+	for i := 0; i < len(vlanIDs); i++ {
 		// Building parameters
 		parameters := url.Values{}
 		parameters.Add("add_flag", "new_only")
 		parameters.Add("vlmdomain_name", d.Get("vlan_domain").(string))
-		parameters.Add("vlmvlan_vlan_id", vlan_ids[i])
+		parameters.Add("vlmvlan_vlan_id", vlanIDs[i])
 		parameters.Add("vlmvlan_name", d.Get("name").(string))
 		//parameters.Add("hostdev_class_name", d.Get("class").(string))
 		//parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())

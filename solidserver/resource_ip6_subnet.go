@@ -172,34 +172,31 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("add_flag", "new_only")
 
 		// Building class_parameters
-		class_parameters := url.Values{}
+		classParameters := url.Values{}
 
 		// Generate class parameter for the gateway if required
 		goffset := d.Get("gateway_offset").(int)
 
 		if goffset != 0 {
-			big_start_addr, _ := new(big.Int).SetString(subnetAddresses[i], 16)
+			bigStartAddr, _ := new(big.Int).SetString(subnetAddresses[i], 16)
 
 			if goffset > 0 {
-				big_offset := big.NewInt(int64(goffset))
-				gateway = hexip6toip6(BigIntToHexStr(big_start_addr.Add(big_start_addr, big_offset)))
+				bigOffset := big.NewInt(int64(goffset))
+				gateway = hexip6toip6(BigIntToHexStr(bigStartAddr.Add(bigStartAddr, bigOffset)))
 			} else {
-				log.Printf("[DEBUG] SOLIDServer - StartAddr %s\n", BigIntToHexStr(big_start_addr))
-				log.Printf("[DEBUG] SOLIDServer - Prefix Size %s\n", prefix6lengthtosize(int64(d.Get("size").(int))))
-				big_end_addr := big_start_addr.Add(big_start_addr, prefix6lengthtosize(int64(d.Get("size").(int))))
-				log.Printf("[DEBUG] SOLIDServer - EndAddr %s\n", BigIntToHexStr(big_end_addr))
-				big_offset := big.NewInt(int64(abs(goffset)))
-				gateway = hexip6toip6(BigIntToHexStr(big_end_addr.Sub(big_end_addr, big_offset)))
+				bigEndAddr := bigStartAddr.Add(bigStartAddr, prefix6lengthtosize(int64(d.Get("size").(int))))
+				bigOffset := big.NewInt(int64(abs(goffset)))
+				gateway = hexip6toip6(BigIntToHexStr(bigEndAddr.Sub(bigEndAddr, bigOffset)))
 			}
 
-			class_parameters.Add("gateway", gateway)
+			classParameters.Add("gateway", gateway)
 			log.Printf("[DEBUG] SOLIDServer - Subnet computed gateway: %s\n", gateway)
 		}
 
 		for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-			class_parameters.Add(k, v.(string))
+			classParameters.Add(k, v.(string))
 		}
-		parameters.Add("subnet6_class_parameters", class_parameters.Encode())
+		parameters.Add("subnet6_class_parameters", classParameters.Encode())
 
 		// Random Delay
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
@@ -254,20 +251,20 @@ func resourceip6subnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Building class_parameters
-	class_parameters := url.Values{}
+	classParameters := url.Values{}
 
 	// Generate class parameter for the gateway if required
 	goffset := d.Get("gateway_offset").(int)
 
 	if goffset != 0 {
-		class_parameters.Add("gateway", d.Get("gateway").(string))
+		classParameters.Add("gateway", d.Get("gateway").(string))
 		log.Printf("[DEBUG] SOLIDServer - Subnet updated gateway: %s\n", d.Get("gateway").(string))
 	}
 
 	for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-		class_parameters.Add(k, v.(string))
+		classParameters.Add(k, v.(string))
 	}
-	parameters.Add("subnet6_class_parameters", class_parameters.Encode())
+	parameters.Add("subnet6_class_parameters", classParameters.Encode())
 
 	// Sending the update request
 	resp, body, err := s.Request("put", "rest/ip6_subnet6_add", &parameters)
@@ -403,7 +400,7 @@ func resourceip6subnetRead(d *schema.ResourceData, meta interface{}) error {
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet6_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			if gateway, gateway_exist := retrievedClassParameters["gateway"]; gateway_exist {
+			if gateway, gatewayExist := retrievedClassParameters["gateway"]; gatewayExist {
 				d.Set("gateway", gateway[0])
 			}
 
@@ -466,7 +463,7 @@ func resourceip6subnetImportState(d *schema.ResourceData, meta interface{}) ([]*
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet6_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			if gateway, gateway_exist := retrievedClassParameters["gateway"]; gateway_exist {
+			if gateway, gatewayExist := retrievedClassParameters["gateway"]; gatewayExist {
 				d.Set("gateway", gateway[0])
 			}
 

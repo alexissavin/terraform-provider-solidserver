@@ -194,13 +194,13 @@ func prefix6lengthtosize(length int64) *big.Int {
 // Build url value object from class parameters
 // Return an url.Values{} object
 func urlfromclassparams(parameters interface{}) url.Values {
-	class_parameters := url.Values{}
+	classParameters := url.Values{}
 
 	for k, v := range parameters.(map[string]interface{}) {
-		class_parameters.Add(k, v.(string))
+		classParameters.Add(k, v.(string))
 	}
 
-	return class_parameters
+	return classParameters
 }
 
 // Return the oid of a device from hostdev_name
