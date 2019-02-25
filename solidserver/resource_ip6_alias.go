@@ -57,7 +57,7 @@ func resourceip6aliasCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	addressID, err := ipaddressidbyip(siteID, d.Get("address").(string), meta)
+	addressID, err := ip6addressidbyip6(siteID, d.Get("address").(string), meta)
 	if err != nil {
 		// Reporting a failure
 		return err

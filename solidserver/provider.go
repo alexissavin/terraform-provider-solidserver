@@ -48,6 +48,7 @@ func Provider() terraform.ResourceProvider {
 			"solidserver_ip_address":  resourceipaddress(),
 			"solidserver_ip6_address": resourceip6address(),
 			"solidserver_ip_alias":    resourceipalias(),
+			"solidserver_ip6_alias":   resourceip6alias(),
 			"solidserver_device":      resourcedevice(),
 			"solidserver_vlan":        resourcevlan(),
 			"solidserver_dns_zone":    resourcednszone(),
