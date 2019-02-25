@@ -266,11 +266,11 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("type", buf[0]["dnszone_type"].(string))
 
 			// Updating local class_parameters
-			current_class_parameters := d.Get("class_parameters").(map[string]interface{})
-			retrieved_class_parameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
-			computed_class_parameters := map[string]string{}
+			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
+			computedClassParameters := map[string]string{}
 
-			if createptr, createptr_exist := retrieved_class_parameters["dnsptr"]; createptr_exist {
+			if createptr, createptr_exist := retrievedClassParameters["dnsptr"]; createptr_exist {
 				if createptr[0] == "1" {
 					d.Set("createptr", true)
 				} else {
@@ -278,15 +278,15 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 				}
 			}
 
-			for ck := range current_class_parameters {
-				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
-					computed_class_parameters[ck] = rv[0]
+			for ck := range currentClassParameters {
+				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
+					computedClassParameters[ck] = rv[0]
 				} else {
-					computed_class_parameters[ck] = ""
+					computedClassParameters[ck] = ""
 				}
 			}
 
-			d.Set("class_parameters", computed_class_parameters)
+			d.Set("class_parameters", computedClassParameters)
 
 			return nil
 		}
@@ -333,19 +333,19 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			d.Set("type", buf[0]["dnszone_type"].(string))
 
 			// Updating local class_parameters
-			current_class_parameters := d.Get("class_parameters").(map[string]interface{})
-			retrieved_class_parameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
-			computed_class_parameters := map[string]string{}
+			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
+			computedClassParameters := map[string]string{}
 
-			for ck := range current_class_parameters {
-				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
-					computed_class_parameters[ck] = rv[0]
+			for ck := range currentClassParameters {
+				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
+					computedClassParameters[ck] = rv[0]
 				} else {
-					computed_class_parameters[ck] = ""
+					computedClassParameters[ck] = ""
 				}
 			}
 
-			d.Set("class_parameters", computed_class_parameters)
+			d.Set("class_parameters", computedClassParameters)
 
 			return []*schema.ResourceData{d}, nil
 		}

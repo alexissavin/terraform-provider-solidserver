@@ -206,12 +206,12 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
       d.Set("class",buf[0]["hostdev_class_name"].(string))
 
       // Updating local class_parameters
-      current_class_parameters := d.Get("class_parameters").(map[string]interface{})
-      retrieved_class_parameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
+      currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+      retrievedClassParameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
       computed_class_parameters := map[string]string{}
 
-      for ck, _ := range current_class_parameters {
-        if rv, rv_exist := retrieved_class_parameters[ck]; (rv_exist) {
+      for ck, _ := range currentClassParameters {
+        if rv, rvExist := retrievedClassParameters[ck]; (rvExist) {
           computed_class_parameters[ck] = rv[0]
         } else {
           computed_class_parameters[ck] = ""
@@ -263,12 +263,12 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
       d.Set("class",buf[0]["hostdev_class_name"].(string))
 
       // Updating local class_parameters
-      current_class_parameters := d.Get("class_parameters").(map[string]interface{})
-      retrieved_class_parameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
+      currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+      retrievedClassParameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
       computed_class_parameters := map[string]string{}
 
-      for ck, _ := range current_class_parameters {
-        if rv, rv_exist := retrieved_class_parameters[ck]; (rv_exist) {
+      for ck, _ := range currentClassParameters {
+        if rv, rvExist := retrievedClassParameters[ck]; (rvExist) {
           computed_class_parameters[ck] = rv[0]
         } else {
           computed_class_parameters[ck] = ""

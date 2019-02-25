@@ -390,23 +390,23 @@ func resourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			// Updating local class_parameters
-			current_class_parameters := d.Get("class_parameters").(map[string]interface{})
-			retrieved_class_parameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
-			computed_class_parameters := map[string]string{}
+			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
+			computedClassParameters := map[string]string{}
 
-			if gateway, gateway_exist := retrieved_class_parameters["gateway"]; gateway_exist {
+			if gateway, gateway_exist := retrievedClassParameters["gateway"]; gateway_exist {
 				d.Set("gateway", gateway[0])
 			}
 
-			for ck := range current_class_parameters {
-				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
-					computed_class_parameters[ck] = rv[0]
+			for ck := range currentClassParameters {
+				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
+					computedClassParameters[ck] = rv[0]
 				} else {
-					computed_class_parameters[ck] = ""
+					computedClassParameters[ck] = ""
 				}
 			}
 
-			d.Set("class_parameters", computed_class_parameters)
+			d.Set("class_parameters", computedClassParameters)
 
 			return nil
 		}
@@ -453,23 +453,23 @@ func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*s
 			d.Set("class", buf[0]["subnet_class_name"].(string))
 
 			// Setting local class_parameters
-			current_class_parameters := d.Get("class_parameters").(map[string]interface{})
-			retrieved_class_parameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
-			computed_class_parameters := map[string]string{}
+			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
+			computedClassParameters := map[string]string{}
 
-			if gateway, gateway_exist := retrieved_class_parameters["gateway"]; gateway_exist {
+			if gateway, gateway_exist := retrievedClassParameters["gateway"]; gateway_exist {
 				d.Set("gateway", gateway[0])
 			}
 
-			for ck := range current_class_parameters {
-				if rv, rv_exist := retrieved_class_parameters[ck]; rv_exist {
-					computed_class_parameters[ck] = rv[0]
+			for ck := range currentClassParameters {
+				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
+					computedClassParameters[ck] = rv[0]
 				} else {
-					computed_class_parameters[ck] = ""
+					computedClassParameters[ck] = ""
 				}
 			}
 
-			d.Set("class_parameters", computed_class_parameters)
+			d.Set("class_parameters", computedClassParameters)
 
 			return []*schema.ResourceData{d}, nil
 		}
