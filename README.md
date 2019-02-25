@@ -168,6 +168,32 @@ resource "solidserver_ip_address" "my_first_ip" {
 }
 ```
 
+### IPv6 Address
+IPv6 Address resource allows to assign an IP from the following arguments:
+
+* `space` - (Required) The name of the space into which creating the IP address.
+* `subnet` - (Required) The name of the subnet into which creating the IP address.
+* `request_ip` - (Optional) An optional request for a specific IP v6 address. If this address is unavailable the provisioning request will fail.
+* `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
+* `device` - (Optional) Device Name to associate with the IP address (Require a 'Device Manager' license).
+
+For convenience, the IP address' subnet name is expected, not its ID. This allow to create IP addresses within existing subnets.
+If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
+
+```
+resource "solidserver_ip6_address" "my_first_ip" {
+  depends_on = ["solidserver_ip6_subnet.my_first_subnet"]
+  space            = "my_space"
+  subnet           = "my_first_subnet"
+  name             = "myfirstip.mycompany.priv"
+  device           = "${solidserver_device.my_first_device.name}"
+  class            = "AWS_VPC_ADDRESS"
+  class_parameters {
+    interfaceid = "eni-d5b961d5"
+  }
+}
+```
+
 ### IP Alias
 IP Alias resource allows to register DNS alias associated to an IP address from the IPAM for enhanced IPAM-DNS consistency. The resource accept the following arguments:
 
@@ -188,6 +214,28 @@ resource "solidserver_ip_alias" "my_first_alias" {
 }
 
 ```
+
+### IPv6 Alias
+IP Alias resource allows to register DNS alias associated to an IP address from the IPAM for enhanced IPAM-DNS consistency. The resource accept the following arguments:
+
+* `space` - (Required) The name of the space to which the address belong to.
+* `address` - (Required) The IPv6 address for which the alias will be associated to.
+* `name` - (Required) The FQDN of the IP address alias to create.
+* `type` - (Optional) The type of the Alias to create (Supported: A, CNAME; Default: CNAME).
+
+For convenience, the IP space name and IP address are expected, not their IDs.
+If you intend to create an IP Alias use the `depends_on` parameter to inform terraform of the expected dependency.
+
+```
+resource "solidserver_ip6_alias" "my_first_alias" {
+  depends_on = ["solidserver_ip6_address.my_first_ip"]
+  space  = "my_space"
+  address = "${solidserver_ip6_address.my_first_ip.address}"
+  name   = "myfirstcnamealias.mycompany.priv"
+}
+
+```
+
 ### DNS Zone
 DNS Zone resource allows to create zones from the following arguments:
 
