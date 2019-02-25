@@ -1,4 +1,4 @@
-[![Build status](https://travis-ci.org/alexissavin/terraform-provider-solidserver.svg)](https://travis-ci.org/alexissavin/terraform-provider-solidserver)
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-blue.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build status](https://travis-ci.org/alexissavin/terraform-provider-solidserver.svg)](https://travis-ci.org/alexissavin/terraform-provider-solidserver) [![Go Report Card](https://goreportcard.com/badge/github.com/alexissavin/terraform-provider-solidserver)](https://goreportcard.com/report/github.com/alexissavin/terraform-provider-solidserver)
 
 # EfficientIP SOLIDserver Provider
 
@@ -78,8 +78,8 @@ resource "solidserver_device" "my_first_device" {
 
 Note: Using this resources requires a specific license.
 
-### VLAN
-VLAN resource allows to create vlans from the following arguments:
+### VLAN/VXLAN
+VLAN/VXLAN resource allows to create vlans from the following arguments:
 
 * `vlan_domain` - (Required) The name of the vlan domain into which creating the vlan.
 * `request_id` - (Optional) An optional request for a specific vlan ID. If this vlan ID is unavailable the provisioning request will fail.
@@ -117,6 +117,31 @@ resource "solidserver_ip_subnet" "my_first_subnet" {
 
 Note: The gateway_offset value can be positive (offset start at the first address of the subnet) or negative (offset start at the last address of the subnet).
 
+### IPv6 Subnet
+IPv6 Subnet resource allows to create IPv6 subnets from the following arguments:
+
+* `space` - (Required) The name of the space into which creating the IPv6 subnet.
+* `block` - (Required) The name of the block into which creating the IPv6 subnet.
+* `size` - (Required) The expected IPv6 subnet's prefix length (ex: 64 for a '/64').
+* `name` - (Required) The name of the IPv6 subnet to create.
+* `gateway_offset` - (Optional) Offset for creating the gateway. Default is 0 (no gateway).
+
+```
+resource "solidserver_ip6_subnet" "my_first_subnet" {
+  space            = "my_space"
+  block            = "my_block"
+  size             = "56"
+  name             = "my_first_piv6_subnet"
+  gateway_offset   = 1
+  class            = "VIRTUAL"
+  class_parameters {
+    vnid = "12666"
+  }
+}
+```
+
+Note: The gateway_offset value can be positive (offset start at the first address of the subnet) or negative (offset start at the last address of the subnet).
+
 ### IP Address
 IP Address resource allows to assign an IP from the following arguments:
 
@@ -132,6 +157,32 @@ If you intend to create a dedicated subnet first, use the `depends_on` parameter
 ```
 resource "solidserver_ip_address" "my_first_ip" {
   depends_on = ["solidserver_ip_subnet.my_first_subnet"]
+  space            = "my_space"
+  subnet           = "my_first_subnet"
+  name             = "myfirstip.mycompany.priv"
+  device           = "${solidserver_device.my_first_device.name}"
+  class            = "AWS_VPC_ADDRESS"
+  class_parameters {
+    interfaceid = "eni-d5b961d5"
+  }
+}
+```
+
+### IPv6 Address
+IPv6 Address resource allows to assign an IP from the following arguments:
+
+* `space` - (Required) The name of the space into which creating the IP address.
+* `subnet` - (Required) The name of the subnet into which creating the IP address.
+* `request_ip` - (Optional) An optional request for a specific IP v6 address. If this address is unavailable the provisioning request will fail.
+* `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
+* `device` - (Optional) Device Name to associate with the IP address (Require a 'Device Manager' license).
+
+For convenience, the IP address' subnet name is expected, not its ID. This allow to create IP addresses within existing subnets.
+If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
+
+```
+resource "solidserver_ip6_address" "my_first_ip" {
+  depends_on = ["solidserver_ip6_subnet.my_first_subnet"]
   space            = "my_space"
   subnet           = "my_first_subnet"
   name             = "myfirstip.mycompany.priv"
@@ -163,6 +214,28 @@ resource "solidserver_ip_alias" "my_first_alias" {
 }
 
 ```
+
+### IPv6 Alias
+IP Alias resource allows to register DNS alias associated to an IP address from the IPAM for enhanced IPAM-DNS consistency. The resource accept the following arguments:
+
+* `space` - (Required) The name of the space to which the address belong to.
+* `address` - (Required) The IPv6 address for which the alias will be associated to.
+* `name` - (Required) The FQDN of the IP address alias to create.
+* `type` - (Optional) The type of the Alias to create (Supported: A, CNAME; Default: CNAME).
+
+For convenience, the IP space name and IP address are expected, not their IDs.
+If you intend to create an IP Alias use the `depends_on` parameter to inform terraform of the expected dependency.
+
+```
+resource "solidserver_ip6_alias" "my_first_alias" {
+  depends_on = ["solidserver_ip6_address.my_first_ip"]
+  space  = "my_space"
+  address = "${solidserver_ip6_address.my_first_ip.address}"
+  name   = "myfirstcnamealias.mycompany.priv"
+}
+
+```
+
 ### DNS Zone
 DNS Zone resource allows to create zones from the following arguments:
 
@@ -187,7 +260,7 @@ DNS Record resource allows to create records from the following arguments:
 * `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the RR's zone.
 * `dnsview_name` - (Optional) The View name of the RR to create.
 * `name` - (Required) The Fully Qualified Domain Name of the RR to create.
-* `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME).
+* `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME, DNAME, TXT, NS).
 * `value` - (Required) The value od the RR to create.
 * `ttl` - (Optional) The DNS Time To Live of the RR to create.
 
