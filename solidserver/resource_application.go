@@ -53,7 +53,7 @@ func resourceapplicationExists(d *schema.ResourceData, meta interface{}) (bool, 
 
 	if s.Version < 710 {
 		// Reporting a failure
-		return false, err
+		return false, fmt.Errorf("SOLIDServer - Object not supported in this SOLIDserver version")
 	}
 
 	log.Printf("[DEBUG] Checking existence of application (oid): %s\n", d.Id())
@@ -96,6 +96,11 @@ func resourceapplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("appapplication_class_name", d.Get("class").(string))
 	parameters.Add("appapplication_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
+	if s.Version < 710 {
+		// Reporting a failure
+		return fmt.Errorf("SOLIDServer - Object not supported in this SOLIDserver version")
+	}
+
 	// Sending creation request
 	resp, body, err := s.Request("post", "rest/app_application_add", &parameters)
 
@@ -131,6 +136,11 @@ func resourceapplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("appapplication_class_name", d.Get("class").(string))
 	parameters.Add("appapplication_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
+	if s.Version < 710 {
+		// Reporting a failure
+		return fmt.Errorf("SOLIDServer - Object not supported in this SOLIDserver version")
+	}
+
 	// Sending the update request
 	resp, body, err := s.Request("put", "rest/app_application_add", &parameters)
 
@@ -161,6 +171,11 @@ func resourceapplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("appapplication_id", d.Id())
+
+	if s.Version < 710 {
+		// Reporting a failure
+		return fmt.Errorf("SOLIDServer - Object not supported in this SOLIDserver version")
+	}
 
 	// Sending the deletion request
 	resp, body, err := s.Request("delete", "rest/app_application_delete", &parameters)
@@ -197,6 +212,11 @@ func resourceapplicationRead(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("appapplication_id", d.Id())
+
+	if s.Version < 710 {
+		// Reporting a failure
+		return fmt.Errorf("SOLIDServer - Object not supported in this SOLIDserver version")
+	}
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/app_application_info", &parameters)
@@ -254,6 +274,11 @@ func resourceapplicationImportState(d *schema.ResourceData, meta interface{}) ([
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("appapplication_id", d.Id())
+
+	if s.Version < 710 {
+		// Reporting a failure
+		return nil, fmt.Errorf("SOLIDServer - Object not supported in this SOLIDserver version")
+	}
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/app_application_info", &parameters)

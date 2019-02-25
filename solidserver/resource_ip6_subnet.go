@@ -184,8 +184,11 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 				big_offset := big.NewInt(int64(goffset))
 				gateway = hexip6toip6(BigIntToHexStr(big_start_addr.Add(big_start_addr, big_offset)))
 			} else {
+				log.Printf("[DEBUG] SOLIDServer - StartAddr %s\n", BigIntToHexStr(big_start_addr))
+				log.Printf("[DEBUG] SOLIDServer - Prefix Size %s\n", prefix6lengthtosize(int64(d.Get("size").(int))))
 				big_end_addr := big_start_addr.Add(big_start_addr, prefix6lengthtosize(int64(d.Get("size").(int))))
-				big_offset := big.NewInt(int64(abs(goffset) + 1))
+				log.Printf("[DEBUG] SOLIDServer - EndAddr %s\n", BigIntToHexStr(big_end_addr))
+				big_offset := big.NewInt(int64(abs(goffset)))
 				gateway = hexip6toip6(BigIntToHexStr(big_end_addr.Sub(big_end_addr, big_offset)))
 			}
 
@@ -297,7 +300,7 @@ func resourceip6subnetgatewayDelete(d *schema.ResourceData, meta interface{}) er
 		// Building parameters
 		parameters := url.Values{}
 		parameters.Add("site_name", d.Get("space").(string))
-		parameters.Add("hostaddr", d.Get("gateway").(string))
+		parameters.Add("ip6_addr", ip6tohexip6(d.Get("gateway").(string)))
 
 		// Sending the deletion request
 		resp, body, err := s.Request("delete", "rest/ip6_address6_delete", &parameters)

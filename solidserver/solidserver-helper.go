@@ -150,10 +150,12 @@ func prefixlengthtosize(length int) int {
 // Compute the actual size of an IPv6 CIDR prefix from its length
 // Return -1 in case of failure
 func prefix6lengthtosize(length int64) *big.Int {
-	sufix := big.NewInt(128 - length)
+	sufix := big.NewInt(32 - (length / 4))
 	size := big.NewInt(16)
 
 	size = size.Exp(size, sufix, nil)
+
+	//size = size.Sub(size, big.NewInt(1))
 
 	return size
 }
