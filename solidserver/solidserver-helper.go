@@ -180,14 +180,14 @@ func hostdevidbyname(hostdev_name string, meta interface{}) (string, error) {
 	parameters.Add("WHERE", "hostdev_name='"+strings.ToLower(hostdev_name)+"'")
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/hostdev_list", &parameters)
+	resp, body, err := s.Request("get", "rest/hostdev_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			if hostdev_id, hostdev_id_exist := buf[0]["hostdev_id"].(string); hostdev_id_exist {
 				return hostdev_id, nil
 			}
@@ -210,14 +210,14 @@ func ipaddressfindfree(subnet_id string, meta interface{}) ([]string, error) {
 	parameters.Add("max_find", "4")
 
 	// Sending the creation request
-	http_resp, body, err := s.Request("get", "rpc/ip_find_free_address", &parameters)
+	resp, body, err := s.Request("get", "rpc/ip_find_free_address", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			addresses := []string{}
 
 			for i := 0; i < len(buf); i++ {
@@ -246,14 +246,14 @@ func ip6addressfindfree(subnet_id string, meta interface{}) ([]string, error) {
 	parameters.Add("max_find", "4")
 
 	// Sending the creation request
-	http_resp, body, err := s.Request("get", "rpc/ip6_find_free_address6", &parameters)
+	resp, body, err := s.Request("get", "rpc/ip6_find_free_address6", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			addresses := []string{}
 
 			for i := 0; i < len(buf); i++ {
@@ -287,14 +287,14 @@ func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
 	}
 
 	// Sending the creation request
-	http_resp, body, err := s.Request("get", "rest/vlmvlan_list", &parameters)
+	resp, body, err := s.Request("get", "rest/vlmvlan_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			vnids := []string{}
 
 			for i := 0; i < len(buf); i++ {
@@ -337,14 +337,14 @@ func ipsiteidbyname(site_name string, meta interface{}) (string, error) {
 	parameters.Add("WHERE", "site_name='"+strings.ToLower(site_name)+"'")
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/ip_site_list", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_site_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			if site_id, site_id_exist := buf[0]["site_id"].(string); site_id_exist {
 				return site_id, nil
 			}
@@ -366,14 +366,14 @@ func vlandomainidbyname(vlmdomain_name string, meta interface{}) (string, error)
 	parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomain_name)+"'")
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/vlmdomain_name", &parameters)
+	resp, body, err := s.Request("get", "rest/vlmdomain_name", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			if vlmdomain_id, vlmdomain_id_exist := buf[0]["vlmdomain_id"].(string); vlmdomain_id_exist {
 				return vlmdomain_id, nil
 			}
@@ -400,14 +400,14 @@ func ipsubnetidbyname(site_id string, subnet_name string, terminal bool, meta in
 	}
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/ip_block_subnet_list", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_block_subnet_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			if subnet_id, subnet_id_exist := buf[0]["subnet_id"].(string); subnet_id_exist {
 				return subnet_id, nil
 			}
@@ -434,14 +434,14 @@ func ip6subnetidbyname(site_id string, subnet_name string, terminal bool, meta i
 	}
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/ip6_block6_subnet6_list", &parameters)
+	resp, body, err := s.Request("get", "rest/ip6_block6_subnet6_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			if subnet_id, subnet_id_exist := buf[0]["subnet6_id"].(string); subnet_id_exist {
 				return subnet_id, nil
 			}
@@ -463,14 +463,14 @@ func ipaddressidbyip(site_id string, ip_address string, meta interface{}) (strin
 	parameters.Add("WHERE", "site_id='"+site_id+"' AND "+"ip_addr='"+iptohexip(ip_address)+"'")
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/ip_address_list", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_address_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			if ip_id, ip_id_exist := buf[0]["ip_id"].(string); ip_id_exist {
 				return ip_id, nil
 			}
@@ -494,7 +494,7 @@ func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, 
 	// parameters.Add("WHERE", "ip_name_type='" + ip_name_type + "' AND " + "alias_name='" + alias_name + "'")
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/ip_alias_list", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_alias_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -502,7 +502,7 @@ func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, 
 
 		// Shall be removed once Ticket 18653 is closed
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			for i := 0; i < len(buf); i++ {
 				r_ip_name_id, r_ip_name_id_exist := buf[i]["ip_name_id"].(string)
 				r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
@@ -522,7 +522,7 @@ func ipaliasidbyinfo(address_id string, alias_name string, ip_name_type string, 
 
 	// Shall be restored once Ticket 18653 is closed
 	// Checking the answer
-	//if (http_resp.StatusCode == 200 && len(buf) > 0) {
+	//if (resp.StatusCode == 200 && len(buf) > 0) {
 	//  if ip_name_id, ip_name_id_exist := buf[0]["ip_name_id"].(string); (ip_name_id_exist) {
 	//    return ip_name_id
 	//  }
@@ -546,14 +546,14 @@ func ipsubnetfindbysize(site_id string, block_id string, prefix_size int, meta i
 	parameters.Add("max_find", "4")
 
 	// Sending the creation request
-	http_resp, body, err := s.Request("get", "rpc/ip_find_free_subnet", &parameters)
+	resp, body, err := s.Request("get", "rpc/ip_find_free_subnet", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			subnet_addresses := []string{}
 
 			for i := 0; i < len(buf); i++ {
@@ -584,14 +584,14 @@ func ip6subnetfindbysize(site_id string, block_id string, prefix_size int, meta 
 	parameters.Add("max_find", "4")
 
 	// Sending the creation request
-	http_resp, body, err := s.Request("get", "rpc/ip6_find_free_subnet6", &parameters)
+	resp, body, err := s.Request("get", "rpc/ip6_find_free_subnet6", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			subnet_addresses := []string{}
 
 			for i := 0; i < len(buf); i++ {

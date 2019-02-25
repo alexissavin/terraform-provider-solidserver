@@ -66,7 +66,7 @@ func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error
     }
 
     if (len(buf) > 0) {
-      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      if errmsg, errexist := buf[0]["errmsg"].(string); (errexist) {
         log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s (%s)", d.Id(), errmsg)
       }
     } else {
@@ -166,7 +166,7 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
 
     // Checking the answer
     if (http_resp.StatusCode != 204 && len(buf) > 0) {
-      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      if errmsg, errexist := buf[0]["errmsg"].(string); (errexist) {
         // Reporting a failure
         return fmt.Errorf("SOLIDServer - Unable to delete device : %s (%s)", d.Get("name"), errmsg)
       }
@@ -224,7 +224,7 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
     }
 
     if (len(buf) > 0) {
-      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      if errmsg, errexist := buf[0]["errmsg"].(string); (errexist) {
         // Log the error
         log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)", d.Get("name"), errmsg)
       }
@@ -281,7 +281,7 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
     }
 
     if (len(buf) > 0) {
-      if errmsg, err_exist := buf[0]["errmsg"].(string); (err_exist) {
+      if errmsg, errexist := buf[0]["errmsg"].(string); (errexist) {
         log.Printf("[DEBUG] SOLIDServer - Unable to import device(oid): %s (%s)", d.Id(), errmsg)
       }
     } else {

@@ -107,19 +107,19 @@ func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, er
 	log.Printf("[DEBUG] Checking existence of IP address (oid): %s\n", d.Id())
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/ip_address_info", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_address_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
+		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			return true, nil
 		}
 
 		if len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				// Log the error
 				log.Printf("[DEBUG] SOLIDServer - Unable to find IP address (oid): %s (%s)\n", d.Id(), errmsg)
 			}
@@ -194,14 +194,14 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 
 		// Sending the creation request
-		http_resp, body, err := s.Request("post", "rest/ip_add", &parameters)
+		resp, body, err := s.Request("post", "rest/ip_add", &parameters)
 
 		if err == nil {
 			var buf [](map[string]interface{})
 			json.Unmarshal([]byte(body), &buf)
 
 			// Checking the answer
-			if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
+			if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 				if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
 					log.Printf("[DEBUG] SOLIDServer - Created IP address (oid): %s\n", oid)
 					d.SetId(oid)
@@ -250,14 +250,14 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("ip_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
 	// Sending the update request
-	http_resp, body, err := s.Request("put", "rest/ip_add", &parameters)
+	resp, body, err := s.Request("put", "rest/ip_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
+		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
 				log.Printf("[DEBUG] SOLIDServer - Updated IP address (oid): %s\n", oid)
 				d.SetId(oid)
@@ -281,15 +281,15 @@ func resourceipaddressDelete(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("ip_id", d.Id())
 
 	// Sending the deletion request
-	http_resp, body, err := s.Request("delete", "rest/ip_delete", &parameters)
+	resp, body, err := s.Request("delete", "rest/ip_delete", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode != 204 && len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+		if resp.StatusCode != 204 && len(buf) > 0 {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP address : %s (%s)\n", d.Get("name"), errmsg)
 			}
 		}
@@ -316,14 +316,14 @@ func resourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("ip_id", d.Id())
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/ip_address_info", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_address_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("space", buf[0]["site_name"].(string))
 			d.Set("subnet", buf[0]["subnet_name"].(string))
 			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
@@ -356,7 +356,7 @@ func resourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				// Log the error
 				log.Printf("[DEBUG] SOLIDServer - Unable to find IP address: %s (%s)\n", d.Get("name"), errmsg)
 			}
@@ -383,14 +383,14 @@ func resourceipaddressImportState(d *schema.ResourceData, meta interface{}) ([]*
 	parameters.Add("ip_id", d.Id())
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/ip_address_info", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_address_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("space", buf[0]["site_name"].(string))
 			d.Set("subnet", buf[0]["subnet_name"].(string))
 			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
@@ -417,7 +417,7 @@ func resourceipaddressImportState(d *schema.ResourceData, meta interface{}) ([]*
 		}
 
 		if len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				// Log the error
 				log.Printf("[DEBUG] SOLIDServer - Unable to import IP address (oid): %s (%s)\n", d.Id(), errmsg)
 			}

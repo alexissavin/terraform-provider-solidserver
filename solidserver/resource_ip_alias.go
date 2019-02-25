@@ -81,14 +81,14 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("ip_name_type", d.Get("type").(string))
 
 	// Sending the creation request
-	http_resp, body, err := s.Request("post", "rest/ip_alias_add", &parameters)
+	resp, body, err := s.Request("post", "rest/ip_alias_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
+		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
 				log.Printf("[DEBUG] SOLIDServer - Created IP alias (oid): %s\n", oid)
 				d.SetId(oid)
@@ -113,15 +113,15 @@ func resourceipaliasDelete(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("ip_name_id", d.Id())
 
 	// Sending the deletion request
-	http_resp, body, err := s.Request("delete", "rest/ip_alias_delete", &parameters)
+	resp, body, err := s.Request("delete", "rest/ip_alias_delete", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode != 204 && len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+		if resp.StatusCode != 204 && len(buf) > 0 {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errmsg)
 			}
 		}
@@ -162,14 +162,14 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("WHERE", "ip_name_id='"+d.Id()+"'")
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/ip_alias_list", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_alias_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", buf[0]["alias_name"].(string))
 			d.Set("type", buf[0]["ip_name_type"].(string))
 
@@ -177,7 +177,7 @@ func resourceipaliasRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				// Log the error
 				log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s (%s)\n", d.Get("name"), errmsg)
 			}

@@ -42,7 +42,7 @@ func NewSOLIDserver(host string, username string, password string, sslverify boo
 }
 
 func (s *SOLIDserver) GetVersion() error {
-	var response *http.Response = nil
+	var resp *http.Response = nil
 	var body string = ""
 	var err []error = nil
 
@@ -74,13 +74,13 @@ func (s *SOLIDserver) GetVersion() error {
 	parameters := url.Values{}
 	parameters.Add("WHERE", "member_is_me='1'")
 
-	response, body, err = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, "rest/member_list", parameters.Encode())).
+	resp, body, err = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, "rest/member_list", parameters.Encode())).
 		TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 		Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 		Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 		End()
 
-	if err == nil && response.StatusCode == 200 {
+	if err == nil && resp.StatusCode == 200 {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
@@ -106,7 +106,7 @@ func (s *SOLIDserver) GetVersion() error {
 }
 
 func (s *SOLIDserver) Request(method string, service string, parameters *url.Values) (*http.Response, string, error) {
-	var response *http.Response = nil
+	var resp *http.Response = nil
 	var body string = ""
 	var err []error = nil
 
@@ -137,25 +137,25 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 
 	switch method {
 	case "post":
-		response, body, err = apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+		resp, body, err = apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 			End()
 	case "put":
-		response, body, err = apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+		resp, body, err = apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 			End()
 	case "delete":
-		response, body, err = apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+		resp, body, err = apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 			End()
 	case "get":
-		response, body, err = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+		resp, body, err = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
@@ -168,5 +168,5 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call\n")
 	}
 
-	return response, body, nil
+	return resp, body, nil
 }

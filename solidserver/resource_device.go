@@ -54,19 +54,19 @@ func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error
 	log.Printf("[DEBUG] Checking existence of device (oid): %s\n", d.Id())
 
 	// Sending read request
-	http_resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
+	resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking answer
-		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
+		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			return true, nil
 		}
 
 		if len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s (%s)\n", d.Id(), errmsg)
 			}
 		} else {
@@ -92,14 +92,14 @@ func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
 	// Sending creation request
-	http_resp, body, err := s.Request("post", "rest/hostdev_add", &parameters)
+	resp, body, err := s.Request("post", "rest/hostdev_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
+		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
 				log.Printf("[DEBUG] SOLIDServer - Created device (oid): %s\n", oid)
 				d.SetId(oid)
@@ -127,14 +127,14 @@ func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
 	// Sending the update request
-	http_resp, body, err := s.Request("put", "rest/hostdev_add", &parameters)
+	resp, body, err := s.Request("put", "rest/hostdev_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if (http_resp.StatusCode == 200 || http_resp.StatusCode == 201) && len(buf) > 0 {
+		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oid_exist := buf[0]["ret_oid"].(string); oid_exist {
 				log.Printf("[DEBUG] SOLIDServer - Updated device (oid): %s\n", oid)
 				d.SetId(oid)
@@ -158,15 +158,15 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("hostdev_id", d.Id())
 
 	// Sending the deletion request
-	http_resp, body, err := s.Request("delete", "rest/hostdev_delete", &parameters)
+	resp, body, err := s.Request("delete", "rest/hostdev_delete", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode != 204 && len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+		if resp.StatusCode != 204 && len(buf) > 0 {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				// Reporting a failure
 				return fmt.Errorf("SOLIDServer - Unable to delete device : %s (%s)", d.Get("name"), errmsg)
 			}
@@ -194,14 +194,14 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("hostdev_id", d.Id())
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
+	resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", buf[0]["hostdev_name"].(string))
 			d.Set("class", buf[0]["hostdev_class_name"].(string))
 
@@ -224,7 +224,7 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				// Log the error
 				log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)\n", d.Get("name"), errmsg)
 			}
@@ -251,14 +251,14 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
 	parameters.Add("hostdev_id", d.Id())
 
 	// Sending the read request
-	http_resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
+	resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if http_resp.StatusCode == 200 && len(buf) > 0 {
+		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", buf[0]["hostdev_name"].(string))
 			d.Set("class", buf[0]["hostdev_class_name"].(string))
 
@@ -281,7 +281,7 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
 		}
 
 		if len(buf) > 0 {
-			if errmsg, err_exist := buf[0]["errmsg"].(string); err_exist {
+			if errmsg, errexist := buf[0]["errmsg"].(string); errexist {
 				log.Printf("[DEBUG] SOLIDServer - Unable to import device(oid): %s (%s)\n", d.Id(), errmsg)
 			}
 		} else {
