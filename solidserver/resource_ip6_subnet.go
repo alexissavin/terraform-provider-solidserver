@@ -300,7 +300,7 @@ func resourceip6subnetgatewayDelete(d *schema.ResourceData, meta interface{}) er
 		// Building parameters
 		parameters := url.Values{}
 		parameters.Add("site_name", d.Get("space").(string))
-		parameters.Add("ip6_addr", ip6tohexip6(d.Get("gateway").(string)))
+		parameters.Add("hostaddr", d.Get("gateway").(string))
 
 		// Sending the deletion request
 		resp, body, err := s.Request("delete", "rest/ip6_address6_delete", &parameters)
