@@ -84,14 +84,14 @@ func (s *SOLIDserver) GetVersion() error {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
-		if version, version_exist := buf[0]["member_version"].(string); version_exist {
+		if version, versionExist := buf[0]["member_version"].(string); versionExist {
 			log.Printf("[DEBUG] SOLIDServer - Version: %s\n", version)
 
 			StrVersion := strings.Split(version, ".")
 
 			for i := 0; i < 3; i++ {
-				num, num_err := strconv.Atoi(StrVersion[i])
-				if num_err == nil {
+				num, numErr := strconv.Atoi(StrVersion[i])
+				if numErr == nil {
 					s.Version = s.Version*10 + num
 				}
 			}

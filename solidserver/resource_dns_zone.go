@@ -271,7 +271,7 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			if createptr, createptr_exist := retrievedClassParameters["dnsptr"]; createptr_exist {
+			if createptr, createptrExist := retrievedClassParameters["dnsptr"]; createptrExist {
 				if createptr[0] == "1" {
 					d.Set("createptr", true)
 				} else {
