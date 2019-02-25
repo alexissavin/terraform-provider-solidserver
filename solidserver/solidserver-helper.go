@@ -254,7 +254,7 @@ func ipaddressfindfree(subnetID string, meta interface{}) ([]string, error) {
 			addresses := []string{}
 
 			for i := 0; i < len(buf); i++ {
-				if addr, addr_exist := buf[i]["hostaddr"].(string); addr_exist {
+				if addr, addrExist := buf[i]["hostaddr"].(string); addrExist {
 					log.Printf("[DEBUG] SOLIDServer - Suggested IP address: %s\n", addr)
 					addresses = append(addresses, addr)
 				}
@@ -290,7 +290,7 @@ func ip6addressfindfree(subnetID string, meta interface{}) ([]string, error) {
 			addresses := []string{}
 
 			for i := 0; i < len(buf); i++ {
-				if addr, addr_exist := buf[i]["hostaddr6"].(string); addr_exist {
+				if addr, addrExist := buf[i]["hostaddr6"].(string); addrExist {
 					log.Printf("[DEBUG] SOLIDServer - Suggested IP address: %s\n", addr)
 					addresses = append(addresses, addr)
 				}
@@ -306,7 +306,7 @@ func ip6addressfindfree(subnetID string, meta interface{}) ([]string, error) {
 
 // Return an available vlan from specified vlmdomain_name
 // Or an empty table strings in case of failure
-func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
+func vlanidfindfree(vlmdomainName string, meta interface{}) ([]string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -314,9 +314,9 @@ func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
 	parameters.Add("limit", "4")
 
 	if s.Version < 700 {
-		parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomain_name)+"' AND row_enabled='2'")
+		parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomainName)+"' AND row_enabled='2'")
 	} else {
-		parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomain_name)+"' AND type='free'")
+		parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomainName)+"' AND type='free'")
 	}
 
 	// Sending the creation request
@@ -332,7 +332,7 @@ func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
 
 			for i := 0; i < len(buf); i++ {
 				if s.Version < 700 {
-					if vnid, vnid_exist := buf[i]["vlmvlan_vlan_id"].(string); vnid_exist {
+					if vnid, vnidExist := buf[i]["vlmvlan_vlan_id"].(string); vnidExist {
 						log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s\n", vnid)
 						vnids = append(vnids, vnid)
 					}
@@ -355,7 +355,7 @@ func vlanidfindfree(vlmdomain_name string, meta interface{}) ([]string, error) {
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free vlan ID in vlan domain: %s\n", vlmdomain_name)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free vlan ID in vlan domain: %s\n", vlmdomainName)
 
 	return []string{}, err
 }
@@ -391,12 +391,12 @@ func ipsiteidbyname(site_name string, meta interface{}) (string, error) {
 
 // Return the oid of a vlan domain from vlmdomain_name
 // Or an empty string in case of failure
-func vlandomainidbyname(vlmdomain_name string, meta interface{}) (string, error) {
+func vlandomainidbyname(vlmdomainName string, meta interface{}) (string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomain_name)+"'")
+	parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomainName)+"'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/vlmdomain_name", &parameters)
@@ -407,13 +407,13 @@ func vlandomainidbyname(vlmdomain_name string, meta interface{}) (string, error)
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			if vlmdomain_id, vlmdomain_id_exist := buf[0]["vlmdomain_id"].(string); vlmdomain_id_exist {
-				return vlmdomain_id, nil
+			if vlmdomainID, vlmdomainIDExist := buf[0]["vlmdomain_id"].(string); vlmdomainIDExist {
+				return vlmdomainID, nil
 			}
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find vlan domain: %s\n", vlmdomain_name)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find vlan domain: %s\n", vlmdomainName)
 
 	return "", err
 }
@@ -475,8 +475,8 @@ func ip6subnetidbyname(siteID string, subnetName string, terminal bool, meta int
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			if subnet_id, subnet_id_exist := buf[0]["subnet6_id"].(string); subnet_id_exist {
-				return subnet_id, nil
+			if subnetID, subnetIDExist := buf[0]["subnet6_id"].(string); subnetIDExist {
+				return subnetID, nil
 			}
 		}
 	}
@@ -597,14 +597,14 @@ func ipaliasidbyinfo(addressID string, alias_name string, ip_name_type string, m
 
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
-func ipsubnetfindbysize(siteID string, blockID string, prefix_size int, meta interface{}) ([]string, error) {
+func ipsubnetfindbysize(siteID string, blockID string, prefixSize int, meta interface{}) ([]string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("site_id", siteID)
 	parameters.Add("block_id", blockID)
-	parameters.Add("prefix", strconv.Itoa(prefix_size))
+	parameters.Add("prefix", strconv.Itoa(prefixSize))
 	parameters.Add("max_find", "4")
 
 	// Sending the creation request
@@ -628,21 +628,21 @@ func ipsubnetfindbysize(siteID string, blockID string, prefix_size int, meta int
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP subnet in space (oid): %s, block (oid): %s, size: %s\n", siteID, blockID, strconv.Itoa(prefix_size))
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP subnet in space (oid): %s, block (oid): %s, size: %s\n", siteID, blockID, strconv.Itoa(prefixSize))
 
 	return []string{}, err
 }
 
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
-func ip6subnetfindbysize(siteID string, blockID string, prefix_size int, meta interface{}) ([]string, error) {
+func ip6subnetfindbysize(siteID string, blockID string, prefixSize int, meta interface{}) ([]string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("site_id", siteID)
 	parameters.Add("block6_id", blockID)
-	parameters.Add("prefix", strconv.Itoa(prefix_size))
+	parameters.Add("prefix", strconv.Itoa(prefixSize))
 	parameters.Add("max_find", "4")
 
 	// Sending the creation request
@@ -666,7 +666,7 @@ func ip6subnetfindbysize(siteID string, blockID string, prefix_size int, meta in
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP v6 subnet in space (oid): %s, block (oid): %s, size: %s\n", siteID, blockID, strconv.Itoa(prefix_size))
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP v6 subnet in space (oid): %s, block (oid): %s, size: %s\n", siteID, blockID, strconv.Itoa(prefixSize))
 
 	return []string{}, err
 }
