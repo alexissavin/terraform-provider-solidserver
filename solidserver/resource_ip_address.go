@@ -133,25 +133,28 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	var deviceID string = ""
 
 	// Gather required ID(s) from provided information
-	siteID, err := ipsiteidbyname(d.Get("space").(string), meta)
-	if err != nil {
+	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
+
+	if siteErr != nil {
 		// Reporting a failure
-		return err
+		return siteErr
 	}
 
-	subnetID, err := ipsubnetidbyname(siteID, d.Get("subnet").(string), true, meta)
-	if err != nil {
+	subnetID, SubnetErr := ipsubnetidbyname(siteID, d.Get("subnet").(string), true, meta)
+	if SubnetErr != nil {
 		// Reporting a failure
-		return err
+		return SubnetErr
 	}
 
 	// Retrieving device ID
 	if len(d.Get("device").(string)) > 0 {
-		deviceID, err = hostdevidbyname(d.Get("device").(string), meta)
+		var deviceErr error = nil
 
-		if err != nil {
+		deviceID, deviceErr = hostdevidbyname(d.Get("device").(string), meta)
+
+		if deviceErr != nil {
 			// Reporting a failure
-			return err
+			return deviceErr
 		}
 	}
 
@@ -159,11 +162,13 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	if len(d.Get("request_ip").(string)) > 0 {
 		ipAddresses = []string{d.Get("request_ip").(string)}
 	} else {
-		ipAddresses, err = ipaddressfindfree(subnetID, meta)
+		var ipErr error = nil
 
-		if err != nil {
+		ipAddresses, ipErr = ipaddressfindfree(subnetID, meta)
+
+		if ipErr != nil {
 			// Reporting a failure
-			return err
+			return ipErr
 		}
 	}
 
@@ -216,10 +221,11 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	var deviceID string = ""
-	var err error = nil
 
 	// Retrieving device ID
 	if len(d.Get("device").(string)) > 0 {
+		var err error = nil
+
 		deviceID, err = hostdevidbyname(d.Get("device").(string), meta)
 
 		if err != nil {

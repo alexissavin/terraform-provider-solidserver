@@ -5,6 +5,7 @@ PKG_NAME=solidserver
 default: build
 
 build:
+	go get -t -v ./...
 	if ! [ -d './_test' ]; then mkdir './_test'; fi
 	go build -o ./_test/terraform-provider-solidserver
 

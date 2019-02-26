@@ -42,10 +42,6 @@ func NewSOLIDserver(host string, username string, password string, sslverify boo
 }
 
 func (s *SOLIDserver) GetVersion() error {
-	var resp *http.Response = nil
-	var body string = ""
-	var err []error = nil
-
 	// Get the SystemCertPool, continue with an empty pool on error
 	rootCAs, x509err := x509.SystemCertPool()
 
@@ -74,7 +70,7 @@ func (s *SOLIDserver) GetVersion() error {
 	parameters := url.Values{}
 	parameters.Add("WHERE", "member_is_me='1'")
 
-	resp, body, err = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, "rest/member_list", parameters.Encode())).
+	resp, body, err := apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, "rest/member_list", parameters.Encode())).
 		TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 		Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 		Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).

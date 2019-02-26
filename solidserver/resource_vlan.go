@@ -105,17 +105,19 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	var vlanIDs []string = nil
-	var err error = nil
 
 	// Determining if a VLAN ID was submitted in or if we should get one from the VLAN Manager
 	if d.Get("request_id").(int) > 0 {
 		vlanIDs = []string{d.Get("request_id").(string)}
 	} else {
-		vlanIDs, err = vlanidfindfree(d.Get("vlan_domain").(string), meta)
+		var vlanErr error = nil
 
-		if err != nil {
+
+		vlanIDs, vlanErr = vlanidfindfree(d.Get("vlan_domain").(string), meta)
+
+		if vlanErr != nil {
 			// Reporting a failure
-			return err
+			return vlanErr
 		}
 	}
 
