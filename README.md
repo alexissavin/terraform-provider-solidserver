@@ -78,6 +78,23 @@ resource "solidserver_device" "my_first_device" {
 
 Note: Using this resources requires a specific license.
 
+### VLAN/VXLAN Domain
+VLAN DOMAIN resource allows to create vlan domains from the following arguments:
+
+* `name` - (Required) The name of the VLAN Domain to create.
+* `vxlan` - (Optional) An optional parameter to activate VXLAN support for this VLAN Domain.
+
+```
+resource "solidserver_vlan_domain" "myFirstVxlanDomain" {
+  name   = "myFirstVxlanDomain"
+  vxlan  = true
+  class  = "CUSTOM_VXLAN_DOMAIN"
+  class_parameters {
+    LOCATION = "PARIS"
+  }
+}
+```
+
 ### VLAN/VXLAN
 VLAN/VXLAN resource allows to create vlans from the following arguments:
 
@@ -89,6 +106,21 @@ VLAN/VXLAN resource allows to create vlans from the following arguments:
 resource "solidserver_vlan" "my_first_vlan" {
   vlan_domain      = "my_vlan_domain"
   name             = "myfirstip.mycompany.priv"
+}
+```
+
+### IP Space
+IP Space resource allows to create spaces from the following arguments:
+
+* `name` - (Required) The name of the IP Space to create.
+
+```
+resource "solidserver_ip_space" "myFirstSpace" {
+  name   = "myFirstSpace"
+  class  = "CUSTOM_SPACE"
+  class_parameters {
+    LOCATION = "PARIS"
+  }
 }
 ```
 

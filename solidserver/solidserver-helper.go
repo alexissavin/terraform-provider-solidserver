@@ -20,12 +20,12 @@ func abs(x int) int {
 	return x
 }
 
-// Big Integer to Hexa String
+// BigIntToHexStr convert a Big Integer into an Hexa String
 func BigIntToHexStr(bigInt *big.Int) string {
 	return fmt.Sprintf("%x", bigInt)
 }
 
-// Big Integer to Decimal String
+// BigIntToStr convert a Big Integer to Decimal String
 func BigIntToStr(bigInt *big.Int) string {
 	return fmt.Sprintf("%v", bigInt)
 }
@@ -144,7 +144,7 @@ func resourceipaddressrequestvalidateformat(v interface{}, _ string) ([]string, 
 		return nil, nil
 	}
 
-	return nil, []error{fmt.Errorf("Unsupported IP address request format.")}
+	return nil, []error{fmt.Errorf("Unsupported IP address request format.\n")}
 }
 
 // Validate IPv6 format
@@ -153,7 +153,7 @@ func resourceip6addressrequestvalidateformat(v interface{}, _ string) ([]string,
 		return nil, nil
 	}
 
-	return nil, []error{fmt.Errorf("Unsupported IP v6 address request format (Only non-compressed format is supported).")}
+	return nil, []error{fmt.Errorf("Unsupported IP v6 address request format (Only non-compressed format is supported).\n")}
 }
 
 // Validate the alias format
@@ -164,7 +164,7 @@ func resourcealiasvalidatetype(v interface{}, _ string) ([]string, []error) {
 	case "CNAME":
 		return nil, nil
 	default:
-		return nil, []error{fmt.Errorf("Unsupported Alias type.")}
+		return nil, []error{fmt.Errorf("Unsupported Alias type.\n")}
 	}
 }
 
@@ -328,30 +328,32 @@ func vlanidfindfree(vlmdomainName string, meta interface{}) ([]string, error) {
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			vnids := []string{}
+			vnIDs := []string{}
 
-			for i := 0; i < len(buf); i++ {
+			for i := range buf {
 				if s.Version < 700 {
-					if vnid, vnidExist := buf[i]["vlmvlan_vlan_id"].(string); vnidExist {
-						log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s\n", vnid)
-						vnids = append(vnids, vnid)
+					if vnID, vnIDExist := buf[i]["vlmvlan_vlan_id"].(string); vnIDExist {
+						log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %s\n", vnID)
+						vnIDs = append(vnIDs, vnID)
 					}
 				} else {
-					if start_vlan_id, start_vlan_id_exist := buf[i]["free_start_vlan_id"].(string); start_vlan_id_exist {
-						if end_vlan_id, end_vlan_id_exist := buf[i]["free_end_vlan_id"].(string); end_vlan_id_exist {
-							vnid, _ := strconv.Atoi(start_vlan_id)
-							max_vnid, _ := strconv.Atoi(end_vlan_id)
+					if startVlanID, startVlanIDExist := buf[i]["free_start_vlan_id"].(string); startVlanIDExist {
+						if endVlanID, endVlanIDExist := buf[i]["free_end_vlan_id"].(string); endVlanIDExist {
+							vnID, _ := strconv.Atoi(startVlanID)
+							maxVnID, _ := strconv.Atoi(endVlanID)
 
-							for vnid < max_vnid {
-								log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %d\n", vnid)
-								vnids = append(vnids, strconv.Itoa(vnid))
-								vnid++
+							j := 0
+							for vnID < maxVnID && j < 8 {
+								log.Printf("[DEBUG] SOLIDServer - Suggested vlan ID: %d\n", vnID)
+								vnIDs = append(vnIDs, strconv.Itoa(vnID))
+								vnID++
+								j++
 							}
 						}
 					}
 				}
 			}
-			return vnids, nil
+			return vnIDs, nil
 		}
 	}
 

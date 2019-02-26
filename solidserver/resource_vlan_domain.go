@@ -95,17 +95,20 @@ func resourcevlandomainCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
-	parameters.Add("support_vxlan", strconv.FormatBool(d.Get("vxlan").(bool)))
 	parameters.Add("vlmdomain_name", d.Get("name").(string))
 	parameters.Add("vlmdomain_class_name", d.Get("class").(string))
 	parameters.Add("vlmdomain_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
-	if s.Version < 700 && d.Get("vxlan").(bool) {
-		return fmt.Errorf("SOLIDServer - VXLAN Domain are not supported in this SOLIDserver version")
+	if d.Get("vxlan").(bool) {
+		if s.Version < 700 {
+			return fmt.Errorf("SOLIDServer - VXLAN Domain are not supported in this SOLIDserver version %s\n", s.Version)
+		} else {
+			parameters.Add("support_vxlan", "1")
+		}
 	}
 
 	// Sending creation request
-	resp, body, err := s.Request("post", "rest/vlmdomain_add", &parameters)
+	resp, body, err := s.Request("post", "rest/vlm_domain_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -135,17 +138,20 @@ func resourcevlandomainUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("vlmdomain_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
-	parameters.Add("support_vxlan", strconv.FormatBool(d.Get("vxlan").(bool)))
 	parameters.Add("vlmdomain_name", d.Get("name").(string))
 	parameters.Add("vlmdomain_class_name", d.Get("class").(string))
 	parameters.Add("vlmdomain_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
-	if s.Version < 700 && d.Get("vxlan").(bool) {
-		return fmt.Errorf("SOLIDServer - VXLAN Domain are not supported in this SOLIDserver version")
+	if d.Get("vxlan").(bool) {
+		if s.Version < 700 {
+			return fmt.Errorf("SOLIDServer - VXLAN Domain are not supported in this SOLIDserver version %s\n", s.Version)
+		} else {
+			parameters.Add("support_vxlan", "1")
+		}
 	}
 
 	// Sending the update request
-	resp, body, err := s.Request("put", "rest/vlmdomain_add", &parameters)
+	resp, body, err := s.Request("put", "rest/vlm_domain_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -176,7 +182,7 @@ func resourcevlandomainDelete(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("vlmdomain_id", d.Id())
 
 	// Sending the deletion request
-	resp, body, err := s.Request("delete", "rest/vlmdomain_delete", &parameters)
+	resp, body, err := s.Request("delete", "rest/vlm_domain_delete", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
