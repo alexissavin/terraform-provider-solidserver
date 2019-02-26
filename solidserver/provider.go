@@ -43,7 +43,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"solidserver_ip_space":    resourceipspace(),			
+			"solidserver_ip_space":    resourceipspace(),
 			"solidserver_ip_subnet":   resourceipsubnet(),
 			"solidserver_ip6_subnet":  resourceip6subnet(),
 			"solidserver_ip_address":  resourceipaddress(),

@@ -112,7 +112,6 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		var vlanErr error = nil
 
-
 		vlanIDs, vlanErr = vlanidfindfree(d.Get("vlan_domain").(string), meta)
 
 		if vlanErr != nil {
