@@ -162,7 +162,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		// However, we can't create a block as a terminal subnet
 		if d.Get("terminal").(bool) {
-			return fmt.Errorf("SOLIDServer - Can't create a terminal block subnet: %s", d.Get("name").(string))
+			return fmt.Errorf("SOLIDServer - Can't create a terminal IP block subnet: %s", d.Get("name").(string))
 		}
 	}
 

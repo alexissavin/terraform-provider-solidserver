@@ -33,8 +33,16 @@ func resourceip6subnet() *schema.Resource {
 			"block": {
 				Type:        schema.TypeString,
 				Description: "The name of the block intyo which creating the IP subnet.",
-				Required:    true,
+				Optional:    true,
 				ForceNew:    true,
+			},
+			"request_ip": {
+				Type:         schema.TypeString,
+				Description:  "The optionally requested subnet IP address.",
+				ValidateFunc: resourceip6addressrequestvalidateformat,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      "",
 			},
 			"size": {
 				Type:        schema.TypeInt,
@@ -132,25 +140,36 @@ func resourceip6subnetExists(d *schema.ResourceData, meta interface{}) (bool, er
 func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
+	var blockID string = ""
 	var gateway string = ""
 
 	// Gather required ID(s) from provided information
-	siteID, err := ipsiteidbyname(d.Get("space").(string), meta)
-	if err != nil {
+	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
+	if siteErr != nil {
 		// Reporting a failure
-		return err
+		return siteErr
 	}
 
-	blockID, err := ip6subnetidbyname(siteID, d.Get("block").(string), false, meta)
-	if err != nil {
-		// Reporting a failure
-		return err
+	// If a block is specified, look for free IP subnet within this block
+	if len(d.Get("block").(string)) > 0 {
+		var blockErr error = nil
+		blockID, blockErr = ip6subnetidbyname(siteID, d.Get("block").(string), false, meta)
+
+		if blockErr != nil {
+			// Reporting a failure
+			return blockErr
+		}
+	} else {
+		// However, we can't create a block as a terminal subnet
+		if d.Get("terminal").(bool) {
+			return fmt.Errorf("SOLIDServer - Can't create a terminal IP v6 block subnet: %s", d.Get("name").(string))
+		}
 	}
 
-	subnetAddresses, err := ip6subnetfindbysize(siteID, blockID, d.Get("size").(int), meta)
-	if err != nil {
+	subnetAddresses, subnetErr := ip6subnetfindbysize(siteID, blockID, "", d.Get("size").(int), meta)
+	if subnetErr != nil {
 		// Reporting a failure
-		return err
+		return subnetErr
 	}
 
 	for i := 0; i < len(subnetAddresses); i++ {
@@ -162,14 +181,20 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("subnet6_prefix", strconv.Itoa(d.Get("size").(int)))
 		parameters.Add("subnet6_class_name", d.Get("class").(string))
 
+		// New only
+		parameters.Add("add_flag", "new_only")
+
+		// If no block specified, create an IP block
+		if len(d.Get("block").(string)) == 0 {
+			parameters.Add("subnet_level", "0")
+		}
+
+		// Specify if subnet is terminal
 		if d.Get("terminal").(bool) {
 			parameters.Add("is_terminal", "1")
 		} else {
 			parameters.Add("is_terminal", "0")
 		}
-
-		// New only
-		parameters.Add("add_flag", "new_only")
 
 		// Building class_parameters
 		classParameters := url.Values{}
