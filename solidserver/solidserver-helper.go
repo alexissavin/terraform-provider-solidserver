@@ -599,15 +599,34 @@ func ipaliasidbyinfo(addressID string, alias_name string, ip_name_type string, m
 
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
-func ipsubnetfindbysize(siteID string, blockID string, prefixSize int, meta interface{}) ([]string, error) {
+func ipsubnetfindbysize(siteID string, blockID string, requestedIP string, prefixSize int, meta interface{}) ([]string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("site_id", siteID)
-	parameters.Add("block_id", blockID)
 	parameters.Add("prefix", strconv.Itoa(prefixSize))
 	parameters.Add("max_find", "4")
+
+	// Trying to create a block
+	if len(blockID) == 0 {
+		subnetAddresses := []string{}
+
+		if len(requestedIP) > 0 {
+			subnetAddresses = append(subnetAddresses, iptohexip(requestedIP))
+			return subnetAddresses, nil
+		}
+
+		return subnetAddresses, nil
+	}
+
+	// Trying to create a subnet under an existing block
+	parameters.Add("block_id", blockID)
+
+	// Specifying a suggested subnet IP address
+	if len(requestedIP) > 0 {
+		parameters.Add("begin_addr", requestedIP)
+	}
 
 	// Sending the creation request
 	resp, body, err := s.Request("get", "rpc/ip_find_free_subnet", &parameters)

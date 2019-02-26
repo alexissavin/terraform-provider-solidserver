@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"net/url"
+	"regexp"
 )
 
 func resourcedevice() *schema.Resource {
@@ -21,10 +22,11 @@ func resourcedevice() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:        schema.TypeString,
-				Description: "The name of the device to create.",
-				Required:    true,
-				ForceNew:    true,
+				Type:         schema.TypeString,
+				Description:  "The name of the device to create.",
+				ValidateFunc: resourcedevicenamevalidateformat,
+				Required:     true,
+				ForceNew:     true,
 			},
 			"class": {
 				Type:        schema.TypeString,
@@ -42,6 +44,15 @@ func resourcedevice() *schema.Resource {
 			},
 		},
 	}
+}
+
+// Validate device name format against the hostname regexp
+func resourcedevicenamevalidateformat(v interface{}, _ string) ([]string, []error) {
+	if match, _ := regexp.MatchString(`^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$`, v.(string)); match == true {
+		return nil, nil
+	}
+
+	return nil, []error{fmt.Errorf("Unsupported device name format (must be lower case and comply with hostname standard).\n")}
 }
 
 func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error) {
