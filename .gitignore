@@ -3,6 +3,7 @@
 *.a
 *.so
 
+
 # Folders
 _obj
 _test
@@ -23,3 +24,5 @@ _testmain.go
 *.exe
 *.test
 *.prof
+*.tfstate
+*.backup

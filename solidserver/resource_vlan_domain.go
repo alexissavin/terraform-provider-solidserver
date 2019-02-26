@@ -101,7 +101,7 @@ func resourcevlandomainCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.Get("vxlan").(bool) {
 		if s.Version < 700 {
-			return fmt.Errorf("SOLIDServer - VXLAN Domain are not supported in this SOLIDserver version %s\n", s.Version)
+			return fmt.Errorf("SOLIDServer - VXLAN Domain are not supported in this SOLIDserver version %d\n", s.Version)
 		} else {
 			parameters.Add("support_vxlan", "1")
 		}
@@ -144,7 +144,7 @@ func resourcevlandomainUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.Get("vxlan").(bool) {
 		if s.Version < 700 {
-			return fmt.Errorf("SOLIDServer - VXLAN Domain are not supported in this SOLIDserver version %s\n", s.Version)
+			return fmt.Errorf("SOLIDServer - VXLAN Domain are not supported in this SOLIDserver version %d\n", s.Version)
 		} else {
 			parameters.Add("support_vxlan", "1")
 		}
