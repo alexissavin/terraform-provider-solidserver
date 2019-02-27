@@ -322,7 +322,7 @@ func resourceip6addressRead(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("space", buf[0]["site_name"].(string))
 			d.Set("subnet", buf[0]["subnet6_name"].(string))
-			d.Set("address", hexiptoip(buf[0]["ip6_addr"].(string)))
+			d.Set("address", hexip6toip6(buf[0]["ip6_addr"].(string)))
 			d.Set("name", buf[0]["ip6_name"].(string))
 
 			if macIgnore, _ := regexp.MatchString("^EIP:", buf[0]["ip6_mac_addr"].(string)); !macIgnore {
@@ -389,7 +389,7 @@ func resourceip6addressImportState(d *schema.ResourceData, meta interface{}) ([]
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("space", buf[0]["site_name"].(string))
 			d.Set("subnet", buf[0]["subnet6_name"].(string))
-			d.Set("address", hexiptoip(buf[0]["ip6_addr"].(string)))
+			d.Set("address", hexip6toip6(buf[0]["ip6_addr"].(string)))
 			d.Set("name", buf[0]["ip6_name"].(string))
 			d.Set("mac", buf[0]["mac_addr"].(string))
 			d.Set("class", buf[0]["ip6_class_name"].(string))

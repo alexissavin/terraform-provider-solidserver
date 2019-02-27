@@ -153,6 +153,7 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 	// If a block is specified, look for free IP subnet within this block
 	if len(d.Get("block").(string)) > 0 {
 		var blockErr error = nil
+
 		blockID, blockErr = ip6subnetidbyname(siteID, d.Get("block").(string), false, meta)
 
 		if blockErr != nil {
@@ -166,7 +167,8 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	subnetAddresses, subnetErr := ip6subnetfindbysize(siteID, blockID, "", d.Get("size").(int), meta)
+	subnetAddresses, subnetErr := ip6subnetfindbysize(siteID, blockID, d.Get("request_ip").(string), d.Get("size").(int), meta)
+
 	if subnetErr != nil {
 		// Reporting a failure
 		return subnetErr
