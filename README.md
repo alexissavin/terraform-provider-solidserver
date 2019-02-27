@@ -63,6 +63,8 @@ SOLIDServer provider allows to manage several resources listed below.
 Device resource allows to track devices on the network and link them with IP addresses. It support the following arguments:
 
 *`name` - (Required) The name of the device to create.
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
 ```
 resource "solidserver_device" "my_first_device" {
@@ -83,7 +85,10 @@ VLAN DOMAIN resource allows to create vlan domains from the following arguments:
 
 * `name` - (Required) The name of the VLAN Domain to create.
 * `vxlan` - (Optional) An optional parameter to activate VXLAN support for this VLAN Domain.
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
+Creating a VLAN Domain:
 ```
 resource "solidserver_vlan_domain" "myFirstVxlanDomain" {
   name   = "myFirstVxlanDomain"
@@ -102,10 +107,11 @@ VLAN/VXLAN resource allows to create vlans from the following arguments:
 * `request_id` - (Optional) An optional request for a specific vlan ID. If this vlan ID is unavailable the provisioning request will fail.
 * `name` - (Required) The name of the vlan to create.
 
+Creating a VLAN:
 ```
-resource "solidserver_vlan" "my_first_vlan" {
-  vlan_domain      = "my_vlan_domain"
-  name             = "myfirstip.mycompany.priv"
+resource "solidserver_vlan" "myFirstVxlan" {
+  vlan_domain      = "${solidserver_vlan_domain.myFirstVxlanDomain.name}"
+  name             = "myFirstVxlan"
 }
 ```
 
@@ -113,7 +119,10 @@ resource "solidserver_vlan" "my_first_vlan" {
 IP Space resource allows to create spaces from the following arguments:
 
 * `name` - (Required) The name of the IP Space to create.
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
+Creating an IP Space:
 ```
 resource "solidserver_ip_space" "myFirstSpace" {
   name   = "myFirstSpace"
@@ -125,24 +134,39 @@ resource "solidserver_ip_space" "myFirstSpace" {
 ```
 
 ### IP Subnet
-IP Subnet resource allows to create subnets from the following arguments:
+IP Subnet resource allows to create IP blocks and subnets from the following arguments:
 
-* `space` - (Required) The name of the space into which creating the IP subnet.
-* `block` - (Required) The name of the block into which creating the IP subnet.
+* `space` - (Required) The name of the space into which creating the IP block/subnet.
+* `block` - (Optional) The name of the parent IP block/subnet into which creating the IP subnet.
+* `request_ip` - (Optional) The requested IP block/subnet IP address. This argument is mandatory when creating a block.
 * `size` - (Required) The expected IP subnet's prefix length (ex: 24 for a '/24').
 * `name` - (Required) The name of the IP subnet to create.
 * `gateway_offset` - (Optional) Offset for creating the gateway. Default is 0 (no gateway).
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
+Creating an IP Block:
 ```
-resource "solidserver_ip_subnet" "my_first_subnet" {
-  space            = "my_space"
-  block            = "my_block"
+resource "solidserver_ip_subnet" "myFirstIPBlock" {
+  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  request_ip       = "10.0.0.0"
+  size             = 8
+  name             = "myFirstIPBlock"
+  terminal         = false
+}
+```
+
+Creating an IP Subnet:
+```
+resource "solidserver_ip_subnet" "myFirstIPSubnet" {
+  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  block            = "${solidserver_ip_subnet.myFirstIPBlock.name}"
   size             = 24
-  name             = "my_first_subnet"
-  class            = "AWS_VPC_SUBNET"
+  name             = "myFirstIPSubnet"
+  gateway_offset   = -1
+  class            = "VIRTUAL"
   class_parameters {
-    cloudaz        = "eu-west-1a"
-    subnetclouduid = "subnet-56f261f1"
+    vnid = "12666"
   }
 }
 ```
@@ -153,17 +177,32 @@ Note: The gateway_offset value can be positive (offset start at the first addres
 IPv6 Subnet resource allows to create IPv6 subnets from the following arguments:
 
 * `space` - (Required) The name of the space into which creating the IPv6 subnet.
-* `block` - (Required) The name of the block into which creating the IPv6 subnet.
+* `block` - (Optional) The name of the parent IPv6 block/subnet into which creating the IPv6 subnet.
+* `request_ip` - (Optional) The requested IPv6 block/subnet IPv6 address. This argument is mandatory when creating a block.
 * `size` - (Required) The expected IPv6 subnet's prefix length (ex: 64 for a '/64').
 * `name` - (Required) The name of the IPv6 subnet to create.
 * `gateway_offset` - (Optional) Offset for creating the gateway. Default is 0 (no gateway).
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
+Creating an IPv6 Block:
 ```
-resource "solidserver_ip6_subnet" "my_first_subnet" {
-  space            = "my_space"
-  block            = "my_block"
-  size             = "56"
-  name             = "my_first_piv6_subnet"
+resource "solidserver_ip6_subnet" "myFirstIP6Block" {
+  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  request_ip       = "2a00:2381:126d:0:0:0:0:0"
+  size             = 48
+  name             = "myFirstIP6Block"
+  terminal         = false
+}
+```
+
+Creating an IPv6 Subnet:
+```
+resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
+  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  block            = "${solidserver_ip6_subnet.myFirstIP6Block.name}"
+  size             = 64
+  name             = "myFirstIP6Subnet"
   gateway_offset   = 1
   class            = "VIRTUAL"
   class_parameters {
@@ -171,7 +210,6 @@ resource "solidserver_ip6_subnet" "my_first_subnet" {
   }
 }
 ```
-
 Note: The gateway_offset value can be positive (offset start at the first address of the subnet) or negative (offset start at the last address of the subnet).
 
 ### IP Address
@@ -182,18 +220,19 @@ IP Address resource allows to assign an IP from the following arguments:
 * `request_ip` - (Optional) An optional request for a specific IP address. If this address is unavailable the provisioning request will fail.
 * `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
 * `device` - (Optional) Device Name to associate with the IP address (Require a 'Device Manager' license).
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
 For convenience, the IP address' subnet name is expected, not its ID. This allow to create IP addresses within existing subnets.
 If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
 
 ```
-resource "solidserver_ip_address" "my_first_ip" {
-  depends_on = ["solidserver_ip_subnet.my_first_subnet"]
-  space            = "my_space"
-  subnet           = "my_first_subnet"
-  name             = "myfirstip.mycompany.priv"
-  device           = "${solidserver_device.my_first_device.name}"
-  class            = "AWS_VPC_ADDRESS"
+resource "solidserver_ip_address" "myFirstIPAddress" {
+  space   = "${solidserver_ip_space.myFirstSpace.name}"
+  subnet  = "${solidserver_ip_subnet.myFirstIPSubnet.name}"
+  name    = "myfirstipaddress"
+  device  = "${solidserver_device.myFirstDevice.name}"
+  class   = "AWS_VPC_ADDRESS"
   class_parameters {
     interfaceid = "eni-d5b961d5"
   }
@@ -208,18 +247,19 @@ IPv6 Address resource allows to assign an IP from the following arguments:
 * `request_ip` - (Optional) An optional request for a specific IP v6 address. If this address is unavailable the provisioning request will fail.
 * `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
 * `device` - (Optional) Device Name to associate with the IP address (Require a 'Device Manager' license).
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
 For convenience, the IP address' subnet name is expected, not its ID. This allow to create IP addresses within existing subnets.
 If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
 
 ```
-resource "solidserver_ip6_address" "my_first_ip" {
-  depends_on = ["solidserver_ip6_subnet.my_first_subnet"]
-  space            = "my_space"
-  subnet           = "my_first_subnet"
-  name             = "myfirstip.mycompany.priv"
-  device           = "${solidserver_device.my_first_device.name}"
-  class            = "AWS_VPC_ADDRESS"
+resource "solidserver_ip6_address" "myFirstIP6Address" {
+  space   = "${solidserver_ip_space.myFirstSpace.name}"
+  subnet  = "${solidserver_ip6_subnet.myFirstIP6Subnet.name}"
+  name    = "myfirstip6address"
+  device  = "${solidserver_device.myFirstDevice.name}"
+  class   = "AWS_VPC_ADDRESS"
   class_parameters {
     interfaceid = "eni-d5b961d5"
   }
@@ -238,13 +278,11 @@ For convenience, the IP space name and IP address are expected, not their IDs.
 If you intend to create an IP Alias use the `depends_on` parameter to inform terraform of the expected dependency.
 
 ```
-resource "solidserver_ip_alias" "my_first_alias" {
-  depends_on = ["solidserver_ip_address.my_first_ip"]
-  space  = "my_space"
-  address = "${solidserver_ip_address.my_first_ip.address}"
-  name   = "myfirstcnamealias.mycompany.priv"
+resource "solidserver_ip_alias" "myFirstIPAlias" {
+  space  = "${solidserver_ip_space.myFirstSpace.name}"
+  address = "${solidserver_ip_address.myFirstIPAddress.address}"
+  name   = "myfirstipcnamealias.mycompany.priv"
 }
-
 ```
 
 ### IPv6 Alias
@@ -259,13 +297,11 @@ For convenience, the IP space name and IP address are expected, not their IDs.
 If you intend to create an IP Alias use the `depends_on` parameter to inform terraform of the expected dependency.
 
 ```
-resource "solidserver_ip6_alias" "my_first_alias" {
-  depends_on = ["solidserver_ip6_address.my_first_ip"]
-  space  = "my_space"
-  address = "${solidserver_ip6_address.my_first_ip.address}"
-  name   = "myfirstcnamealias.mycompany.priv"
+resource "solidserver_ip6_alias" "myFirstIP6Alias" {
+  space  = "${solidserver_ip_space.myFirstSpace.name}"
+  address = "${solidserver_ip6_address.myFirstIP6Address.address}"
+  name   = "myfirstip6cnamealias.mycompany.priv"
 }
-
 ```
 
 ### DNS Zone
@@ -276,9 +312,11 @@ DNS Zone resource allows to create zones from the following arguments:
 * `name` - (Required) The Domain Name served by the zone.
 * `type` - (Optional) The type of the Zone to create (Supported: master; Default: master).
 * `createptr` - (Optional) Automaticaly create PTR records for the Zone (Default: false).
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
 ```
-resource "solidserver_dns_zone" "my_first_zone" {
+resource "solidserver_dns_zone" "myFirstZone" {
   dnsserver = "ns.mycompany.priv"
   name      = "myfirstzone.mycompany.priv"
   type      = "master"
@@ -297,10 +335,10 @@ DNS Record resource allows to create records from the following arguments:
 * `ttl` - (Optional) The DNS Time To Live of the RR to create.
 
 ```
-resource "solidserver_dns_rr" "a_a_record" {
+resource "solidserver_dns_rr" "aaRecord" {
   dnsserver    = "ns.mycompany.priv"
   dnsview_name = "Internal"
-  name         = "myfirstarecord.mycompany.priv"
+  name         = "aarecord.mycompany.priv"
   type         = "A"
   value        = "127.0.0.1"
 }
