@@ -1,4 +1,5 @@
-# Call this sample with terraform plan -var 'solidserver=<IP|FQDN> -var solidserver_user=<USER> -var solidserver_password=<PASSWORD>'
+# Call this sample with terraform plan -var 'solidserver_host=<IP|FQDN> -var solidserver_user=<USER> -var solidserver_password=<PASSWORD>'
+#
 
 # Configure the SOLIDserver Provider
 provider "solidserver" {
@@ -103,3 +104,33 @@ resource "solidserver_ip6_alias" "myFirstIP6Alias" {
   address = "${solidserver_ip6_address.myFirstIP6Address.address}"
   name   = "myfirstip6cnamealias.mycompany.priv"
 }
+
+# ---------------------------------------------------------------
+output "sds-space01" {
+  value = "${solidserver_ip_space.myFirstSpace.name} [${solidserver_ip_space.myFirstSpace.id}]"
+}
+output "sds-block01" {
+  value = "${solidserver_ip_subnet.myFirstIPBlock.name} [${solidserver_ip_subnet.myFirstIPBlock.id}]"
+}
+output "sds-subnet01" {
+  value = "${solidserver_ip_subnet.myFirstIPSubnet.name} [${solidserver_ip_subnet.myFirstIPSubnet.id}]"
+}
+output "sds-ipv4_01" {
+  value = "${solidserver_ip_address.myFirstIPAddress.name} [${solidserver_ip_address.myFirstIPAddress.id}]"
+}
+output "sds-blockv6_01" {
+  value = "${solidserver_ip6_subnet.myFirstIP6Block.name} [${solidserver_ip6_subnet.myFirstIP6Block.id}]"
+}
+output "sds-subnetv6_01" {
+  value = "${solidserver_ip6_subnet.myFirstIP6Subnet.name} [${solidserver_ip6_subnet.myFirstIP6Subnet.id}]"
+}
+output "sds-ipv6_01" {
+  value = "${solidserver_ip6_address.myFirstIP6Address.name} [${solidserver_ip6_address.myFirstIP6Address.id}]"
+}
+output "sds-aliasv4_01" {
+  value = "${solidserver_ip_alias.myFirstIPAlias.name} [${solidserver_ip_alias.myFirstIPAlias.id}]"
+}
+output "sds-aliasv6_01" {
+  value = "${solidserver_ip6_alias.myFirstIP6Alias.name} [${solidserver_ip6_alias.myFirstIP6Alias.id}]"
+}
+# ---------------------------------------------------------------
