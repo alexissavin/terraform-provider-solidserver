@@ -53,7 +53,7 @@ SOLIDServer provider allows to manage several resources listed below.
 ### Device
 Device resource allows to track devices on the network and link them with IP addresses. It support the following arguments:
 
-*`name` - (Required) The name of the device to create.
+* `name` - (Required) The name of the device to create.
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 

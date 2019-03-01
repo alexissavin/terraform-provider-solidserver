@@ -1,5 +1,4 @@
 # Call this sample with terraform plan -var 'solidserver_host=<IP|FQDN> -var solidserver_user=<USER> -var solidserver_password=<PASSWORD>'
-#
 
 # Configure the SOLIDserver Provider
 provider "solidserver" {
@@ -105,7 +104,6 @@ resource "solidserver_ip6_alias" "myFirstIP6Alias" {
   name   = "myfirstip6cnamealias.mycompany.priv"
 }
 
-# ---------------------------------------------------------------
 output "sds-space01" {
   value = "${solidserver_ip_space.myFirstSpace.name} [${solidserver_ip_space.myFirstSpace.id}]"
 }
@@ -133,4 +131,3 @@ output "sds-aliasv4_01" {
 output "sds-aliasv6_01" {
   value = "${solidserver_ip6_alias.myFirstIP6Alias.name} [${solidserver_ip6_alias.myFirstIP6Alias.id}]"
 }
-# ---------------------------------------------------------------
