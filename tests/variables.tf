@@ -1,4 +1,4 @@
-variable "solidserver" {
+variable "solidserver_host" {
   type = "string"
   default = ""
 }

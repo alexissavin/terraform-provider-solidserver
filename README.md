@@ -2,10 +2,10 @@
 
 # EfficientIP SOLIDserver Provider
 
-This provider allows to easily interact with [SOLIDserver](http://www.efficientip.com/products/solidserver/)'s REST API.
+This provider allows to easily interact with [SOLIDserver](https://www.efficientip.com/products/solidserver/)'s REST API.
 It allows managing all IPAM objects through CRUD operations.
 
-This provider is compatible with [SOLIDserver](http://www.efficientip.com/products/solidserver/) version 6.0.2 and higher.
+This provider is compatible with [SOLIDserver](https://www.efficientip.com/products/solidserver/) version 6.0.2 and higher.
 
 # Build
 Download the latest revision of the master branch then use the go compiler to generate the binary.
@@ -15,22 +15,13 @@ cd "${GOPATH}"
 go get github.com/alexissavin/terraform-provider-solidserver
 cd ./src/github.com/alexissavin/terraform-provider-solidserver
 go get
-go build -o terraform-provider-solidserver
+go build -o terraform-provider-solidserver_v1.0.1
 ```
 
 # Install
-Download the appropriate build for your system from the release page.
-
-Store the binary somewhere on your filesystem such as '/usr/local/bin'.
-
-Then edit the '~/.terraformrc' file of the user running terraform to include the provider's path.
-
-The resulting file should include the following:
-```
-providers {
-    solidserver = "/path/to/terraform-provider-solidserver"
-}
-```
+move the terraform-provider-solidserver_v* file in:
+Windows: %APPDATA%\terraform.d\plugins\windows_amd64\
+Linux and other systems: $HOME/.terraform.d/plugins/
 
 # Debug
 You can enable debug mode by exporting 'TF_LOG' environment variable setting its value to 'DEBUG'.
