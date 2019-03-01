@@ -134,14 +134,14 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
 
 	// Building class_parameters
-	class_parameters := urlfromclassparams(d.Get("class_parameters"))
+	classParameters := urlfromclassparams(d.Get("class_parameters"))
 	// Generate class parameter for createptr if required
 	if d.Get("createptr").(bool) {
-		class_parameters.Add("dnsptr", "1")
+		classParameters.Add("dnsptr", "1")
 	} else {
-		class_parameters.Add("dnsptr", "0")
+		classParameters.Add("dnsptr", "0")
 	}
-	parameters.Add("dnszone_class_parameters", class_parameters.Encode())
+	parameters.Add("dnszone_class_parameters", classParameters.Encode())
 
 	// Sending the creation request
 	resp, body, err := s.Request("post", "rest/dns_zone_add", &parameters)
@@ -175,15 +175,16 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("dnszone_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
+
 	// Building class_parameters
-	class_parameters := urlfromclassparams(d.Get("class_parameters"))
+	classParameters := urlfromclassparams(d.Get("class_parameters"))
 	// Generate class parameter for createptr if required
 	if d.Get("createptr").(bool) {
-		class_parameters.Add("dnsptr", "1")
+		classParameters.Add("dnsptr", "1")
 	} else {
-		class_parameters.Add("dnsptr", "0")
+		classParameters.Add("dnsptr", "0")
 	}
-	parameters.Add("dnszone_class_parameters", class_parameters.Encode())
+	parameters.Add("dnszone_class_parameters", classParameters.Encode())
 
 	// Sending the update request
 	resp, body, err := s.Request("put", "rest/dns_zone_add", &parameters)
@@ -270,7 +271,7 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			if createptr, createptr_exist := retrievedClassParameters["dnsptr"]; createptr_exist {
+			if createptr, createptrExist := retrievedClassParameters["dnsptr"]; createptrExist {
 				if createptr[0] == "1" {
 					d.Set("createptr", true)
 				} else {

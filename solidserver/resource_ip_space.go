@@ -6,38 +6,36 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"net/url"
-	"regexp"
 )
 
-func resourcedevice() *schema.Resource {
+func resourceipspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcedeviceCreate,
-		Read:   resourcedeviceRead,
-		Update: resourcedeviceUpdate,
-		Delete: resourcedeviceDelete,
-		Exists: resourcedeviceExists,
+		Create: resourceipspaceCreate,
+		Read:   resourceipspaceRead,
+		Update: resourceipspaceUpdate,
+		Delete: resourceipspaceDelete,
+		Exists: resourceipspaceExists,
 		Importer: &schema.ResourceImporter{
-			State: resourcedeviceImportState,
+			State: resourceipspaceImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Description:  "The name of the device to create.",
-				ValidateFunc: resourcedevicenamevalidateformat,
-				Required:     true,
-				ForceNew:     true,
+				Type:        schema.TypeString,
+				Description: "The name of the space to create.",
+				Required:    true,
+				ForceNew:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the device.",
+				Description: "The class associated to the space.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to device.",
+				Description: "The class parameters associated to space.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     map[string]string{},
@@ -46,26 +44,17 @@ func resourcedevice() *schema.Resource {
 	}
 }
 
-// Validate device name format against the hostname regexp
-func resourcedevicenamevalidateformat(v interface{}, _ string) ([]string, []error) {
-	if match, _ := regexp.MatchString(`^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$`, v.(string)); match == true {
-		return nil, nil
-	}
-
-	return nil, []error{fmt.Errorf("Unsupported device name format (must be lower case and comply with hostname standard).\n")}
-}
-
-func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceipspaceExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("hostdev_id", d.Id())
+	parameters.Add("site_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of device (oid): %s\n", d.Id())
+	log.Printf("[DEBUG] Checking existence of space (oid): %s\n", d.Id())
 
 	// Sending read request
-	resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_site_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -78,10 +67,10 @@ func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find space (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find space (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -92,18 +81,18 @@ func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error
 	return false, err
 }
 
-func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceipspaceCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
-	parameters.Add("hostdev_name", d.Get("name").(string))
-	parameters.Add("hostdev_class_name", d.Get("class").(string))
-	parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
+	parameters.Add("site_name", d.Get("name").(string))
+	parameters.Add("site_class_name", d.Get("class").(string))
+	parameters.Add("site_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
 	// Sending creation request
-	resp, body, err := s.Request("post", "rest/hostdev_add", &parameters)
+	resp, body, err := s.Request("post", "rest/ip_site_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -112,33 +101,33 @@ func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Created device (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created space (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to create device: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to create space: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceipspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("hostdev_id", d.Id())
+	parameters.Add("site_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
-	parameters.Add("hostdev_name", d.Get("name").(string))
-	parameters.Add("hostdev_class_name", d.Get("class").(string))
-	parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
+	parameters.Add("site_name", d.Get("name").(string))
+	parameters.Add("site_class_name", d.Get("class").(string))
+	parameters.Add("site_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
 	// Sending the update request
-	resp, body, err := s.Request("put", "rest/hostdev_add", &parameters)
+	resp, body, err := s.Request("put", "rest/ip_site_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -147,29 +136,29 @@ func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Updated device (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated space (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to update device: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to update space: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceipspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("hostdev_id", d.Id())
+	parameters.Add("site_id", d.Id())
 
 	// Sending the deletion request
-	resp, body, err := s.Request("delete", "rest/hostdev_delete", &parameters)
+	resp, body, err := s.Request("delete", "rest/ip_site_delete", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -179,12 +168,12 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode != 204 && len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Reporting a failure
-				return fmt.Errorf("SOLIDServer - Unable to delete device : %s (%s)", d.Get("name"), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to delete space : %s (%s)", d.Get("name"), errMsg)
 			}
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted device (oid): %s\n", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted space (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -197,15 +186,15 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceipspaceRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("hostdev_id", d.Id())
+	parameters.Add("site_id", d.Id())
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_site_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -213,12 +202,12 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			d.Set("name", buf[0]["hostdev_name"].(string))
-			d.Set("class", buf[0]["hostdev_class_name"].(string))
+			d.Set("name", buf[0]["site_name"].(string))
+			d.Set("class", buf[0]["site_class_name"].(string))
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
-			retrievedClassParameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
+			retrievedClassParameters, _ := url.ParseQuery(buf[0]["site_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
 			for ck := range currentClassParameters {
@@ -237,32 +226,32 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find space: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find device (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find space (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find device: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find space: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceipspaceImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("hostdev_id", d.Id())
+	parameters.Add("site_id", d.Id())
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/hostdev_info", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_site_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -270,12 +259,12 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			d.Set("name", buf[0]["hostdev_name"].(string))
-			d.Set("class", buf[0]["hostdev_class_name"].(string))
+			d.Set("name", buf[0]["site_name"].(string))
+			d.Set("class", buf[0]["site_class_name"].(string))
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
-			retrievedClassParameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
+			retrievedClassParameters, _ := url.ParseQuery(buf[0]["site_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
 			for ck := range currentClassParameters {
@@ -293,14 +282,14 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to import device(oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import space(oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import device (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import space (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import device (oid): %s\n", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import space (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure

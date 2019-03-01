@@ -31,9 +31,18 @@ func resourceipsubnet() *schema.Resource {
 			},
 			"block": {
 				Type:        schema.TypeString,
-				Description: "The name of the block intyo which creating the IP subnet.",
-				Required:    true,
+				Description: "The name of the block into which creating the IP subnet.",
+				Optional:    true,
 				ForceNew:    true,
+				Default:     "",
+			},
+			"request_ip": {
+				Type:         schema.TypeString,
+				Description:  "The optionally requested subnet IP address.",
+				ValidateFunc: resourceipaddressrequestvalidateformat,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      "",
 			},
 			"size": {
 				Type:        schema.TypeInt,
@@ -131,25 +140,38 @@ func resourceipsubnetExists(d *schema.ResourceData, meta interface{}) (bool, err
 func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
+	var blockID string = ""
 	var gateway string = ""
 
 	// Gather required ID(s) from provided information
-	siteID, err := ipsiteidbyname(d.Get("space").(string), meta)
-	if err != nil {
+	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
+	if siteErr != nil {
 		// Reporting a failure
-		return err
+		return siteErr
 	}
 
-	blockID, err := ipsubnetidbyname(siteID, d.Get("block").(string), false, meta)
-	if err != nil {
-		// Reporting a failure
-		return err
+	// If a block is specified, look for free IP subnet within this block
+	if len(d.Get("block").(string)) > 0 {
+		var blockErr error = nil
+
+		blockID, blockErr = ipsubnetidbyname(siteID, d.Get("block").(string), false, meta)
+
+		if blockErr != nil {
+			// Reporting a failure
+			return blockErr
+		}
+	} else {
+		// However, we can't create a block as a terminal subnet
+		if d.Get("terminal").(bool) {
+			return fmt.Errorf("SOLIDServer - Can't create a terminal IP block subnet: %s", d.Get("name").(string))
+		}
 	}
 
-	subnetAddresses, err := ipsubnetfindbysize(siteID, blockID, d.Get("size").(int), meta)
-	if err != nil {
+	subnetAddresses, subnetErr := ipsubnetfindbysize(siteID, blockID, d.Get("request_ip").(string), d.Get("size").(int), meta)
+
+	if subnetErr != nil {
 		// Reporting a failure
-		return err
+		return subnetErr
 	}
 
 	for i := 0; i < len(subnetAddresses); i++ {
@@ -161,17 +183,23 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("subnet_prefix", strconv.Itoa(d.Get("size").(int)))
 		parameters.Add("subnet_class_name", d.Get("class").(string))
 
+		// New only
+		parameters.Add("add_flag", "new_only")
+
+		// If no block specified, create an IP block
+		if len(d.Get("block").(string)) == 0 {
+			parameters.Add("subnet_level", "0")
+		}
+
+		// Specify if subnet is terminal
 		if d.Get("terminal").(bool) {
 			parameters.Add("is_terminal", "1")
 		} else {
 			parameters.Add("is_terminal", "0")
 		}
 
-		// New only
-		parameters.Add("add_flag", "new_only")
-
 		// Building class_parameters
-		class_parameters := url.Values{}
+		classParameters := url.Values{}
 
 		// Generate class parameter for the gateway if required
 		goffset := d.Get("gateway_offset").(int)
@@ -183,14 +211,14 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 				gateway = longtoip(iptolong(hexiptoip(subnetAddresses[i])) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset)) - 1)
 			}
 
-			class_parameters.Add("gateway", gateway)
+			classParameters.Add("gateway", gateway)
 			log.Printf("[DEBUG] SOLIDServer - Subnet computed gateway: %s\n", gateway)
 		}
 
 		for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-			class_parameters.Add(k, v.(string))
+			classParameters.Add(k, v.(string))
 		}
-		parameters.Add("subnet_class_parameters", class_parameters.Encode())
+		parameters.Add("subnet_class_parameters", classParameters.Encode())
 
 		// Random Delay
 		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
@@ -245,20 +273,20 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Building class_parameters
-	class_parameters := url.Values{}
+	classParameters := url.Values{}
 
 	// Generate class parameter for the gateway if required
 	goffset := d.Get("gateway_offset").(int)
 
 	if goffset != 0 {
-		class_parameters.Add("gateway", d.Get("gateway").(string))
+		classParameters.Add("gateway", d.Get("gateway").(string))
 		log.Printf("[DEBUG] SOLIDServer - Subnet updated gateway: %s\n", d.Get("gateway").(string))
 	}
 
 	for k, v := range d.Get("class_parameters").(map[string]interface{}) {
-		class_parameters.Add(k, v.(string))
+		classParameters.Add(k, v.(string))
 	}
-	parameters.Add("subnet_class_parameters", class_parameters.Encode())
+	parameters.Add("subnet_class_parameters", classParameters.Encode())
 
 	// Sending the update request
 	resp, body, err := s.Request("put", "rest/ip_subnet_add", &parameters)
@@ -394,7 +422,7 @@ func resourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			if gateway, gateway_exist := retrievedClassParameters["gateway"]; gateway_exist {
+			if gateway, gatewayExist := retrievedClassParameters["gateway"]; gatewayExist {
 				d.Set("gateway", gateway[0])
 			}
 
@@ -457,7 +485,7 @@ func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*s
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			if gateway, gateway_exist := retrievedClassParameters["gateway"]; gateway_exist {
+			if gateway, gatewayExist := retrievedClassParameters["gateway"]; gatewayExist {
 				d.Set("gateway", gateway[0])
 			}
 

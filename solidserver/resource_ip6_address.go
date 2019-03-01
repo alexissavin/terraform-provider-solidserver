@@ -133,25 +133,27 @@ func resourceip6addressCreate(d *schema.ResourceData, meta interface{}) error {
 	var deviceID string = ""
 
 	// Gather required ID(s) from provided information
-	siteID, err := ipsiteidbyname(d.Get("space").(string), meta)
-	if err != nil {
+	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
+	if siteErr != nil {
 		// Reporting a failure
-		return err
+		return siteErr
 	}
 
-	subnetID, err := ip6subnetidbyname(siteID, d.Get("subnet").(string), true, meta)
-	if err != nil {
+	subnetID, SubnetErr := ip6subnetidbyname(siteID, d.Get("subnet").(string), true, meta)
+	if SubnetErr != nil {
 		// Reporting a failure
-		return err
+		return SubnetErr
 	}
 
 	// Retrieving device ID
 	if len(d.Get("device").(string)) > 0 {
-		deviceID, err = hostdevidbyname(d.Get("device").(string), meta)
+		var deviceErr error = nil
 
-		if err != nil {
+		deviceID, deviceErr = hostdevidbyname(d.Get("device").(string), meta)
+
+		if deviceErr != nil {
 			// Reporting a failure
-			return err
+			return deviceErr
 		}
 	}
 
@@ -159,11 +161,13 @@ func resourceip6addressCreate(d *schema.ResourceData, meta interface{}) error {
 	if len(d.Get("request_ip").(string)) > 0 {
 		ipAddresses = []string{d.Get("request_ip").(string)}
 	} else {
-		ipAddresses, err = ip6addressfindfree(subnetID, meta)
+		var ipErr error = nil
 
-		if err != nil {
+		ipAddresses, ipErr = ip6addressfindfree(subnetID, meta)
+
+		if ipErr != nil {
 			// Reporting a failure
-			return err
+			return ipErr
 		}
 	}
 
@@ -216,10 +220,11 @@ func resourceip6addressUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	var deviceID string = ""
-	var err error = nil
 
 	// Retrieving device ID
 	if len(d.Get("device").(string)) > 0 {
+		var err error = nil
+
 		deviceID, err = hostdevidbyname(d.Get("device").(string), meta)
 
 		if err != nil {
@@ -317,7 +322,7 @@ func resourceip6addressRead(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("space", buf[0]["site_name"].(string))
 			d.Set("subnet", buf[0]["subnet6_name"].(string))
-			d.Set("address", hexiptoip(buf[0]["ip6_addr"].(string)))
+			d.Set("address", hexip6toip6(buf[0]["ip6_addr"].(string)))
 			d.Set("name", buf[0]["ip6_name"].(string))
 
 			if macIgnore, _ := regexp.MatchString("^EIP:", buf[0]["ip6_mac_addr"].(string)); !macIgnore {
@@ -384,7 +389,7 @@ func resourceip6addressImportState(d *schema.ResourceData, meta interface{}) ([]
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("space", buf[0]["site_name"].(string))
 			d.Set("subnet", buf[0]["subnet6_name"].(string))
-			d.Set("address", hexiptoip(buf[0]["ip6_addr"].(string)))
+			d.Set("address", hexip6toip6(buf[0]["ip6_addr"].(string)))
 			d.Set("name", buf[0]["ip6_name"].(string))
 			d.Set("mac", buf[0]["mac_addr"].(string))
 			d.Set("class", buf[0]["ip6_class_name"].(string))

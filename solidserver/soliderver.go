@@ -42,10 +42,6 @@ func NewSOLIDserver(host string, username string, password string, sslverify boo
 }
 
 func (s *SOLIDserver) GetVersion() error {
-	var resp *http.Response = nil
-	var body string = ""
-	var err []error = nil
-
 	// Get the SystemCertPool, continue with an empty pool on error
 	rootCAs, x509err := x509.SystemCertPool()
 
@@ -74,7 +70,7 @@ func (s *SOLIDserver) GetVersion() error {
 	parameters := url.Values{}
 	parameters.Add("WHERE", "member_is_me='1'")
 
-	resp, body, err = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, "rest/member_list", parameters.Encode())).
+	resp, body, err := apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, "rest/member_list", parameters.Encode())).
 		TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 		Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 		Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
@@ -84,15 +80,17 @@ func (s *SOLIDserver) GetVersion() error {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
-		if version, version_exist := buf[0]["member_version"].(string); version_exist {
+		if version, versionExist := buf[0]["member_version"].(string); versionExist {
 			log.Printf("[DEBUG] SOLIDServer - Version: %s\n", version)
 
 			StrVersion := strings.Split(version, ".")
 
 			for i := 0; i < 3; i++ {
-				num, num_err := strconv.Atoi(StrVersion[i])
-				if num_err == nil {
+				num, numErr := strconv.Atoi(StrVersion[i])
+				if numErr == nil {
 					s.Version = s.Version*10 + num
+				} else {
+					s.Version = s.Version*10 + 0
 				}
 			}
 
