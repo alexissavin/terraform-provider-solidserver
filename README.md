@@ -15,13 +15,22 @@ cd "${GOPATH}"
 go get github.com/alexissavin/terraform-provider-solidserver
 cd ./src/github.com/alexissavin/terraform-provider-solidserver
 go get
-go build -o terraform-provider-solidserver_v1.0.1
+go build -o terraform-provider-solidserver_v1.0.4
 ```
 
 # Install
-move the terraform-provider-solidserver_v* file in:
-Windows: %APPDATA%\terraform.d\plugins\windows_amd64\
-Linux and other systems: $HOME/.terraform.d/plugins/
+
+Download the appropriate build for your system from the [release page]: https://github.com/alexissavin/terraform-provider-solidserver/releases or build the master branch of this repository.
+
+## Linux
+
+Move the file 'terraform-provider-solidserver_v1.0.4' into the following directory: '$HOME/.terraform.d/plugins/'.
+
+
+## Windows
+
+Move the file 'terraform-provider-solidserver_v1.0.4' into the following directory: '%APPDATA%\terraform.d\plugins\windows_amd64\'.
+
 
 # Debug
 You can enable debug mode by exporting 'TF_LOG' environment variable setting its value to 'DEBUG'.
