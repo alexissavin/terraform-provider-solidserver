@@ -171,11 +171,21 @@ func resourcealiasvalidatetype(v interface{}, _ string) ([]string, []error) {
 // Compute the actual size of a CIDR prefix from its length
 // Return -1 in case of failure
 func prefixlengthtosize(length int) int {
-	if length <= 32 {
+	if length >= 0 && length <= 32 {
 		return (1 << (32 - uint32(length)))
 	}
 
 	return -1
+}
+
+// Compute the netmask of a CIDR prefix from its length
+// Return an empty string in case of failure
+func prefixlengthtohexip(length int) string {
+	if length >= 0 && length <= 32 {
+		return longtoip((^((1 << (32 - uint32(length))) - 1)) & 0xffffffff)
+	}
+
+	return ""
 }
 
 // Compute the actual size of an IPv6 CIDR prefix from its length

@@ -141,7 +141,11 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 			if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 				if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 					log.Printf("[DEBUG] SOLIDServer - Created vlan (oid): %s\n", oid)
+
+					vnid, _ := strconv.Atoi(vlanIDs[i])
+					d.Set("vlan_id", vnid)
 					d.SetId(oid)
+
 					return nil
 				}
 			} else {
@@ -305,7 +309,11 @@ func resourcevlanImportState(d *schema.ResourceData, meta interface{}) ([]*schem
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
+			vnid, _ := strconv.Atoi(buf[0]["vlmvlan_vlan_id"].(string))
+
 			d.Set("name", buf[0]["vlmvlan_name"].(string))
+			d.Set("vlan_id", vnid)
+
 			//d.Set("class",buf[0]["hostdev_class_name"].(string))
 
 			// Updating local class_parameters

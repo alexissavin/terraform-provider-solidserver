@@ -226,7 +226,11 @@ func resourcevlandomainRead(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			vxlanSupport, _ := strconv.ParseBool(buf[0]["support_vxlan"].(string))
+			vxlanSupport := false
+
+			if _, exist := buf[0]["support_vxlan"]; exist {
+				vxlanSupport, _ = strconv.ParseBool(buf[0]["support_vxlan"].(string))
+			}
 
 			d.Set("name", buf[0]["vlmdomain_name"].(string))
 			d.Set("support_vxlan", vxlanSupport)
@@ -286,7 +290,11 @@ func resourcevlandomainImportState(d *schema.ResourceData, meta interface{}) ([]
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			vxlanSupport, _ := strconv.ParseBool(buf[0]["support_vxlan"].(string))
+			vxlanSupport := false
+
+			if _, exist := buf[0]["support_vxlan"]; exist {
+				vxlanSupport, _ = strconv.ParseBool(buf[0]["support_vxlan"].(string))
+			}
 
 			d.Set("name", buf[0]["vlmdomain_name"].(string))
 			d.Set("support_vxlan", vxlanSupport)
