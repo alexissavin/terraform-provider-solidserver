@@ -60,7 +60,7 @@ func resourceip6macExists(d *schema.ResourceData, meta interface{}) (bool, error
 
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
-			if ip6Mac, ip6MacExist := buf[0]["mac_addr"].(string); ip6MacExist {
+			if ip6Mac, ip6MacExist := buf[0]["ip6_mac_addr"].(string); ip6MacExist {
 				if strings.ToLower(ip6Mac) == strings.ToLower(d.Get("mac").(string)) {
 					return true, nil
 				}
@@ -94,7 +94,7 @@ func resourceip6macCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("site_name", d.Get("space").(string))
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("hostaddr", d.Get("address").(string))
-	parameters.Add("mac_addr", strings.ToLower(d.Get("mac").(string)))
+	parameters.Add("ip6_mac_addr", strings.ToLower(d.Get("mac").(string)))
 	parameters.Add("keep_class_parameters", "1")
 
 	// Sending the creation request
@@ -128,7 +128,7 @@ func resourceip6macDelete(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("site_name", d.Get("space").(string))
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("hostaddr", d.Get("address").(string))
-	parameters.Add("mac_addr", "")
+	parameters.Add("ip6_mac_addr", "")
 	parameters.Add("keep_class_parameters", "1")
 
 	// Sending the creation request
@@ -172,7 +172,7 @@ func resourceip6macRead(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
-			if ip6Mac, ip6MacExist := buf[0]["mac_addr"].(string); ip6MacExist {
+			if ip6Mac, ip6MacExist := buf[0]["ip6_mac_addr"].(string); ip6MacExist {
 				if strings.ToLower(ip6Mac) == strings.ToLower(d.Get("mac").(string)) {
 					return nil
 				}
