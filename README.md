@@ -266,6 +266,36 @@ resource "solidserver_ip6_address" "myFirstIP6Address" {
 }
 ```
 
+### IP MAC
+IP MAC resource allows to map an IP address and a MAC address. This is useful when provisioning IP addresses for VM(s) for which the MAC address is unknown until deployed. This resource support the following arguments:
+
+* `space` - (Required) The name of the space into which creating the IP address.
+* `address` - (Required) The IP address to map with the MAC address.
+* `mac` - (Required) The MAC address to map with the IP address.
+
+```
+resource "solidserver_ip_mac" "myFirstIPMacAassoc" {
+  space   = "${solidserver_ip_space.myFirstSpace.name}"
+  address = "${solidserver_ip_address.myFirstIPAddress.address}"
+  mac     = "00:11:22:33:44:55"
+}
+```
+
+### IPv6 MAC
+IPv6 MAC resource allows to map an IP v6 address and a MAC address. This is useful when provisioning IPv6 addresses for VM(s) for which the MAC address is unknown until deployed. This resource support the following arguments:
+
+* `space` - (Required) The name of the space into which creating the IP address.
+* `address` - (Required) The IPv6 address to map with the MAC address.
+* `mac` - (Required) The MAC address to map with the IPv6 address.
+
+```
+resource "solidserver_ip6_mac" "myFirstIP6MacAassoc" {
+  space   = "${solidserver_ip_space.myFirstSpace.name}"
+  address = "${solidserver_ip6_address.myFirstIP6Address.address}"
+  mac     = "06:16:26:36:46:56"
+}
+```
+
 ### IP Alias
 IP Alias resource allows to register DNS alias associated to an IP address from the IPAM for enhanced IPAM-DNS consistency. The resource accept the following arguments:
 
