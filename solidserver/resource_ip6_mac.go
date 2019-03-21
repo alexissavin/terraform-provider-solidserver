@@ -2,9 +2,9 @@ package solidserver
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
-	"fmt"
 	"net/url"
 	"strings"
 )
