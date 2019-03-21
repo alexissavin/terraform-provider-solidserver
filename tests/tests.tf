@@ -65,6 +65,12 @@ resource "solidserver_ip_address" "myFirstIPAddress" {
   device  = "${solidserver_device.myFirstDevice.name}"
 }
 
+resource "solidserver_ip_mac" "myFirstIPMacAassoc" {
+  space   = "${solidserver_ip_space.myFirstSpace.name}"
+  address = "${solidserver_ip_address.myFirstIPAddress.address}"
+  mac     = "00:11:22:33:44:55"
+}
+
 resource "solidserver_ip6_subnet" "myFirstIP6Block" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   request_ip       = "2a00:2381:126d:0:0:0:0:0"
@@ -90,6 +96,12 @@ resource "solidserver_ip6_address" "myFirstIP6Address" {
   subnet  = "${solidserver_ip6_subnet.myFirstIP6Subnet.name}"
   name    = "myfirstip6address"
   device  = "${solidserver_device.myFirstDevice.name}"
+}
+
+resource "solidserver_ip6_mac" "myFirstIP6MacAassoc" {
+  space   = "${solidserver_ip_space.myFirstSpace.name}"
+  address = "${solidserver_ip6_address.myFirstIP6Address.address}"
+  mac     = "06:16:26:36:46:56"
 }
 
 resource "solidserver_ip_alias" "myFirstIPAlias" {

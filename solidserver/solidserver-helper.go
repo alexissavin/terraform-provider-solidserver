@@ -3,6 +3,7 @@ package solidserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"math/big"
 	"net/url"
@@ -136,6 +137,23 @@ func longtoip(iplong uint32) string {
 	}
 
 	return fmt.Sprintf("%d.%d.%d.%d", a, b, c, d)
+}
+
+func resourcediffsuppresslowercase(k, old, new string, d *schema.ResourceData) bool {
+	if strings.ToLower(old) == strings.ToLower(new) {
+		return true
+	}
+
+	return false
+}
+
+// Validate MAC address format
+func resourceipmacrequestvalidateformat(v interface{}, _ string) ([]string, []error) {
+	if match, _ := regexp.MatchString(`([0-9a-f][0-9a-f]:){5}([0-9a-f][0-9a-f])`, strings.ToLower(v.(string))); match == true {
+		return nil, nil
+	}
+
+	return nil, []error{fmt.Errorf("Unsupported MAC address request format.\n")}
 }
 
 // Validate IPv4 format

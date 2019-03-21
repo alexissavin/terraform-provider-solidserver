@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 func resourcedevice() *schema.Resource {
@@ -22,11 +23,12 @@ func resourcedevice() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Description:  "The name of the device to create.",
-				ValidateFunc: resourcedevicenamevalidateformat,
-				Required:     true,
-				ForceNew:     true,
+				Type:             schema.TypeString,
+				Description:      "The name of the device to create.",
+				ValidateFunc:     resourcedevicenamevalidateformat,
+				DiffSuppressFunc: resourcediffsuppresslowercase,
+				Required:         true,
+				ForceNew:         true,
 			},
 			"class": {
 				Type:        schema.TypeString,
@@ -52,7 +54,7 @@ func resourcedevicenamevalidateformat(v interface{}, _ string) ([]string, []erro
 		return nil, nil
 	}
 
-	return nil, []error{fmt.Errorf("Unsupported device name format (must be lower case and comply with hostname standard).\n")}
+	return nil, []error{fmt.Errorf("Unsupported device name format (it must comply with hostname standard).\n")}
 }
 
 func resourcedeviceExists(d *schema.ResourceData, meta interface{}) (bool, error) {
@@ -98,7 +100,7 @@ func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
-	parameters.Add("hostdev_name", d.Get("name").(string))
+	parameters.Add("hostdev_name", strings.ToLower(d.Get("name").(string)))
 	parameters.Add("hostdev_class_name", d.Get("class").(string))
 	parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
@@ -119,7 +121,7 @@ func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to create device: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to create device: %s\n", strings.ToLower(d.Get("name").(string)))
 	}
 
 	// Reporting a failure
@@ -133,7 +135,7 @@ func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("hostdev_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
-	parameters.Add("hostdev_name", d.Get("name").(string))
+	parameters.Add("hostdev_name", strings.ToLower(d.Get("name").(string)))
 	parameters.Add("hostdev_class_name", d.Get("class").(string))
 	parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
@@ -154,7 +156,7 @@ func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to update device: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to update device: %s\n", strings.ToLower(d.Get("name").(string)))
 	}
 
 	// Reporting a failure
@@ -179,7 +181,7 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode != 204 && len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Reporting a failure
-				return fmt.Errorf("SOLIDServer - Unable to delete device : %s (%s)", d.Get("name"), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to delete device : %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
 			}
 		}
 
@@ -213,7 +215,7 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			d.Set("name", buf[0]["hostdev_name"].(string))
+			d.Set("name", strings.ToLower(buf[0]["hostdev_name"].(string)))
 			d.Set("class", buf[0]["hostdev_class_name"].(string))
 
 			// Updating local class_parameters
@@ -237,7 +239,7 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find device: %s (%s)\n", strings.ToLower(d.Get("name").(string)), errMsg)
 			}
 		} else {
 			// Log the error
@@ -247,7 +249,7 @@ func resourcedeviceRead(d *schema.ResourceData, meta interface{}) error {
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find device: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find device: %s\n", strings.ToLower(d.Get("name").(string)))
 	}
 
 	// Reporting a failure
@@ -270,7 +272,7 @@ func resourcedeviceImportState(d *schema.ResourceData, meta interface{}) ([]*sch
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			d.Set("name", buf[0]["hostdev_name"].(string))
+			d.Set("name", strings.ToLower(buf[0]["hostdev_name"].(string)))
 			d.Set("class", buf[0]["hostdev_class_name"].(string))
 
 			// Updating local class_parameters

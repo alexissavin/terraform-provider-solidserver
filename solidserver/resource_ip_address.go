@@ -179,9 +179,12 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("add_flag", "new_only")
 		parameters.Add("name", d.Get("name").(string))
 		parameters.Add("hostaddr", ipAddresses[i])
-		parameters.Add("mac_addr", d.Get("mac").(string))
 		parameters.Add("hostdev_id", deviceID)
 		parameters.Add("ip_class_name", d.Get("class").(string))
+
+		if d.Get("mac").(string) != "" {
+			parameters.Add("mac_addr", d.Get("mac").(string))
+		}
 
 		// Building class_parameters
 		parameters.Add("ip_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
@@ -239,9 +242,12 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("ip_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("name", d.Get("name").(string))
-	parameters.Add("mac_addr", d.Get("mac").(string))
 	parameters.Add("hostdev_id", deviceID)
 	parameters.Add("ip_class_name", d.Get("class").(string))
+
+	if d.Get("mac").(string) != "" {
+		parameters.Add("mac_addr", d.Get("mac").(string))
+	}
 
 	// Building class_parameters
 	parameters.Add("ip_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
