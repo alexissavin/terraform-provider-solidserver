@@ -392,12 +392,12 @@ func vlanidfindfree(vlmdomainName string, meta interface{}) ([]string, error) {
 
 // Return the oid of a space from site_name
 // Or an empty string in case of failure
-func ipsiteidbyname(site_name string, meta interface{}) (string, error) {
+func ipsiteidbyname(siteName string, meta interface{}) (string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "site_name='"+strings.ToLower(site_name)+"'")
+	parameters.Add("WHERE", "site_name='"+strings.ToLower(siteName)+"'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip_site_list", &parameters)
@@ -414,7 +414,7 @@ func ipsiteidbyname(site_name string, meta interface{}) (string, error) {
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP space: %s\n", site_name)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP space: %s\n", siteName)
 
 	return "", err
 }
@@ -576,14 +576,14 @@ func ip6addressidbyip6(siteID string, ipAddress string, meta interface{}) (strin
 
 // Return the oid of an address from ip_id, ip_name_type, alias_name
 // Or an empty string in case of failure
-func ipaliasidbyinfo(addressID string, alias_name string, ip_name_type string, meta interface{}) (string, error) {
+func ipaliasidbyinfo(addressID string, aliasName string, ipNameType string, meta interface{}) (string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("ip_id", addressID)
 	// Bug - Ticket 18653
-	// parameters.Add("WHERE", "ip_name_type='" + ip_name_type + "' AND " + "alias_name='" + alias_name + "'")
+	// parameters.Add("WHERE", "ip_name_type='" + ipNameType + "' AND " + "alias_name='" + alias_name + "'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip_alias_list", &parameters)
@@ -600,11 +600,11 @@ func ipaliasidbyinfo(addressID string, alias_name string, ip_name_type string, m
 				r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
 				r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
 
-				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s\n", alias_name, r_alias_name, addressID)
-				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s\n", ip_name_type, r_ip_name_type, addressID)
+				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s\n", aliasName, r_alias_name, addressID)
+				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s\n", ipNameType, r_ip_name_type, addressID)
 
-				if r_ip_name_type_exist && strings.Compare(ip_name_type, r_ip_name_type) == 0 &&
-					r_alias_name_exist && strings.Compare(alias_name, r_alias_name) == 0 &&
+				if r_ip_name_type_exist && strings.Compare(ipNameType, r_ip_name_type) == 0 &&
+					r_alias_name_exist && strings.Compare(aliasName, r_alias_name) == 0 &&
 					r_ip_name_id_exist {
 					return r_ip_name_id, nil
 				}
@@ -620,7 +620,7 @@ func ipaliasidbyinfo(addressID string, alias_name string, ip_name_type string, m
 	//  }
 	//}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s - %s associated with IP address ID %s\n", alias_name, ip_name_type, addressID)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s - %s associated with IP address ID %s\n", aliasName, ipNameType, addressID)
 
 	return "", err
 }

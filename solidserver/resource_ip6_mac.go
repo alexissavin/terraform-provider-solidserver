@@ -63,10 +63,9 @@ func resourceip6macExists(d *schema.ResourceData, meta interface{}) (bool, error
 			if ip6Mac, ip6MacExist := buf[0]["mac_addr"].(string); ip6MacExist {
 				if strings.ToLower(ip6Mac) == strings.ToLower(d.Get("mac").(string)) {
 					return true, nil
-				} else {
-					// Log the error
-					log.Printf("[DEBUG] SOLIDServer - Unable to find the IP v6 address (oid): %s; associated to the mac (%s)\n", d.Id(), d.Get("mac").(string))
 				}
+				// Log the error
+				log.Printf("[DEBUG] SOLIDServer - Unable to find the IP v6 address (oid): %s; associated to the mac (%s)\n", d.Id(), d.Get("mac").(string))
 			}
 		} else {
 			if len(buf) > 0 {
@@ -176,10 +175,9 @@ func resourceip6macRead(d *schema.ResourceData, meta interface{}) error {
 			if ip6Mac, ip6MacExist := buf[0]["mac_addr"].(string); ip6MacExist {
 				if strings.ToLower(ip6Mac) == strings.ToLower(d.Get("mac").(string)) {
 					return nil
-				} else {
-					// Log the error
-					log.Printf("[DEBUG] SOLIDServer - Unable to find the IP v6 address (oid): %s; associated to the mac (%s)\n", d.Id(), d.Get("mac").(string))
 				}
+				// Log the error
+				log.Printf("[DEBUG] SOLIDServer - Unable to find the IP v6 address (oid): %s; associated to the mac (%s)\n", d.Id(), d.Get("mac").(string))
 			}
 		} else {
 			if len(buf) > 0 {
