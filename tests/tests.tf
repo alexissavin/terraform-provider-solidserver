@@ -116,6 +116,31 @@ resource "solidserver_ip6_alias" "myFirstIP6Alias" {
   name   = "myfirstip6cnamealias.mycompany.priv"
 }
 
+resource "solidserver_dns_zone" "myFirstZone" {
+  dnsserver = "ns.priv"
+  name      = "mycompany.priv"
+  type      = "master"
+  createptr = false
+}
+
+resource "solidserver_dns_rr" "ARecords" {
+  depends_on   = ["solidserver_dns_zone.myFirstZone"]
+  dnsserver    = "ns.priv"
+  name         = "aarecord-${count.index}.mycompany.priv"
+  type         = "A"
+  value        = "127.0.0.1"
+  count        = 64
+}
+
+resource "solidserver_dns_rr" "CnameRecords" {
+  depends_on   = ["solidserver_dns_rr.ARecords"]
+  dnsserver    = "ns.priv"
+  name         = "cnamerecord-${count.index}.mycompany.priv"
+  type         = "CNAME"
+  value        = "aarecord-${count.index}.mycompany.priv"
+  count        = 64
+}
+
 output "sds-space01" {
   value = "${solidserver_ip_space.myFirstSpace.name} [${solidserver_ip_space.myFirstSpace.id}]"
 }

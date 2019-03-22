@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
-	"math/rand"
 	"net/url"
 	"regexp"
-	"time"
 )
 
 func resourceip6address() *schema.Resource {
@@ -187,9 +185,6 @@ func resourceip6addressCreate(d *schema.ResourceData, meta interface{}) error {
 
 		// Building class_parameters
 		parameters.Add("ip6_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
-
-		// Random Delay
-		time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
 
 		// Sending the creation request
 		resp, body, err := s.Request("post", "rest/ip6_address6_add", &parameters)

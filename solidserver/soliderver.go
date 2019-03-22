@@ -9,10 +9,12 @@ import (
 	"github.com/parnurzeal/gorequest"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type SOLIDserver struct {
@@ -135,18 +137,24 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 
 	switch method {
 	case "post":
+		// Random Delay for write operation to distribute the load
+		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 		resp, body, err = apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 			End()
 	case "put":
+		// Random Delay for write operation to distribute the load
+		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 		resp, body, err = apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 			End()
 	case "delete":
+		// Random Delay for write operation to distribute the load
+		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
 		resp, body, err = apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
