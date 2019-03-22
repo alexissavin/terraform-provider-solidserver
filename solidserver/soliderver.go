@@ -135,10 +135,14 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 
 	apiclient := gorequest.New()
 
+	// Set gorequest options
+	apiclient.Timeout(16 * time.Second)
+	apiclient.Retry(3, time.Duration(rand.Intn(128)) * time.Millisecond, http.StatusTooManyRequests)
+
 	switch method {
 	case "post":
 		// Random Delay for write operation to distribute the load
-		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
 		resp, body, err = apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
@@ -146,7 +150,7 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 			End()
 	case "put":
 		// Random Delay for write operation to distribute the load
-		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
 		resp, body, err = apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
@@ -154,7 +158,7 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 			End()
 	case "delete":
 		// Random Delay for write operation to distribute the load
-		time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
 		resp, body, err = apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
@@ -171,7 +175,7 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 	}
 
 	if err != nil {
-		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call\n")
+		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", err)
 	}
 
 	return resp, body, nil
