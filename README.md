@@ -15,7 +15,7 @@ cd "${GOPATH}"
 go get github.com/alexissavin/terraform-provider-solidserver
 cd ./src/github.com/alexissavin/terraform-provider-solidserver
 go get
-go build -o terraform-provider-solidserver_v1.0.4
+go build -o terraform-provider-solidserver_v1.0.7
 ```
 
 # Install
@@ -24,12 +24,12 @@ Download the appropriate build for your system from the [release page]: https://
 
 ## Linux
 
-Move the file 'terraform-provider-solidserver_v1.0.4' into the following directory: '$HOME/.terraform.d/plugins/'.
+Move the file 'terraform-provider-solidserver_v1.0.7' into the following directory: '$HOME/.terraform.d/plugins/'.
 
 
 ## Windows
 
-Move the file 'terraform-provider-solidserver_v1.0.4' into the following directory: '%APPDATA%\terraform.d\plugins\windows_amd64\'.
+Move the file 'terraform-provider-solidserver_v1.0.7' into the following directory: '%APPDATA%\terraform.d\plugins\windows_amd64\'.
 
 
 # Debug
