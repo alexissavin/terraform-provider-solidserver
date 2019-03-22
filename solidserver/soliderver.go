@@ -137,7 +137,7 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 
 	// Set gorequest options
 	apiclient.Timeout(16 * time.Second)
-	apiclient.Retry(3, time.Duration(rand.Intn(128)) * time.Millisecond, http.StatusTooManyRequests)
+	apiclient.Retry(3, time.Duration(rand.Intn(128))*time.Millisecond, http.StatusTooManyRequests)
 
 	switch method {
 	case "post":
