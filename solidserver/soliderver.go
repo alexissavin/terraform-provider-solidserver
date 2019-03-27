@@ -38,7 +38,9 @@ func NewSOLIDserver(host string, username string, password string, sslverify boo
 		Version:                  0,
 	}
 
-	s.GetVersion()
+	if s.GetVersion() != nil {
+		return nil
+	}
 
 	return s
 }
@@ -96,7 +98,7 @@ func (s *SOLIDserver) GetVersion() error {
 				}
 			}
 
-			log.Printf("[DEBUG] SOLIDServer - Version: %d\n", s.Version)
+			log.Printf("[DEBUG] SOLIDServer - server version: %d\n", s.Version)
 
 			return nil
 		}
