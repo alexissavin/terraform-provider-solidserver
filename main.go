@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/alexissavin/terraform-provider-solidserver/solidserver"
-	// "solidserver"
 	"github.com/hashicorp/terraform/plugin"
+	// "solidserver"
 )
 
 func main() {
