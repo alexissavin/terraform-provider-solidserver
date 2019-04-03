@@ -24,6 +24,11 @@ resource "solidserver_ip_space" "myFirstSpace" {
   }
 }
 
+
+data "solidserver_ip_space" "myFirstSpaceData" {
+  name = "${solidserver_ip_space.myFirstSpace.name}"
+}
+
 resource "solidserver_vlan_domain" "myFirstVxlanDomain" {
   name   = "myFirstVxlanDomain"
   vxlan  = true
@@ -63,6 +68,9 @@ resource "solidserver_ip_address" "myFirstIPAddress" {
   subnet  = "${solidserver_ip_subnet.myFirstIPSubnet.name}"
   name    = "myfirstipaddress"
   device  = "${solidserver_device.myFirstDevice.name}"
+  lifecycle {
+    ignore_changes = ["mac"]
+  }
 }
 
 resource "solidserver_ip_mac" "myFirstIPMacAassoc" {
@@ -96,6 +104,9 @@ resource "solidserver_ip6_address" "myFirstIP6Address" {
   subnet  = "${solidserver_ip6_subnet.myFirstIP6Subnet.name}"
   name    = "myfirstip6address"
   device  = "${solidserver_device.myFirstDevice.name}"
+  lifecycle {
+    ignore_changes = ["mac"]
+  }
 }
 
 resource "solidserver_ip6_mac" "myFirstIP6MacAassoc" {
