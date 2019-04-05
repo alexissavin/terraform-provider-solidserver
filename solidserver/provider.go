@@ -43,7 +43,8 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"solidserver_ip_space": dataSourceipspace(),
+			"solidserver_ip_space":   dataSourceipspace(),
+			"solidserver_group_user": dataSourcegroupuser(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -61,6 +62,7 @@ func Provider() terraform.ResourceProvider {
 			"solidserver_vlan":        resourcevlan(),
 			"solidserver_dns_zone":    resourcednszone(),
 			"solidserver_dns_rr":      resourcednsrr(),
+			"solidserver_user":        resourceuser(),
 		},
 
 		ConfigureFunc: ProviderConfigure,
