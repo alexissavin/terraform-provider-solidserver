@@ -8,9 +8,9 @@ import (
 	"net/url"
 )
 
-func dataSourcegroupuser() *schema.Resource {
+func dataSourceusergroup() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourcegroupuserRead,
+		Read: dataSourceusergroupRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -27,7 +27,7 @@ func dataSourcegroupuser() *schema.Resource {
 	}
 }
 
-func dataSourcegroupuserRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceusergroupRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId("")
 
 	s := meta.(*SOLIDserver)
