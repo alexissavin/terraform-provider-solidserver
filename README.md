@@ -38,7 +38,7 @@ You can enable debug mode by exporting 'TF_LOG' environment variable setting its
 For further details have a look to the [terraform documentation](https://www.terraform.io/docs/internals/debugging.html)
 
 # Acceptance Tests
-In order to perform the acceptance tests of the solidserver module, first set in your environment the variables required for the connection (SOLIDServer_HOST, SOLIDServer_USERNAME and SOLIDServer_PASSWORD). In addition you could disable the TLS certificate validation by setting the SOLIDServer_SSLVERIFY to false.
+In order to perform the acceptance tests of the solidserver module, first set in your environment the variables required for the connection (`SOLIDServer_HOST`, `SOLIDServer_USERNAME` and `SOLIDServer_PASSWORD`). In addition you could disable the TLS certificate validation by setting the `SOLIDServer_SSLVERIFY` to false.
 ```
 TF_ACC=1 go test solidserver -v -count=1
 ```

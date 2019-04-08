@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.8
+
+Features:
+* user management
+* user group management
+
+Quality:
+* add acceptance tests and framework for user and user group
+
 ## 1.0.7
 
 Fixes:
