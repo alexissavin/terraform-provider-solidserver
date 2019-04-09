@@ -40,6 +40,13 @@ func resourcednszone() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
+			"space": {
+				Type:        schema.TypeString,
+				Description: "The name of a space associated to the zone.",
+				Optional:    true,
+				ForceNew:    false,
+				Default:     "",
+			},
 			"type": {
 				Type:         schema.TypeString,
 				Description:  "The type of the zone to create (Supported: Master).",
@@ -122,6 +129,13 @@ func resourcednszoneExists(d *schema.ResourceData, meta interface{}) (bool, erro
 func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
+	// Gather required ID(s) from provided information
+	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
+	if siteErr != nil {
+		// Reporting a failure
+		return siteErr
+	}
+
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
@@ -131,6 +145,7 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 	parameters.Add("dnszone_name", d.Get("name").(string))
 	parameters.Add("dnszone_type", strings.ToLower(d.Get("type").(string)))
+	parameters.Add("dnszone_site_id", siteID)
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
 
 	// Building class_parameters
@@ -170,10 +185,18 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
+	// Gather required ID(s) from provided information
+	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
+	if siteErr != nil {
+		// Reporting a failure
+		return siteErr
+	}
+
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("dnszone_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
+	parameters.Add("dnszone_site_id", siteID)
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
 
 	// Building class_parameters
@@ -266,6 +289,12 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("name", buf[0]["dnszone_name"].(string))
 			d.Set("type", buf[0]["dnszone_type"].(string))
 
+			if buf[0]["dnszone_site_name"].(string) != "#" {
+				d.Set("space", buf[0]["dnszone_site_name"].(string))
+			} else {
+				d.Set("space", "")
+			}
+
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
@@ -332,6 +361,12 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			d.Set("view", buf[0]["dnsview_name"].(string))
 			d.Set("name", buf[0]["dnszone_name"].(string))
 			d.Set("type", buf[0]["dnszone_type"].(string))
+
+			if buf[0]["dnszone_site_name"].(string) != "#" {
+				d.Set("space", buf[0]["dnszone_site_name"].(string))
+			} else {
+				d.Set("space", "")
+			}
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
