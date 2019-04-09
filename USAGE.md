@@ -17,7 +17,7 @@ provider "solidserver" {
 ```
 
 # Available Resources
-SOLIDServer provider allows to manage several resources listed below.
+SOLIDServer provider allows to manage several resources listed below:
 
 ## Device
 Device resource allows to track devices on the network and link them with IP addresses. It support the following arguments:
@@ -26,6 +26,7 @@ Device resource allows to track devices on the network and link them with IP add
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
+Creating a Device:
 ```
 resource "solidserver_device" "my_first_device" {
   name   = "my_device"
@@ -93,7 +94,7 @@ resource "solidserver_ip_space" "myFirstSpace" {
 }
 ```
 
-Get information from an IP Space:
+Getting information from an IP Space:
 ```
 data "solidserver_ip_space" "enterprise" {
   name = "Enterprise"
@@ -177,6 +178,7 @@ resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
   }
 }
 ```
+
 Note: The gateway_offset value can be positive (offset start at the first address of the subnet) or negative (offset start at the last address of the subnet).
 
 ## IP Address
@@ -193,6 +195,7 @@ IP Address resource allows to assign an IP from the following arguments:
 For convenience, the IP address' subnet name is expected, not its ID. This allow to create IP addresses within existing subnets.
 If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
 
+Creating an IP address:
 ```
 resource "solidserver_ip_address" "myFirstIPAddress" {
   space   = "${solidserver_ip_space.myFirstSpace.name}"
@@ -220,6 +223,7 @@ IPv6 Address resource allows to assign an IP from the following arguments:
 For convenience, the IP address' subnet name is expected, not its ID. This allow to create IP addresses within existing subnets.
 If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
 
+Creating an IPv6 address:
 ```
 resource "solidserver_ip6_address" "myFirstIP6Address" {
   space   = "${solidserver_ip_space.myFirstSpace.name}"
@@ -240,11 +244,24 @@ IP MAC resource allows to map an IP address and a MAC address. This is useful wh
 * `address` - (Required) The IP address to map with the MAC address.
 * `mac` - (Required) The MAC address to map with the IP address.
 
+Creating an IP-MAC association:
 ```
 resource "solidserver_ip_mac" "myFirstIPMacAassoc" {
   space   = "${solidserver_ip_space.myFirstSpace.name}"
   address = "${solidserver_ip_address.myFirstIPAddress.address}"
   mac     = "00:11:22:33:44:55"
+}
+```
+
+Note: When using IP-MAC association, consider using the lifecycle property on the associated IP address for statefull management of the MAC address.
+```
+resource "solidserver_ip_address" "myFirstIPAddress" {
+  space   = "${solidserver_ip_space.myFirstSpace.name}"
+  subnet  = "${solidserver_ip_subnet.myFirstIPSubnet.name}"
+  name    = "myfirstipaddress"
+  lifecycle {
+    ignore_changes = ["mac"]
+  }
 }
 ```
 
@@ -255,11 +272,24 @@ IPv6 MAC resource allows to map an IP v6 address and a MAC address. This is usef
 * `address` - (Required) The IPv6 address to map with the MAC address.
 * `mac` - (Required) The MAC address to map with the IPv6 address.
 
+Creating an IPv6-MAC association:
 ```
 resource "solidserver_ip6_mac" "myFirstIP6MacAassoc" {
   space   = "${solidserver_ip_space.myFirstSpace.name}"
   address = "${solidserver_ip6_address.myFirstIP6Address.address}"
   mac     = "06:16:26:36:46:56"
+}
+```
+
+Note: When using IPv6-MAC association, consider using the lifecycle property on the associated IPv6 address for statefull management of the MAC address.
+```
+resource "solidserver_ip6_address" "myFirstIP6Address" {
+  space   = "${solidserver_ip_space.myFirstSpace.name}"
+  subnet  = "${solidserver_ip6_subnet.myFirstIP6Subnet.name}"
+  name    = "myfirstip6address"
+  lifecycle {
+    ignore_changes = ["mac"]
+  }
 }
 ```
 
@@ -274,6 +304,7 @@ IP Alias resource allows to register DNS alias associated to an IP address from 
 For convenience, the IP space name and IP address are expected, not their IDs.
 If you intend to create an IP Alias use the `depends_on` parameter to inform terraform of the expected dependency.
 
+Creating an IP alias:
 ```
 resource "solidserver_ip_alias" "myFirstIPAlias" {
   space  = "${solidserver_ip_space.myFirstSpace.name}"
@@ -293,6 +324,7 @@ IP Alias resource allows to register DNS alias associated to an IP address from 
 For convenience, the IP space name and IP address are expected, not their IDs.
 If you intend to create an IP Alias use the `depends_on` parameter to inform terraform of the expected dependency.
 
+Creating an IPv6 alias:
 ```
 resource "solidserver_ip6_alias" "myFirstIP6Alias" {
   space  = "${solidserver_ip_space.myFirstSpace.name}"
@@ -308,16 +340,19 @@ DNS Zone resource allows to create zones from the following arguments:
 * `view` - (Optional) The DNS view name hosting the zone (Default: none).
 * `name` - (Required) The Domain Name served by the zone.
 * `type` - (Optional) The type of the Zone to create (Supported: master; Default: master).
+* `space` - (Optional) The name of a space associated to the zone.
 * `createptr` - (Optional) Automaticaly create PTR records for the Zone (Default: false).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
+Creating a DNS Zone:
 ```
 resource "solidserver_dns_zone" "myFirstZone" {
-  dnsserver = "ns.mycompany.priv"
-  name      = "myfirstzone.mycompany.priv"
+  dnsserver = "ns.priv"
+  name      = "mycompany.priv"
   type      = "master"
-  createptr = true
+  space     = "${solidserver_ip_space.myFirstSpace.name}"
+  createptr = false
 }
 ```
 
@@ -327,10 +362,11 @@ DNS Record resource allows to create records from the following arguments:
 * `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the RR's zone.
 * `dnsview_name` - (Optional) The View name of the RR to create.
 * `name` - (Required) The Fully Qualified Domain Name of the RR to create.
-* `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME, DNAME, TXT, NS).
+* `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME, DNAME, TXT, NS, PTR).
 * `value` - (Required) The value od the RR to create.
 * `ttl` - (Optional) The DNS Time To Live of the RR to create.
 
+Creating a DNS Resource Record:
 ```
 resource "solidserver_dns_rr" "aaRecord" {
   dnsserver    = "ns.mycompany.priv"
@@ -341,39 +377,52 @@ resource "solidserver_dns_rr" "aaRecord" {
 }
 ```
 
-## User
+Note: When creating a PTR, the name of the RR must be computed from the IP address. The DataSources solidserver_ip_ptr and solidserver_ip6_ptr are available to do so.
+```
+data "solidserver_ip_ptr" "myFirstIPPTR" {
+  address = "${solidserver_ip_address.myFirstIPAddress.address}"
+}
 
-### resource solidserver_user
-User can connect through Web GUI and use APIs, the arguments supported are:
+resource "solidserver_dns_rr" "aaRecord" {
+  dnsserver    = "ns.mycompany.priv"
+  dnsview_name = "Internal"
+  name         = "${solidserver_ip_ptr.myFirstIPPTR.address.dname}"
+  type         = "PTR"
+  value        = "myapp.mycompany.priv"
+}
+```
+
+## User
+Users can connect through Web GUI and use APIs. This resource support the following arguments:
 
 * `login` - (Required) The login of the user
 * `password` - (Required) The password of the user
-* `groups` - (Required) List of groups the user belongs to, this is a resources or data
+* `groups` - (Required) A list of groups the user belongs to
 * `description` - The description of the user
 * `last_name` - The last name of the user
 * `first_name` - The first name of the user
 * `email` - The email address of the user
 
+Creating a User:
 ```
-resource "solidserver_user" "t_user" {
-   login = "alex"
-   password = "le_pw_compliqu!_du_@lex"
-   description = "Alex"
-   last_name = "Chauvin"
-   first_name = "Alex"
-   email = "ach@efficientip.com"
+resource "solidserver_user" "myFirstUser" {
+   login = "jsmith"
+   password = "a_very_c0mpl3x_P@ssw0rd"
+   description = "My Very First User Resource"
+   last_name = "Smith"
+   first_name = "John"
+   email = "j.smith@efficientip.com"
    groups = [ "${solidserver_usergroup.grp_admin.id}" ]
 }
 ```
 
 ## Group
-
-### resource solidserver_usergroup
-Group that link user to rights
+Groups associate users with authorization rules and SOLIDserver resources. They are created based on the following:
 
 * `name` - (Required) The name of the group
 * `description` - description of the group
 
+Creating a Group:
 ```
 resource "solidserver_usergroup" "t_group_01" {
   name = "group01"
@@ -381,10 +430,7 @@ resource "solidserver_usergroup" "t_group_01" {
 }
 ```
 
-### data solidserver_usergroup
-
-Allows gathering information about a group based on its name.
-
+Getting information from a group based on its name:
 ```
 data "solidserver_usergroup" "t_group_01" {
   name = "group01"
