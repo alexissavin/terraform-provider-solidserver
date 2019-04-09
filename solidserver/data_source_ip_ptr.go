@@ -2,9 +2,9 @@ package solidserver
 
 import (
 	"fmt"
-	"strconv"
-	"math/rand"
 	"github.com/hashicorp/terraform/helper/schema"
+	"math/rand"
+	"strconv"
 )
 
 func dataSourceipptr() *schema.Resource {
@@ -12,10 +12,11 @@ func dataSourceipptr() *schema.Resource {
 		Read: dataSourceipptrRead,
 
 		Schema: map[string]*schema.Schema{
-			"ip": {
-				Type:        schema.TypeString,
-				Description: "The IP address to convert.",
-				Required:    true,
+			"address": {
+				Type:         schema.TypeString,
+				Description:  "The IP address to convert into PTR domain name.",
+				ValidateFunc: resourceipaddressrequestvalidateformat,
+				Required:     true,
 			},
 			"ptrdname": {
 				Type:        schema.TypeString,
@@ -27,7 +28,7 @@ func dataSourceipptr() *schema.Resource {
 }
 
 func dataSourceipptrRead(d *schema.ResourceData, meta interface{}) error {
-	ptrdname := iptoptr(d.Get("ip").(string))
+	ptrdname := iptoptr(d.Get("address").(string))
 
 	if ptrdname != "" {
 		d.SetId(strconv.Itoa(rand.Intn(1000000)))
@@ -36,5 +37,5 @@ func dataSourceipptrRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Reporting a failure
-	return fmt.Errorf("SOLIDServer - Unable to convert the following IP address into PTR domain name: %s\n", d.Get("ip").(string))
+	return fmt.Errorf("SOLIDServer - Unable to convert the following IP address into PTR domain name: %s\n", d.Get("address").(string))
 }

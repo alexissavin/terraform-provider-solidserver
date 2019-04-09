@@ -288,7 +288,12 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("view", buf[0]["dnsview_name"].(string))
 			d.Set("name", buf[0]["dnszone_name"].(string))
 			d.Set("type", buf[0]["dnszone_type"].(string))
-			d.Set("space", buf[0]["dnszone_site_name"].(string))
+
+			if buf[0]["dnszone_site_name"].(string) != "#" {
+				d.Set("space", buf[0]["dnszone_site_name"].(string))
+			} else {
+				d.Set("space", "")
+			}
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
@@ -356,7 +361,12 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			d.Set("view", buf[0]["dnsview_name"].(string))
 			d.Set("name", buf[0]["dnszone_name"].(string))
 			d.Set("type", buf[0]["dnszone_type"].(string))
-			d.Set("space", buf[0]["dnszone_site_name"].(string))
+
+			if buf[0]["dnszone_site_name"].(string) != "#" {
+				d.Set("space", buf[0]["dnszone_site_name"].(string))
+			} else {
+				d.Set("space", "")
+			}
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})

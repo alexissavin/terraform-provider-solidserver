@@ -31,7 +31,7 @@ data "solidserver_ip_space" "myFirstSpaceData" {
 
 resource "solidserver_vlan_domain" "myFirstVxlanDomain" {
   name   = "myFirstVxlanDomain"
-  vxlan  = true
+  vxlan  = false
   class  = "CUSTOM_VLAN_DOMAIN"
   class_parameters {
     LOCATION = "PARIS"
@@ -79,6 +79,10 @@ resource "solidserver_ip_mac" "myFirstIPMacAassoc" {
   mac     = "00:11:22:33:44:55"
 }
 
+data "solidserver_ip_ptr" "myFirstIPPTR" {
+  address = "${solidserver_ip_address.myFirstIPAddress.address}"
+}
+
 resource "solidserver_ip6_subnet" "myFirstIP6Block" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   request_ip       = "2a00:2381:126d:0:0:0:0:0"
@@ -107,6 +111,10 @@ resource "solidserver_ip6_address" "myFirstIP6Address" {
   lifecycle {
     ignore_changes = ["mac"]
   }
+}
+
+data "solidserver_ip6_ptr" "myFirstIPPTR" {
+  address = "${solidserver_ip6_address.myFirstIP6Address.address}"
 }
 
 resource "solidserver_ip6_mac" "myFirstIP6MacAassoc" {
