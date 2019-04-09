@@ -63,6 +63,8 @@ func Provider() terraform.ResourceProvider {
 			"solidserver_vlan":        resourcevlan(),
 			"solidserver_dns_zone":    resourcednszone(),
 			"solidserver_dns_rr":      resourcednsrr(),
+			"solidserver_user":        resourceuser(),
+			"solidserver_usergroup":   resourceusergroup(),
 		},
 
 		ConfigureFunc: ProviderConfigure,

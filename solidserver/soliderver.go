@@ -171,6 +171,7 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
+			Set("Cache-Control", "no-cache").
 			End()
 	default:
 		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call, unsupported HTTP request\n")
