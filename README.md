@@ -341,16 +341,18 @@ DNS Zone resource allows to create zones from the following arguments:
 * `view` - (Optional) The DNS view name hosting the zone (Default: none).
 * `name` - (Required) The Domain Name served by the zone.
 * `type` - (Optional) The type of the Zone to create (Supported: master; Default: master).
+* `space` - (Optional) The name of a space associated to the zone.
 * `createptr` - (Optional) Automaticaly create PTR records for the Zone (Default: false).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
 ```
 resource "solidserver_dns_zone" "myFirstZone" {
-  dnsserver = "ns.mycompany.priv"
-  name      = "myfirstzone.mycompany.priv"
+  dnsserver = "ns.priv"
+  name      = "mycompany.priv"
   type      = "master"
-  createptr = true
+  space     = "${solidserver_ip_space.myFirstSpace.name}"
+  createptr = false
 }
 ```
 

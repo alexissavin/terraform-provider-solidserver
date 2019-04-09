@@ -45,6 +45,35 @@ func hexiptoip(hexip string) string {
 	return ""
 }
 
+// Convert IP v4 address string into PTR record name
+// Return an empty string in case of failure
+func iptoptr(ip string) string {
+	a, b, c, d := 0, 0, 0, 0
+
+	count, _ := fmt.Sscanf(ip, "%03d.%03d.%03d.%03d", &a, &b, &c, &d)
+
+	if count == 4 {
+		return fmt.Sprintf("%d.%d.%d.%d.in-addr.arpa", d, c, b, a)
+	}
+
+	return ""
+}
+
+// FIXME
+// Convert IP v4 address string into PTR record name
+// Return an empty string in case of failure
+//func ip6toptr(ip string) string {
+//	buffer := strings.Split(ip, ":")
+//	count, _ := fmt.Sscanf(ip, "%03d.%03d.%03d.%03d", &a, &b, &c, &d)
+//
+//	if count == 4 {
+//		return fmt.Sprintf("%d.%d.%d.%d.in-addr.arpa", d, c, b, a)
+//	}
+//
+//	return ""
+//}
+
+
 // Convert hexa IP v6 address string into standard IP v6 address string
 // Return an empty string in case of failure
 func hexip6toip6(hexip string) string {

@@ -70,6 +70,8 @@ func resourcednsrrvalidatetype(v interface{}, _ string) ([]string, []error) {
 		return nil, nil
 	case "AAAA":
 		return nil, nil
+	case "PTR":
+		return nil, nil
 	case "CNAME":
 		return nil, nil
 	case "DNAME":
