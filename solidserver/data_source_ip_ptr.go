@@ -18,7 +18,7 @@ func dataSourceipptr() *schema.Resource {
 				ValidateFunc: resourceipaddressrequestvalidateformat,
 				Required:     true,
 			},
-			"ptrdname": {
+			"dname": {
 				Type:        schema.TypeString,
 				Description: "The PTR record FQDN associated to the IP address.",
 				Computed:    true,
@@ -28,11 +28,11 @@ func dataSourceipptr() *schema.Resource {
 }
 
 func dataSourceipptrRead(d *schema.ResourceData, meta interface{}) error {
-	ptrdname := iptoptr(d.Get("address").(string))
+	dname := iptoptr(d.Get("address").(string))
 
-	if ptrdname != "" {
+	if dname != "" {
 		d.SetId(strconv.Itoa(rand.Intn(1000000)))
-		d.Set("ptrdname", ptrdname)
+		d.Set("dname", dname)
 		return nil
 	}
 

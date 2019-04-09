@@ -18,7 +18,7 @@ func dataSourceip6ptr() *schema.Resource {
 				ValidateFunc: resourceip6addressrequestvalidateformat,
 				Required:     true,
 			},
-			"ptrdname": {
+			"dname": {
 				Type:        schema.TypeString,
 				Description: "The PTR record FQDN associated to the IPv6 address.",
 				Computed:    true,
@@ -28,11 +28,11 @@ func dataSourceip6ptr() *schema.Resource {
 }
 
 func dataSourceip6ptrRead(d *schema.ResourceData, meta interface{}) error {
-	ptrdname := ip6toptr(d.Get("address").(string))
+	dname := ip6toptr(d.Get("address").(string))
 
-	if ptrdname != "" {
+	if dname != "" {
 		d.SetId(strconv.Itoa(rand.Intn(1000000)))
-		d.Set("ptrdname", ptrdname)
+		d.Set("dname", dname)
 		return nil
 	}
 
