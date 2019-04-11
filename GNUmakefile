@@ -10,7 +10,7 @@ build:
 	go build -o ./_test/terraform-provider-solidserver
 
 test: fmtcheck vet
-	export TF_ACC=1 && go test -v ./... || exit 1
+	go test -v ./... || exit 1
 
 fmt:
 	gofmt -s -w ./*.go
