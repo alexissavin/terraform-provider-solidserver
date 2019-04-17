@@ -146,7 +146,7 @@ func resourceipsubnetExists(d *schema.ResourceData, meta interface{}) (bool, err
 func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
-	var blockID string = ""
+	var blockInfo map[string]interface{}
 	var gateway string = ""
 
 	// Gather required ID(s) from provided information
@@ -160,7 +160,8 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 	if len(d.Get("block").(string)) > 0 {
 		var blockErr error = nil
 
-		blockID, blockErr = ipsubnetidbyname(siteID, d.Get("block").(string), false, meta)
+		//blockID, blockErr = ipsubnetidbyname(siteID, d.Get("block").(string), false, meta)
+		blockInfo, blockErr = ipsubnetinfobyname(siteID, d.Get("block").(string), false, meta)
 
 		if blockErr != nil {
 			// Reporting a failure
@@ -173,7 +174,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	subnetAddresses, subnetErr := ipsubnetfindbysize(siteID, blockID, d.Get("request_ip").(string), d.Get("size").(int), meta)
+	subnetAddresses, subnetErr := ipsubnetfindbysize(siteID, blockInfo["id"].(string), d.Get("request_ip").(string), d.Get("size").(int), meta)
 
 	if subnetErr != nil {
 		// Reporting a failure
@@ -196,8 +197,8 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		if len(d.Get("block").(string)) == 0 {
 			parameters.Add("subnet_level", "0")
 		} else {
-			parameters.Add("use_reversed_relative_position", "1")
-			parameters.Add("relative_position", "0")
+			subnetLevel, _ := strconv.Atoi(blockInfo["level"].(string))
+			parameters.Add("subnet_level", strconv.Itoa(subnetLevel + 1))
 		}
 
 		// Specify if subnet is terminal

@@ -485,6 +485,7 @@ func ipsubnetidbyname(siteID string, subnetName string, terminal bool, meta inte
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet_name='"+strings.ToLower(subnetName)+"'")
+
 	if terminal {
 		parameters.Add("is_terminal", "1")
 	} else {
@@ -509,6 +510,55 @@ func ipsubnetidbyname(siteID string, subnetName string, terminal bool, meta inte
 	log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s\n", subnetName)
 
 	return "", err
+}
+
+// Return the oid of a subnet from site_id, subnet_name and is_terminal property
+// Or an empty string in case of failure
+func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta interface{}) (map[string]interface{}, error) {
+	var res map[string]interface{}
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet_name='"+strings.ToLower(subnetName)+"'")
+
+	if terminal {
+		parameters.Add("is_terminal", "1")
+	} else {
+		parameters.Add("is_terminal", "0")
+	}
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/ip_block_subnet_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if subnetID, subnetIDExist := buf[0]["subnet_id"].(string); subnetIDExist {
+				res["id"] = subnetID
+
+				if subnetName, subnetNameExist := buf[0]["subnet_name"].(string); subnetNameExist {
+					res["name"] = subnetName
+				}
+
+				//FIXME - res["address"] = 
+				//FIXME - res["prefixSize"] = 
+
+				if subnetLvl, subnetLvlExist := buf[0]["subnet_level"].(string); subnetLvlExist {
+					res["level"] = subnetLvl
+				}
+
+				return res, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s\n", subnetName)
+
+	return res, err
 }
 
 // Return the oid of a subnet from site_id, subnet_name and is_terminal property
