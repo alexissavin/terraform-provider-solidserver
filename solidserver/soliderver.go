@@ -89,7 +89,7 @@ func (s *SOLIDserver) GetVersion() error {
 
 			StrVersion := strings.Split(version, ".")
 
-			for i := 0; i < 3; i++ {
+			for i := 0; i < len(StrVersion); i++ {
 				num, numErr := strconv.Atoi(StrVersion[i])
 				if numErr == nil {
 					s.Version = s.Version*10 + num

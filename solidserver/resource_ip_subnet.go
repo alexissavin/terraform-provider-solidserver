@@ -195,6 +195,9 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		// If no block specified, create an IP block
 		if len(d.Get("block").(string)) == 0 {
 			parameters.Add("subnet_level", "0")
+		} else {
+			parameters.Add("use_reversed_relative_position", "1")
+			parameters.Add("relative_position", "0")
 		}
 
 		// Specify if subnet is terminal
