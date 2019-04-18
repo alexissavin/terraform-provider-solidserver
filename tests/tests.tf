@@ -56,6 +56,14 @@ resource "solidserver_ip_subnet" "myFirstIPSubnet" {
   block            = "${solidserver_ip_subnet.myFirstIPBlock.name}"
   size             = 24
   name             = "myFirstIPSubnet"
+  terminal         = false
+}
+
+resource "solidserver_ip_subnet" "mySecondIPSubnet" {
+  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  block            = "${solidserver_ip_subnet.myFirstIPSubnet.name}"
+  size             = 29
+  name             = "mySecondIPSubnet"
   gateway_offset   = -1
   class            = "VIRTUAL"
   class_parameters {
@@ -65,7 +73,7 @@ resource "solidserver_ip_subnet" "myFirstIPSubnet" {
 
 resource "solidserver_ip_address" "myFirstIPAddress" {
   space   = "${solidserver_ip_space.myFirstSpace.name}"
-  subnet  = "${solidserver_ip_subnet.myFirstIPSubnet.name}"
+  subnet  = "${solidserver_ip_subnet.mySecondIPSubnet.name}"
   name    = "myfirstipaddress"
   device  = "${solidserver_device.myFirstDevice.name}"
   lifecycle {

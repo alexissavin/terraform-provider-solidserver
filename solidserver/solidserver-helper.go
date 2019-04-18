@@ -371,9 +371,9 @@ func vlanidfindfree(vlmdomainName string, meta interface{}) ([]string, error) {
 	parameters.Add("limit", "4")
 
 	if s.Version < 700 {
-		parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomainName)+"' AND row_enabled='2'")
+		parameters.Add("WHERE", "vlmdomain_name='"+vlmdomainName+"' AND row_enabled='2'")
 	} else {
-		parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomainName)+"' AND type='free'")
+		parameters.Add("WHERE", "vlmdomain_name='"+vlmdomainName+"' AND type='free'")
 	}
 
 	// Sending the creation request
@@ -515,7 +515,7 @@ func ipsubnetidbyname(siteID string, subnetName string, terminal bool, meta inte
 // Return the oid of a subnet from site_id, subnet_name and is_terminal property
 // Or an empty string in case of failure
 func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta interface{}) (map[string]interface{}, error) {
-	var res map[string]interface{}
+	res := make(map[string]interface{})
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -544,8 +544,8 @@ func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta in
 					res["name"] = subnetName
 				}
 
-				//FIXME - res["address"] = 
-				//FIXME - res["prefixSize"] = 
+				//FIXME - res["address"] =
+				//FIXME - res["prefixSize"] =
 
 				if subnetLvl, subnetLvlExist := buf[0]["subnet_level"].(string); subnetLvlExist {
 					res["level"] = subnetLvl

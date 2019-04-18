@@ -144,9 +144,8 @@ func resourceipsubnetExists(d *schema.ResourceData, meta interface{}) (bool, err
 }
 
 func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
+	blockInfo := make(map[string]interface{})
 	s := meta.(*SOLIDserver)
-
-	var blockInfo map[string]interface{}
 	var gateway string = ""
 
 	// Gather required ID(s) from provided information
@@ -168,6 +167,9 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			return blockErr
 		}
 	} else {
+		// Otherwise, set an empty blockInfo's ID by default
+		blockInfo["id"] = ""
+
 		// However, we can't create a block as a terminal subnet
 		if d.Get("terminal").(bool) {
 			return fmt.Errorf("SOLIDServer - Can't create a terminal IP block subnet: %s", d.Get("name").(string))
@@ -198,7 +200,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			parameters.Add("subnet_level", "0")
 		} else {
 			subnetLevel, _ := strconv.Atoi(blockInfo["level"].(string))
-			parameters.Add("subnet_level", strconv.Itoa(subnetLevel + 1))
+			parameters.Add("subnet_level", strconv.Itoa(subnetLevel+1))
 		}
 
 		// Specify if subnet is terminal
