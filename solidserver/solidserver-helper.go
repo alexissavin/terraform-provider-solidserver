@@ -371,9 +371,9 @@ func vlanidfindfree(vlmdomainName string, meta interface{}) ([]string, error) {
 	parameters.Add("limit", "4")
 
 	if s.Version < 700 {
-		parameters.Add("WHERE", "vlmdomain_name='"+vlmdomainName+"' AND row_enabled='2'")
+		parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomainName)+"' AND row_enabled='2'")
 	} else {
-		parameters.Add("WHERE", "vlmdomain_name='"+vlmdomainName+"' AND type='free'")
+		parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomainName)+"' AND type='free'")
 	}
 
 	// Sending the creation request
@@ -512,8 +512,8 @@ func ipsubnetidbyname(siteID string, subnetName string, terminal bool, meta inte
 	return "", err
 }
 
-// Return the oid of a subnet from site_id, subnet_name and is_terminal property
-// Or an empty string in case of failure
+// Return a map of information about a subnet from site_id, subnet_name and is_terminal property
+// Or nil in case of failure
 func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta interface{}) (map[string]interface{}, error) {
 	res := make(map[string]interface{})
 	s := meta.(*SOLIDserver)
@@ -558,7 +558,7 @@ func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta in
 
 	log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s\n", subnetName)
 
-	return res, err
+	return nil, err
 }
 
 // Return the oid of a subnet from site_id, subnet_name and is_terminal property
@@ -593,6 +593,54 @@ func ip6subnetidbyname(siteID string, subnetName string, terminal bool, meta int
 	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet: %s\n", subnetName)
 
 	return "", err
+}
+
+// Return a map of information about a subnet from site_id, subnet_name and is_terminal property
+// Or nil in case of failure
+func ip6subnetinfobyname(siteID string, subnetName string, terminal bool, meta interface{}) (map[string]interface{}, error) {
+	res := make(map[string]interface{})
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet6_name='"+strings.ToLower(subnetName)+"'")
+	if terminal {
+		parameters.Add("is_terminal", "1")
+	} else {
+		parameters.Add("is_terminal", "0")
+	}
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/ip6_block6_subnet6_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if subnetID, subnetIDExist := buf[0]["subnet6_id"].(string); subnetIDExist {
+				res["id"] = subnetID
+
+				if subnetName, subnetNameExist := buf[0]["subnet6_name"].(string); subnetNameExist {
+					res["name"] = subnetName
+				}
+
+				//FIXME - res["address"] =
+				//FIXME - res["prefixSize"] =
+
+				if subnetLvl, subnetLvlExist := buf[0]["subnet_level"].(string); subnetLvlExist {
+					res["level"] = subnetLvl
+				}
+
+				return res, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet: %s\n", subnetName)
+
+	return nil, err
 }
 
 // Return the oid of an address from site_id, ip_address

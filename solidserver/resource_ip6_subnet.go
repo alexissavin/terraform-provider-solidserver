@@ -138,9 +138,8 @@ func resourceip6subnetExists(d *schema.ResourceData, meta interface{}) (bool, er
 }
 
 func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
+	blockInfo := make(map[string]interface{})
 	s := meta.(*SOLIDserver)
-
-	var blockID string = ""
 	var gateway string = ""
 
 	// Gather required ID(s) from provided information
@@ -154,20 +153,23 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 	if len(d.Get("block").(string)) > 0 {
 		var blockErr error = nil
 
-		blockID, blockErr = ip6subnetidbyname(siteID, d.Get("block").(string), false, meta)
+		blockInfo, blockErr = ip6subnetinfobyname(siteID, d.Get("block").(string), false, meta)
 
 		if blockErr != nil {
 			// Reporting a failure
 			return blockErr
 		}
 	} else {
+		// Otherwise, set an empty blockInfo's ID by default
+		blockInfo["id"] = ""
+
 		// However, we can't create a block as a terminal subnet
 		if d.Get("terminal").(bool) {
 			return fmt.Errorf("SOLIDServer - Can't create a terminal IP v6 block subnet: %s", d.Get("name").(string))
 		}
 	}
 
-	subnetAddresses, subnetErr := ip6subnetfindbysize(siteID, blockID, d.Get("request_ip").(string), d.Get("size").(int), meta)
+	subnetAddresses, subnetErr := ip6subnetfindbysize(siteID, blockInfo["id"].(string), d.Get("request_ip").(string), d.Get("size").(int), meta)
 
 	if subnetErr != nil {
 		// Reporting a failure
