@@ -755,6 +755,7 @@ func ipaliasidbyinfo(addressID string, aliasName string, ipNameType string, meta
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
 func ipsubnetfindbysize(siteID string, blockID string, requestedIP string, prefixSize int, meta interface{}) ([]string, error) {
+	subnetAddresses := []string{}
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -763,25 +764,14 @@ func ipsubnetfindbysize(siteID string, blockID string, requestedIP string, prefi
 	parameters.Add("prefix", strconv.Itoa(prefixSize))
 	parameters.Add("max_find", "4")
 
-	// Trying to create a block
-	if len(blockID) == 0 {
-		subnetAddresses := []string{}
-
-		if len(requestedIP) > 0 {
-			subnetAddresses = append(subnetAddresses, iptohexip(requestedIP))
-			return subnetAddresses, nil
-		}
-
+	// Specifying a suggested subnet IP address
+	if len(requestedIP) > 0 {
+		subnetAddresses = append(subnetAddresses, iptohexip(requestedIP))
 		return subnetAddresses, nil
 	}
 
 	// Trying to create a subnet under an existing block
 	parameters.Add("block_id", blockID)
-
-	// Specifying a suggested subnet IP address
-	if len(requestedIP) > 0 {
-		parameters.Add("begin_addr", requestedIP)
-	}
 
 	// Sending the creation request
 	resp, body, err := s.Request("get", "rpc/ip_find_free_subnet", &parameters)
@@ -812,6 +802,7 @@ func ipsubnetfindbysize(siteID string, blockID string, requestedIP string, prefi
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
 func ip6subnetfindbysize(siteID string, blockID string, requestedIP string, prefixSize int, meta interface{}) ([]string, error) {
+	subnetAddresses := []string{}
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -820,25 +811,14 @@ func ip6subnetfindbysize(siteID string, blockID string, requestedIP string, pref
 	parameters.Add("prefix", strconv.Itoa(prefixSize))
 	parameters.Add("max_find", "4")
 
-	// Trying to create a block
-	if len(blockID) == 0 {
-		subnetAddresses := []string{}
-
-		if len(requestedIP) > 0 {
-			subnetAddresses = append(subnetAddresses, ip6tohexip6(requestedIP))
-			return subnetAddresses, nil
-		}
-
+	// Specifying a suggested subnet IP address
+	if len(requestedIP) > 0 {
+		subnetAddresses = append(subnetAddresses, ip6tohexip6(requestedIP))
 		return subnetAddresses, nil
 	}
 
 	// Trying to create a subnet under an existing block
 	parameters.Add("block6_id", blockID)
-
-	// Specifying a suggested subnet IP address
-	if len(requestedIP) > 0 {
-		parameters.Add("begin_addr", requestedIP)
-	}
 
 	// Sending the creation request
 	resp, body, err := s.Request("get", "rpc/ip6_find_free_subnet6", &parameters)
