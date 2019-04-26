@@ -87,7 +87,13 @@ func resourceipaliasCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to create IP alias: %s - %s (associated to IP address with ID: %s)\n", d.Get("name").(string), d.Get("type"), addressID)
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to create IP alias: %s - %s associated to IP address (OID): %s (%s)\n", d.Get("name").(string), d.Get("type"), addressID, errMsg)
+			}
+		}
+
+		return fmt.Errorf("SOLIDServer - Unable to create IP alias: %s - %s associated to IP address (OID): %s\n", d.Get("name").(string), d.Get("type"), addressID)
 	}
 
 	// Reporting a failure
@@ -109,10 +115,15 @@ func resourceipaliasDelete(d *schema.ResourceData, meta interface{}) error {
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errMsg)
+		if resp.StatusCode != 200 && resp.StatusCode != 204 {
+			// Reporting a failure
+			if len(buf) > 0 {
+				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+					return fmt.Errorf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errMsg)
+				}
 			}
+
+			return fmt.Errorf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s\n", d.Get("name"), d.Get("type"))
 		}
 
 		// Log deletion

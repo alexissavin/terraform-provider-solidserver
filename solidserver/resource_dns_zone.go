@@ -175,6 +175,12 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to create DNS zone: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to create DNS zone: %s\n", d.Get("name").(string))
 	}
 
@@ -219,14 +225,20 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Updated DNS Zone (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated DNS zone (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to update Zone: %s", d.Get("name").(string))
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to update DNS zone: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
+		return fmt.Errorf("SOLIDServer - Unable to update DNS zone: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -248,14 +260,19 @@ func resourcednszoneDelete(d *schema.ResourceData, meta interface{}) error {
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete Zone: %s (%s)\n", d.Get("name"), errMsg)
+		if resp.StatusCode != 200 && resp.StatusCode != 204 {
+			// Reporting a failure
+			if len(buf) > 0 {
+				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+					return fmt.Errorf("SOLIDServer - Unable to delete DNS zone: %s (%s)", d.Get("name").(string), errMsg)
+				}
 			}
+
+			return fmt.Errorf("SOLIDServer - Unable to delete DNS zone: %s", d.Get("name").(string))
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted Zone (oid): %s\n", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted DNS zone (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")

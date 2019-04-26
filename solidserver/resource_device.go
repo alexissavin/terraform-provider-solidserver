@@ -121,6 +121,12 @@ func resourcedeviceCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to create device: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to create device: %s\n", strings.ToLower(d.Get("name").(string)))
 	}
 
@@ -156,6 +162,12 @@ func resourcedeviceUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to update device: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to update device: %s\n", strings.ToLower(d.Get("name").(string)))
 	}
 
@@ -178,11 +190,15 @@ func resourcedeviceDelete(d *schema.ResourceData, meta interface{}) error {
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				// Reporting a failure
-				return fmt.Errorf("SOLIDServer - Unable to delete device : %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+		if resp.StatusCode != 200 && resp.StatusCode != 204 {
+			// Reporting a failure
+			if len(buf) > 0 {
+				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+					return fmt.Errorf("SOLIDServer - Unable to delete device: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+				}
 			}
+
+			return fmt.Errorf("SOLIDServer - Unable to delete device: %s", strings.ToLower(d.Get("name").(string)))
 		}
 
 		// Log deletion

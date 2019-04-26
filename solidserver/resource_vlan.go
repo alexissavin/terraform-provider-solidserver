@@ -149,7 +149,15 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 					return nil
 				}
 			} else {
-				log.Printf("[DEBUG] SOLIDServer - Failed vlan registration, trying another one.\n")
+				if len(buf) > 0 {
+					if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+						log.Printf("[DEBUG] SOLIDServer - Failed vlan registration for vlan: %s with vnid: %s (%s)\n", d.Get("name").(string), vlanIDs[i], errMsg)
+					} else {
+						log.Printf("[DEBUG] SOLIDServer - Failed vlan registration for vlan: %s with vnid: %s\n", d.Get("name").(string), vlanIDs[i])
+					}
+				} else {
+					log.Printf("[DEBUG] SOLIDServer - Failed vlan registration for vlan: %s with vnid: %s\n", d.Get("name").(string), vlanIDs[i])
+				}
 			}
 		} else {
 			// Reporting a failure
@@ -158,7 +166,7 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Reporting a failure
-	return fmt.Errorf("SOLIDServer - Unable to create vlan: %s\n", d.Get("name").(string))
+	return fmt.Errorf("SOLIDServer - Unable to create vlan: %s, unable to find a suitable vnid\n", d.Get("name").(string))
 }
 
 func resourcevlanUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -190,6 +198,12 @@ func resourcevlanUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to update vlan: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to update vlan: %s\n", d.Get("name").(string))
 	}
 
@@ -212,11 +226,15 @@ func resourcevlanDelete(d *schema.ResourceData, meta interface{}) error {
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				// Reporting a failure
-				return fmt.Errorf("SOLIDServer - Unable to delete vlan : %s (%s)", d.Get("name"), errMsg)
+		if resp.StatusCode != 200 && resp.StatusCode != 204 {
+			// Reporting a failure
+			if len(buf) > 0 {
+				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+					return fmt.Errorf("SOLIDServer - Unable to delete vlan: %s (%s)", d.Get("name").(string), errMsg)
+				}
 			}
+
+			return fmt.Errorf("SOLIDServer - Unable to delete vlan: %s", d.Get("name").(string))
 		}
 
 		// Log deletion

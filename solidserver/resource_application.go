@@ -118,6 +118,12 @@ func resourceapplicationCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to create application: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to create application: %s\n", d.Get("name").(string))
 	}
 
@@ -158,6 +164,12 @@ func resourceapplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to update application: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to update application: %s\n", d.Get("name").(string))
 	}
 
@@ -185,11 +197,15 @@ func resourceapplicationDelete(d *schema.ResourceData, meta interface{}) error {
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				// Reporting a failure
-				return fmt.Errorf("SOLIDServer - Unable to delete application : %s (%s)\n", d.Get("name"), errMsg)
+		if resp.StatusCode != 200 && resp.StatusCode != 204 {
+			// Reporting a failure
+			if len(buf) > 0 {
+				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+					return fmt.Errorf("SOLIDServer - Unable to delete application: %s (%s)", d.Get("name").(string), errMsg)
+				}
 			}
+
+			return fmt.Errorf("SOLIDServer - Unable to delete application: %s", d.Get("name").(string))
 		}
 
 		// Log deletion
