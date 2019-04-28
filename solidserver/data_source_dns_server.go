@@ -33,7 +33,7 @@ func dataSourceDNSserver() *schema.Resource {
 			},
 			"ipam_replication": {
 				Type:        schema.TypeBool,
-				Description: "",
+				Description: "information pushed back to the IPAM from the DNS server",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     false,

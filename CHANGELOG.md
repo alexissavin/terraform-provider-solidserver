@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.10
+
+Features:
+* data source DNS server
+
+Quality:
+* add acceptance tests and framework for subnet and datasource dns server
+* review the return code and content for most of the calls to trap messages
+
 ## 1.0.8
 
 Features:
