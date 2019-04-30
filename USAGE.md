@@ -436,3 +436,28 @@ data "solidserver_usergroup" "t_group_01" {
   name = "group01"
 }
 ```
+
+## DNS server
+Getting information for a DNS server already in the SOLIDserver, base on its name:
+```
+data "solidserver_dns_server" "test" {
+  name             = "ns.local"
+}
+```
+Fields exposed through the datasource are:
+* `name` - (Required) The name of the DNS server
+* `createptr` - Automaticaly create PTR records for all zones on this server
+* `ipam_replication` - Information pushed back to the IPAM from the DNS server
+* `version` - DNS engine version
+* `address` - IPv4 address of the DNS server
+* `comment` - description associated to the DNS server
+* `type` - type of the DNS server: ipm, msdaemon, ans, aws, other, vdns
+* `vdns_arch` - Smart architecture if the server is a vdsn (Smart)
+* `vdns_parent_arch` - if the DNS server is part of a Smart architecture
+* `vdns_parent_id` - if the DNS server is part of a Smart architecture, provides the ID of the Smart server
+* `vdns_members_name` - if the server is a Smart, provides the list of the DNS vdns_members_name
+* `state` - current state of the server
+* `recursion` - is recursion activated on the server
+* `forward` - is forwarding activated on the server, describes the forwarding mode
+* `forwarders` - if forwarding is activated, lists the IP address of forwarding
+* `class_parameters`
