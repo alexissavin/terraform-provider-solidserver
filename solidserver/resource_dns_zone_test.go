@@ -1,5 +1,5 @@
 // +build all dns_zone
-// to test only these features: -tags dns_zone -run="DNSzone_XX"
+// to test only these features: -tags dns_zone -run="dnszone_XX"
 
 package solidserver
 
@@ -13,7 +13,7 @@ import (
 )
 
 // create non terminal subnet
-func TestAccDNSzone_01(t *testing.T) {
+func TestAccdnszone_01(t *testing.T) {
 	spacename := fmt.Sprintf("01-space-%s", uuid.Must(uuid.NewV4()))
 	blockname := fmt.Sprintf("01-block-%s", uuid.Must(uuid.NewV4()))
 
@@ -24,7 +24,7 @@ func TestAccDNSzone_01(t *testing.T) {
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: Config_TestAccDNSzone_01(spacename, blockname),
+				Config: Config_TestAccdnszone_01(spacename, blockname),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("solidserver_ip_space.space", "id"),
 					resource.TestCheckResourceAttrSet("solidserver_ip_subnet.block", "id"),
@@ -39,7 +39,7 @@ func TestAccDNSzone_01(t *testing.T) {
 	})
 }
 
-func Config_TestAccDNSzone_01(spacename string, blockname string) string {
+func Config_TestAccdnszone_01(spacename string, blockname string) string {
 	return fmt.Sprintf(`
     %s
 

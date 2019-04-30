@@ -47,7 +47,7 @@ func Provider() terraform.ResourceProvider {
 			"solidserver_ip_ptr":     dataSourceipptr(),
 			"solidserver_ip6_ptr":    dataSourceip6ptr(),
 			"solidserver_usergroup":  dataSourceusergroup(),
-			"solidserver_dns_server": dataSourceDNSserver(),
+			"solidserver_dns_server": dataSourcednsserver(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{

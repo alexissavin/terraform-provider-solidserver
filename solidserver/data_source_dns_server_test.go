@@ -12,7 +12,7 @@ import (
 )
 
 // create non terminal subnet
-func TestAccDS_DNSserver_01(t *testing.T) {
+func TestAccDS_dnsserver_01(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() {
 			testAccPreCheck(t)
@@ -20,7 +20,7 @@ func TestAccDS_DNSserver_01(t *testing.T) {
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: Config_TestAccDS_DNSserver_01(),
+				Config: Config_TestAccDS_dnsserver_01(),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.solidserver_dns_server.test", "id"),
 					resource.TestCheckResourceAttrSet("data.solidserver_dns_server.test", "name"),
@@ -31,7 +31,7 @@ func TestAccDS_DNSserver_01(t *testing.T) {
 	})
 }
 
-func Config_TestAccDS_DNSserver_01() string {
+func Config_TestAccDS_dnsserver_01() string {
 	return fmt.Sprintf(`
     data "solidserver_dns_server" "test" {
       name             = "ns.local"

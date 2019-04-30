@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-func dataSourceDNSserver() *schema.Resource {
+func dataSourcednsserver() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDNSserverRead,
+		Read: dataSourcednsserverRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -135,7 +135,7 @@ func dataSourceDNSserver() *schema.Resource {
 	}
 }
 
-func dataSourceDNSserverRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 	d.SetId("")
 
 	s := meta.(*SOLIDserver)

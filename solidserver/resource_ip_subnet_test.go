@@ -1,5 +1,5 @@
 // +build all ip_subnet
-// to test only these features: -tags ip_subnet -run="IpSubnet_XX"
+// to test only these features: -tags ip_subnet -run="ipsubnet_XX"
 
 package solidserver
 
@@ -22,7 +22,7 @@ import (
 // }
 
 // create non terminal subnet
-func TestAccIpSubnet_01(t *testing.T) {
+func TestAccipsubnet_01(t *testing.T) {
 	spacename := fmt.Sprintf("01-space-%s", uuid.Must(uuid.NewV4()))
 	blockname := fmt.Sprintf("01-block-%s", uuid.Must(uuid.NewV4()))
 
@@ -33,7 +33,7 @@ func TestAccIpSubnet_01(t *testing.T) {
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: Config_TestAccIpSubnet_01(spacename, blockname),
+				Config: Config_TestAccipsubnet_01(spacename, blockname),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("solidserver_ip_space.space", "id"),
 					resource.TestCheckResourceAttrSet("solidserver_ip_subnet.block", "id"),
@@ -48,7 +48,7 @@ func TestAccIpSubnet_01(t *testing.T) {
 	})
 }
 
-func Config_TestAccIpSubnet_01(spacename string, blockname string) string {
+func Config_TestAccipsubnet_01(spacename string, blockname string) string {
 	return fmt.Sprintf(`
     %s
 
@@ -66,7 +66,7 @@ func Config_TestAccIpSubnet_01(spacename string, blockname string) string {
 
 // create non terminal subnet
 // + terminal subnet
-func TestAccIpSubnet_02(t *testing.T) {
+func TestAccipsubnet_02(t *testing.T) {
 	spacename := fmt.Sprintf("02-space-%s", uuid.Must(uuid.NewV4()))
 	blockname1 := fmt.Sprintf("02-b1-%s", uuid.Must(uuid.NewV4()))
 	blockname2 := fmt.Sprintf("02-b2-%s", uuid.Must(uuid.NewV4()))
@@ -78,7 +78,7 @@ func TestAccIpSubnet_02(t *testing.T) {
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: Config_TestAccIpSubnet_02(spacename, blockname1, blockname2),
+				Config: Config_TestAccipsubnet_02(spacename, blockname1, blockname2),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("solidserver_ip_subnet.subnet1", "terminal", "true"),
 					resource.TestCheckResourceAttr("solidserver_ip_subnet.subnet1", "block", blockname1),
@@ -88,7 +88,7 @@ func TestAccIpSubnet_02(t *testing.T) {
 	})
 }
 
-func Config_TestAccIpSubnet_02(spacename string, blockname1 string, blockname2 string) string {
+func Config_TestAccipsubnet_02(spacename string, blockname1 string, blockname2 string) string {
 	return fmt.Sprintf(`
     %s
 
@@ -117,7 +117,7 @@ func Config_TestAccIpSubnet_02(spacename string, blockname1 string, blockname2 s
 // create non terminal subnet
 // + non terminal subnet
 // + terminal subnet
-func TestAccIpSubnet_03(t *testing.T) {
+func TestAccipsubnet_03(t *testing.T) {
 	spacename := fmt.Sprintf("03-space-%s", uuid.Must(uuid.NewV4()))
 	blockname1 := fmt.Sprintf("03-b1-%s", uuid.Must(uuid.NewV4()))
 	blockname2 := fmt.Sprintf("03-b2-%s", uuid.Must(uuid.NewV4()))
@@ -130,7 +130,7 @@ func TestAccIpSubnet_03(t *testing.T) {
 		Providers: testProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: Config_TestAccIpSubnet_03(spacename, blockname1, blockname2, blockname3),
+				Config: Config_TestAccipsubnet_03(spacename, blockname1, blockname2, blockname3),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("solidserver_ip_subnet.subnet1", "terminal", "false"),
 					resource.TestCheckResourceAttr("solidserver_ip_subnet.subnet2", "terminal", "true"),
@@ -142,7 +142,7 @@ func TestAccIpSubnet_03(t *testing.T) {
 	})
 }
 
-func Config_TestAccIpSubnet_03(spacename string, blockname1 string, blockname2 string, blockname3 string) string {
+func Config_TestAccipsubnet_03(spacename string, blockname1 string, blockname2 string, blockname3 string) string {
 	return fmt.Sprintf(`
     %s
 
