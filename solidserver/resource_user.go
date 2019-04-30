@@ -116,7 +116,7 @@ func _addUserToGroupId(d *schema.ResourceData,
 			} else {
 				if resp.StatusCode == 400 {
 					// need to FIX the #0048042 (04/04/19), return 400 as status code
-					log.Printf("[DEBUG] - waiting for path of #0048042, validate even with 400\n")
+					log.Printf("[DEBUG] - waiting for patch of #0048042, validate even with 400\n")
 					log.Printf("[DEBUG] - User affected to group %s\n", group)
 					return nil
 				}

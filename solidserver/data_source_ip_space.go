@@ -33,14 +33,9 @@ func dataSourceipspace() *schema.Resource {
 }
 
 func dataSourceipspaceRead(d *schema.ResourceData, meta interface{}) error {
-	d.SetId("")
-
 	s := meta.(*SOLIDserver)
 
-	// Useful ?
-	if s == nil {
-		return fmt.Errorf("no SOLIDserver known on space %s", d.Get("name").(string))
-	}
+	d.SetId("")
 
 	log.Printf("[DEBUG] SOLIDServer - Looking for space: %s\n", d.Get("name").(string))
 
