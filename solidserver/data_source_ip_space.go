@@ -53,6 +53,7 @@ func dataSourceipspaceRead(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.SetId(buf[0]["site_id"].(string))
+
 			d.Set("name", buf[0]["site_name"].(string))
 			d.Set("class", buf[0]["site_class_name"].(string))
 
