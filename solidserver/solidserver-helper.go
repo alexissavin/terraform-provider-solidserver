@@ -21,6 +21,28 @@ func abs(x int) int {
 	return x
 }
 
+// Convert a Schema.TypeList interface into an array of strings
+func toStringArray(in []interface{}) []string {
+	out := make([]string, len(in))
+	for i, v := range in {
+		if v == nil {
+			out[i] = ""
+			continue
+		}
+		out[i] = v.(string)
+	}
+	return out
+}
+
+// Convert an array of strings into a Schema.TypeList interface
+func toStringArrayInterface(in []string) []interface{} {
+	out := make([]interface{}, len(in))
+	for i, v := range in {
+		out[i] = v
+	}
+	return out
+}
+
 // BigIntToHexStr convert a Big Integer into an Hexa String
 func BigIntToHexStr(bigInt *big.Int) string {
 	return fmt.Sprintf("%x", bigInt)

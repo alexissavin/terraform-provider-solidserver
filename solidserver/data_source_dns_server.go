@@ -26,17 +26,7 @@ func dataSourcednsserver() *schema.Resource {
 			},
 			"type": {
 				Type:        schema.TypeString,
-				Description: "The type of DNS server (ipm (SOLIDserver DNS)|vdns (SMART)|msdaemon (Microsoft DNS)|ans (Nominum)|aws (AWS Route-53)|other (Other DNS))",
-				Computed:    true,
-			},
-			"vdns_arch": {
-				Type:        schema.TypeString,
-				Description: "The SMART architecture type (masterslave|stealth|multimaster|single|farm)",
-				Computed:    true,
-			},
-			"vdns_members_name": {
-				Type:        schema.TypeList,
-				Description: "The name of the SMART members",
+				Description: "The type of DNS server (ipm (SOLIDserver DNS)|msdaemon (Microsoft DNS)|ans (Nominum)|aws (AWS Route-53)|other (Other DNS))",
 				Computed:    true,
 			},
 			"comment": {
@@ -90,7 +80,7 @@ func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "dns_name='"+d.Get("name").(string)+"'")
+	parameters.Add("WHERE", "dns_name='"+d.Get("name").(string)+"' AND type!='vdns'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/dns_server_list", &parameters)
@@ -105,8 +95,6 @@ func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 
 			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
 			d.Set("type", buf[0]["dns_type"].(string))
-			d.Set("vdns_arch", buf[0]["vdns_arch"].(string))
-			d.Set("vdns_members_name", strings.Split(buf[0]["vdns_members_name"].(string), ","))
 			d.Set("version", buf[0]["dns_version"].(string))
 			d.Set("comment", buf[0]["dns_comment"].(string))
 

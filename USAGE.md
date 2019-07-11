@@ -356,6 +356,27 @@ resource "solidserver_dns_zone" "myFirstZone" {
 }
 ```
 
+## DNS Forward Zone
+DNS Forward Zone resource allows to create forward zones from the following arguments:
+
+* `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the zone.
+* `view` - (Optional) The DNS view name hosting the zone (Default: none).
+* `name` - (Required) The Domain Name served by the zone.
+* `forward` - (Optional) The forwarding mode of the forward zone (Supported: Only, First; Default: Only).
+* `forwarders` - (Optional) The IP address list of the forwarders to use for the forward zone.
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+Creating a DNS Forward Zone:
+```
+resource "solidserver_dns_forward_zone" "myFirstForwardZone" {
+  dnsserver = "ns.priv"
+  name       = "fwd.mycompany.priv"
+  forward    = "first"
+  forwarders = ["10.10.8.8", "10.10.4.4"]
+}
+```
+
 ## DNS Record
 DNS Record resource allows to create records from the following arguments:
 

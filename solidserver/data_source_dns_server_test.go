@@ -5,10 +5,8 @@ package solidserver
 
 import (
 	"fmt"
-	"testing"
-
 	"github.com/hashicorp/terraform/helper/resource"
-	// "github.com/satori/go.uuid"
+	"testing"
 )
 
 // create non terminal subnet
@@ -34,7 +32,7 @@ func TestAccDS_dnsserver_01(t *testing.T) {
 func Config_TestAccDS_dnsserver_01() string {
 	return fmt.Sprintf(`
     data "solidserver_dns_server" "test" {
-      name             = "ns.local"
+      name = "ns.local"
     }
 `)
 }
