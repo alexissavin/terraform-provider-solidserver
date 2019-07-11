@@ -49,7 +49,7 @@ func resourcednsforwardzone() *schema.Resource {
 			},
 			"forwarders": {
 				Type:        schema.TypeList,
-				Description: "The IP address list of the forwarders to use for the forward zone.",
+				Description: "The IP address list of the forwarder(s) to use for the forward zone.",
 				Required:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,

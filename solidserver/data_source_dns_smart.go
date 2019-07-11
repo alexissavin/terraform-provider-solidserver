@@ -9,49 +9,47 @@ import (
 	"strings"
 )
 
-func dataSourcednsserver() *schema.Resource {
+func dataSourcednssmart() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourcednsserverRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the DNS server.",
+				Description: "The name of the DNS SMART.",
 				Required:    true,
-			},
-			"address": {
-				Type:        schema.TypeString,
-				Description: "IPv4 address of the DNS server.",
-				Computed:    true,
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Description: "The type of DNS server (ipm (SOLIDserver DNS)|msdaemon (Microsoft DNS)|ans (Nominum)|aws (AWS Route-53)|other (Other DNS)).",
-				Computed:    true,
 			},
 			"comment": {
 				Type:        schema.TypeString,
-				Description: "Custom information about the DNS server.",
+				Description: "Custom information about the DNS SMART.",
 				Computed:    true,
 			},
-			"version": {
+			"vdns_arch": {
 				Type:        schema.TypeString,
-				Description: "DNS Engine Version.",
+				Description: "The SMART architecture type (masterslave|stealth|multimaster|single|farm).",
 				Computed:    true,
+			},
+			"vdns_members_name": {
+				Type:        schema.TypeList,
+				Description: "The name of the DNS SMART members.",
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"recursion": {
 				Type:        schema.TypeBool,
-				Description: "The recursion status of the DNS server.",
+				Description: "The recursion status of the DNS SMART.",
 				Computed:    true,
 			},
 			"forward": {
 				Type:        schema.TypeString,
-				Description: "The forwarding mode of the DNS server (disabled if empty).",
+				Description: "The forwarding mode of the DNS SMART (Disabled if empty).",
 				Computed:    true,
 			},
 			"forwarders": {
 				Type:        schema.TypeList,
-				Description: "The IP address list of the forwarder(s) configured on the DNS server.",
+				Description: "The IP address list of the forwarder(s) configured on the DNS SMART.",
 				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -64,21 +62,21 @@ func dataSourcednsserver() *schema.Resource {
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to the DNS server.",
+				Description: "The class parameters associated to the DNS SMART",
 				Computed:    true,
 			},
 		},
 	}
 }
 
-func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	d.SetId("")
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "dns_name='"+d.Get("name").(string)+"' AND type!='vdns'")
+	parameters.Add("WHERE", "dns_name='"+d.Get("name").(string)+"' AND dns_type='vdns'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/dns_server_list", &parameters)
@@ -91,14 +89,14 @@ func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.SetId(buf[0]["dns_id"].(string))
 
-			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
-			d.Set("type", buf[0]["dns_type"].(string))
 			d.Set("comment", buf[0]["dns_comment"].(string))
-			d.Set("version", buf[0]["dns_version"].(string))
+			d.Set("vdns_arch", buf[0]["vdns_arch"].(string))
+			d.Set("vdns_members_name", toStringArrayInterface(strings.Split(buf[0]["vdns_members_name"].(string), ";")))
+
+			//FIXME - Parse the status for better understanding
+			//d.Set("state", buf[0]["dns_state"].(string))
 
 			d.Set("recursion", buf[0]["dns_recursion"].(string))
-
-			// Updating forwarder information
 			d.Set("forward", buf[0]["dns_forward"].(string))
 			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
 
