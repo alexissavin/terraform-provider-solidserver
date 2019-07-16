@@ -111,7 +111,7 @@ func resourcednsserver() *schema.Resource {
 	}
 }
 
-// Validate dnsservertype
+//FIXME - Validate dnsservertype
 //func resourcedsnservertypevalidate(v interface{}, _ string) ([]string, []error) {
 //}
 
@@ -152,7 +152,6 @@ func resourcednsserverExists(d *schema.ResourceData, meta interface{}) (bool, er
 	return false, err
 }
 
-// vdns_dns_group_role="dns_name1&master;dns_name2&slave;"
 func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
@@ -191,7 +190,10 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 				d.Set("login", hex.EncodeToString(loginHash[:]))
 				d.Set("password", hex.EncodeToString(passwordHash[:]))
 
-				//FIXME - If the SMART is not empty, join the SMART with the role SMART_ROLE
+				if strings.ToLower(d.Get("smart").(string)) != "" {
+					//FIXME - Handle Errors
+					dnsaddtosmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), strings.ToLower(d.Get("smart_role").(string)), meta)
+				}
 
 				return nil
 			}
@@ -263,6 +265,11 @@ func resourcednsserverDelete(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("dns_id", d.Id())
+
+	if strings.ToLower(d.Get("smart").(string)) != "" {
+		//FIXME - Handle Errors
+		dnsdeletefromsmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), meta)
+	}
 
 	// Sending the deletion request
 	resp, body, err := s.Request("delete", "rest/dns_delete", &parameters)

@@ -128,7 +128,7 @@ func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to read information from DNS server %s\n", d.Get("name"))
+			log.Printf("[DEBUG] SOLIDServer - Unable to read information from DNS server: %s\n", d.Get("name"))
 		}
 
 		// Reporting a failure

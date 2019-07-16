@@ -867,3 +867,139 @@ func ip6subnetfindbysize(siteID string, blockID string, requestedIP string, pref
 
 	return []string{}, err
 }
+
+// Update a DNS SMART member's role list
+// Return false in case of failure
+func dnssmartmembersupdate(smartName string, smartMembersRole string, meta interface{}) bool {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters for retrieving SMART vdns_dns_group_role information
+	parameters := url.Values{}
+	parameters.Add("dns_name", smartName)
+	parameters.Add("add_flag", "edit_only")
+	parameters.Add("vdns_dns_group_role", smartMembersRole)
+
+	// Sending the update request
+	resp, body, err := s.Request("put", "rest/dns_add", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			return true
+		}
+
+		// Log the error
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to update members list of the DNS SMART: %s (%s)\n", smartName, errMsg)
+			}
+		} else {
+			log.Printf("[DEBUG] SOLIDServer - Unable to update members list of the DNS SMART: %s\n", smartName)
+		}
+	}
+
+	return false
+}
+
+// Add a DNS server to a SMART with the required role, return the
+// Return false in case of failure
+func dnsaddtosmart(smartName string, serverName string, serverRole string, meta interface{}) bool {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters for retrieving SMART vdns_dns_group_role information
+	parameters := url.Values{}
+	parameters.Add("WHERE", "vdns_parent_name='"+smartName+"' AND dns_type!='vdns'")
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/dns_server_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 || resp.StatusCode == 204 {
+
+			// Building vdns_dns_group_role parameter from the SMART member list
+			membersRole := ""
+
+			if len(buf) > 0 {
+				for _, smartMember := range buf {
+					membersRole += smartMember["dns_name"].(string) + "&" + smartMember["dns_role"].(string) + ";"
+				}
+			}
+
+			membersRole += serverName + "&" + serverRole
+
+			if dnssmartmembersupdate(smartName, membersRole, meta) {
+				return true
+			}
+
+			return false
+		}
+
+		// Log the error
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s (%s)\n", smartName, errMsg)
+			}
+		} else {
+			log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s\n", smartName)
+		}
+	}
+
+	return false
+}
+
+// Remove a DNS server from a SMART
+// Return false in case of failure
+func dnsdeletefromsmart(smartName string, serverName string, meta interface{}) bool {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters for retrieving SMART vdns_dns_group_role information
+	parameters := url.Values{}
+	parameters.Add("WHERE", "vdns_parent_name='"+smartName+"' AND dns_type!='vdns'")
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/dns_server_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 || resp.StatusCode == 204 {
+
+			// Building vdns_dns_group_role parameter from the SMART member list
+			membersRole := ""
+
+			if len(buf) > 0 {
+				for _, smartMember := range buf {
+					if smartMember["dns_name"].(string) != serverName {
+						membersRole += smartMember["dns_name"].(string) + "&" + smartMember["dns_role"].(string) + ";"
+					}
+				}
+			}
+
+			if dnssmartmembersupdate(smartName, membersRole, meta) {
+				return true
+			}
+
+			return false
+		}
+
+		// Log the error
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s (%s)\n", smartName, errMsg)
+			}
+		} else {
+			log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s\n", smartName)
+		}
+	}
+
+	return false
+}
