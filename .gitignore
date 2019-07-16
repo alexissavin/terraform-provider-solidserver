@@ -26,3 +26,6 @@ _testmain.go
 *.prof
 *.tfstate
 *.backup
+
+# Build object
+terraform-provider-solidserver
