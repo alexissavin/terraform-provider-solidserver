@@ -356,6 +356,27 @@ resource "solidserver_dns_zone" "myFirstZone" {
 }
 ```
 
+## DNS Forward Zone
+DNS Forward Zone resource allows to create forward zones from the following arguments:
+
+* `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the zone.
+* `view` - (Optional) The DNS view name hosting the zone (Default: none).
+* `name` - (Required) The Domain Name served by the zone.
+* `forward` - (Optional) The forwarding mode of the forward zone (Supported: Only, First; Default: Only).
+* `forwarders` - (Optional) The IP address list of the forwarders to use for the forward zone.
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+Creating a DNS Forward Zone:
+```
+resource "solidserver_dns_forward_zone" "myFirstForwardZone" {
+  dnsserver = "ns.priv"
+  name       = "fwd.mycompany.priv"
+  forward    = "first"
+  forwarders = ["10.10.8.8", "10.10.4.4"]
+}
+```
+
 ## DNS Record
 DNS Record resource allows to create records from the following arguments:
 
@@ -436,3 +457,28 @@ data "solidserver_usergroup" "t_group_01" {
   name = "group01"
 }
 ```
+
+## DNS server
+Getting information for a DNS server already in the SOLIDserver, base on its name:
+```
+data "solidserver_dns_server" "test" {
+  name             = "ns.local"
+}
+```
+Fields exposed through the datasource are:
+* `name` - (Required) The name of the DNS server
+* `createptr` - Automaticaly create PTR records for all zones on this server
+* `ipam_replication` - Information pushed back to the IPAM from the DNS server
+* `version` - DNS engine version
+* `address` - IPv4 address of the DNS server
+* `comment` - description associated to the DNS server
+* `type` - type of the DNS server: ipm, msdaemon, ans, aws, other, vdns
+* `vdns_arch` - Smart architecture if the server is a vdsn (Smart)
+* `vdns_parent_arch` - if the DNS server is part of a Smart architecture
+* `vdns_parent_id` - if the DNS server is part of a Smart architecture, provides the ID of the Smart server
+* `vdns_members_name` - if the server is a Smart, provides the list of the DNS vdns_members_name
+* `state` - current state of the server
+* `recursion` - is recursion activated on the server
+* `forward` - is forwarding activated on the server, describes the forwarding mode
+* `forwarders` - if forwarding is activated, lists the IP address of forwarding
+* `class_parameters`

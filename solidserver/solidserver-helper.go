@@ -21,6 +21,28 @@ func abs(x int) int {
 	return x
 }
 
+// Convert a Schema.TypeList interface into an array of strings
+func toStringArray(in []interface{}) []string {
+	out := make([]string, len(in))
+	for i, v := range in {
+		if v == nil {
+			out[i] = ""
+			continue
+		}
+		out[i] = v.(string)
+	}
+	return out
+}
+
+// Convert an array of strings into a Schema.TypeList interface
+func toStringArrayInterface(in []string) []interface{} {
+	out := make([]interface{}, len(in))
+	for i, v := range in {
+		out[i] = v
+	}
+	return out
+}
+
 // BigIntToHexStr convert a Big Integer into an Hexa String
 func BigIntToHexStr(bigInt *big.Int) string {
 	return fmt.Sprintf("%x", bigInt)
@@ -485,6 +507,7 @@ func ipsubnetidbyname(siteID string, subnetName string, terminal bool, meta inte
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet_name='"+strings.ToLower(subnetName)+"'")
+
 	if terminal {
 		parameters.Add("is_terminal", "1")
 	} else {
@@ -509,6 +532,55 @@ func ipsubnetidbyname(siteID string, subnetName string, terminal bool, meta inte
 	log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s\n", subnetName)
 
 	return "", err
+}
+
+// Return a map of information about a subnet from site_id, subnet_name and is_terminal property
+// Or nil in case of failure
+func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta interface{}) (map[string]interface{}, error) {
+	res := make(map[string]interface{})
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet_name='"+strings.ToLower(subnetName)+"'")
+
+	if terminal {
+		parameters.Add("is_terminal", "1")
+	} else {
+		parameters.Add("is_terminal", "0")
+	}
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/ip_block_subnet_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if subnetID, subnetIDExist := buf[0]["subnet_id"].(string); subnetIDExist {
+				res["id"] = subnetID
+
+				if subnetName, subnetNameExist := buf[0]["subnet_name"].(string); subnetNameExist {
+					res["name"] = subnetName
+				}
+
+				//FIXME - res["address"] =
+				//FIXME - res["prefixSize"] =
+
+				if subnetLvl, subnetLvlExist := buf[0]["subnet_level"].(string); subnetLvlExist {
+					res["level"] = subnetLvl
+				}
+
+				return res, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s\n", subnetName)
+
+	return nil, err
 }
 
 // Return the oid of a subnet from site_id, subnet_name and is_terminal property
@@ -543,6 +615,54 @@ func ip6subnetidbyname(siteID string, subnetName string, terminal bool, meta int
 	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet: %s\n", subnetName)
 
 	return "", err
+}
+
+// Return a map of information about a subnet from site_id, subnet_name and is_terminal property
+// Or nil in case of failure
+func ip6subnetinfobyname(siteID string, subnetName string, terminal bool, meta interface{}) (map[string]interface{}, error) {
+	res := make(map[string]interface{})
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet6_name='"+strings.ToLower(subnetName)+"'")
+	if terminal {
+		parameters.Add("is_terminal", "1")
+	} else {
+		parameters.Add("is_terminal", "0")
+	}
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/ip6_block6_subnet6_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if subnetID, subnetIDExist := buf[0]["subnet6_id"].(string); subnetIDExist {
+				res["id"] = subnetID
+
+				if subnetName, subnetNameExist := buf[0]["subnet6_name"].(string); subnetNameExist {
+					res["name"] = subnetName
+				}
+
+				//FIXME - res["address"] =
+				//FIXME - res["prefixSize"] =
+
+				if subnetLvl, subnetLvlExist := buf[0]["subnet_level"].(string); subnetLvlExist {
+					res["level"] = subnetLvl
+				}
+
+				return res, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet: %s\n", subnetName)
+
+	return nil, err
 }
 
 // Return the oid of an address from site_id, ip_address
@@ -657,6 +777,7 @@ func ipaliasidbyinfo(addressID string, aliasName string, ipNameType string, meta
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
 func ipsubnetfindbysize(siteID string, blockID string, requestedIP string, prefixSize int, meta interface{}) ([]string, error) {
+	subnetAddresses := []string{}
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -665,25 +786,14 @@ func ipsubnetfindbysize(siteID string, blockID string, requestedIP string, prefi
 	parameters.Add("prefix", strconv.Itoa(prefixSize))
 	parameters.Add("max_find", "4")
 
-	// Trying to create a block
-	if len(blockID) == 0 {
-		subnetAddresses := []string{}
-
-		if len(requestedIP) > 0 {
-			subnetAddresses = append(subnetAddresses, iptohexip(requestedIP))
-			return subnetAddresses, nil
-		}
-
+	// Specifying a suggested subnet IP address
+	if len(requestedIP) > 0 {
+		subnetAddresses = append(subnetAddresses, iptohexip(requestedIP))
 		return subnetAddresses, nil
 	}
 
 	// Trying to create a subnet under an existing block
 	parameters.Add("block_id", blockID)
-
-	// Specifying a suggested subnet IP address
-	if len(requestedIP) > 0 {
-		parameters.Add("begin_addr", requestedIP)
-	}
 
 	// Sending the creation request
 	resp, body, err := s.Request("get", "rpc/ip_find_free_subnet", &parameters)
@@ -714,6 +824,7 @@ func ipsubnetfindbysize(siteID string, blockID string, requestedIP string, prefi
 // Return an available subnet address from site_id, block_id and expected subnet_size
 // Or an empty string in case of failure
 func ip6subnetfindbysize(siteID string, blockID string, requestedIP string, prefixSize int, meta interface{}) ([]string, error) {
+	subnetAddresses := []string{}
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -722,25 +833,14 @@ func ip6subnetfindbysize(siteID string, blockID string, requestedIP string, pref
 	parameters.Add("prefix", strconv.Itoa(prefixSize))
 	parameters.Add("max_find", "4")
 
-	// Trying to create a block
-	if len(blockID) == 0 {
-		subnetAddresses := []string{}
-
-		if len(requestedIP) > 0 {
-			subnetAddresses = append(subnetAddresses, ip6tohexip6(requestedIP))
-			return subnetAddresses, nil
-		}
-
+	// Specifying a suggested subnet IP address
+	if len(requestedIP) > 0 {
+		subnetAddresses = append(subnetAddresses, ip6tohexip6(requestedIP))
 		return subnetAddresses, nil
 	}
 
 	// Trying to create a subnet under an existing block
 	parameters.Add("block6_id", blockID)
-
-	// Specifying a suggested subnet IP address
-	if len(requestedIP) > 0 {
-		parameters.Add("begin_addr", requestedIP)
-	}
 
 	// Sending the creation request
 	resp, body, err := s.Request("get", "rpc/ip6_find_free_subnet6", &parameters)

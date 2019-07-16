@@ -1,3 +1,6 @@
+// +build all user
+// to test only these features: -tags user -run="CreateUser01"
+
 package solidserver
 
 import (

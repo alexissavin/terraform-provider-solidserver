@@ -158,6 +158,12 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to create RR: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to create RR: %s\n", d.Get("name").(string))
 	}
 
@@ -200,6 +206,12 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to update RR: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to update RR: %s\n", d.Get("name").(string))
 	}
 
@@ -227,10 +239,15 @@ func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete RR: %s (%s)\n", d.Get("name"), errMsg)
+		if resp.StatusCode != 200 && resp.StatusCode != 204 {
+			// Reporting a failure
+			if len(buf) > 0 {
+				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+					return fmt.Errorf("SOLIDServer - Unable to delete RR: %s (%s)", d.Get("name").(string), errMsg)
+				}
 			}
+
+			return fmt.Errorf("SOLIDServer - Unable to delete RR: %s", d.Get("name").(string))
 		}
 
 		// Log deletion

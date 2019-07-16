@@ -28,12 +28,9 @@ func dataSourceusergroup() *schema.Resource {
 }
 
 func dataSourceusergroupRead(d *schema.ResourceData, meta interface{}) error {
-	d.SetId("")
-
 	s := meta.(*SOLIDserver)
-	if s == nil {
-		return fmt.Errorf("no SOLIDserver known for group request %s", d.Get("name").(string))
-	}
+
+	d.SetId("")
 
 	name := d.Get("name").(string)
 

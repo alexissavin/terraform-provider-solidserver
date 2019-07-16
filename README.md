@@ -7,7 +7,10 @@ It allows managing all IPAM objects through CRUD operations.
 
 This provider is compatible with [SOLIDserver](https://www.efficientip.com/products/solidserver/) version 6.0.2 and higher.
 
+Current production version is 1.0.10
+
 # Build
+
 Download the latest revision of the master branch then use the go compiler to generate the binary.
 
 ```
@@ -15,7 +18,7 @@ cd "${GOPATH}"
 go get github.com/alexissavin/terraform-provider-solidserver
 cd ./src/github.com/alexissavin/terraform-provider-solidserver
 go get
-go build -o terraform-provider-solidserver_v1.0.8
+go build -o terraform-provider-solidserver_vX.Y.Z
 ```
 
 # Install
@@ -40,7 +43,7 @@ For further details have a look to the [terraform documentation](https://www.ter
 # Acceptance Tests
 In order to perform the acceptance tests of the solidserver module, first set in your environment the variables required for the connection (`SOLIDServer_HOST`, `SOLIDServer_USERNAME` and `SOLIDServer_PASSWORD`). In addition you could disable the TLS certificate validation by setting the `SOLIDServer_SSLVERIFY` to false.
 ```
-TF_ACC=1 go test solidserver -v -count=1
+TF_ACC=1 go test solidserver -v -count=1 -tags "all"
 ```
 
 # Usage

@@ -89,7 +89,7 @@ func (s *SOLIDserver) GetVersion() error {
 
 			StrVersion := strings.Split(version, ".")
 
-			for i := 0; i < 3; i++ {
+			for i := 0; i < len(StrVersion) && i < 3; i++ {
 				num, numErr := strconv.Atoi(StrVersion[i])
 				if numErr == nil {
 					s.Version = s.Version*10 + num
@@ -139,7 +139,7 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 
 	// Set gorequest options
 	apiclient.Timeout(16 * time.Second)
-	apiclient.Retry(3, time.Duration(rand.Intn(128))*time.Millisecond, http.StatusTooManyRequests)
+	apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusTooManyRequests)
 
 	switch method {
 	case "post":
@@ -179,6 +179,11 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 
 	if err != nil {
 		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", err)
+	}
+
+	if len(body) > 0 && body[0] == '{' && body[len(body)-1] == '}' {
+		log.Printf("[DEBUG] Repacking HTTP JSON Body\n")
+		body = "[" + body + "]"
 	}
 
 	return resp, body, nil

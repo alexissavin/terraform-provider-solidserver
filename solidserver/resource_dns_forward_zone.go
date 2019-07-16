@@ -9,69 +9,62 @@ import (
 	"strings"
 )
 
-func resourcednszone() *schema.Resource {
+func resourcednsforwardzone() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcednszoneCreate,
-		Read:   resourcednszoneRead,
-		Update: resourcednszoneUpdate,
-		Delete: resourcednszoneDelete,
-		Exists: resourcednszoneExists,
+		Create: resourcednsforwardzoneCreate,
+		Read:   resourcednsforwardzoneRead,
+		Update: resourcednsforwardzoneUpdate,
+		Delete: resourcednsforwardzoneDelete,
+		Exists: resourcednsforwardzoneExists,
 		Importer: &schema.ResourceImporter{
-			State: resourcednszoneImportState,
+			State: resourcednsforwardzoneImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"dnsserver": {
 				Type:        schema.TypeString,
-				Description: "The managed SMART DNS server name, or DNS server name hosting the zone.",
+				Description: "The managed SMART DNS server name, or DNS server name hosting the forward zone.",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"view": {
 				Type:        schema.TypeString,
-				Description: "The DNS view name hosting the zone.",
+				Description: "The DNS view name hosting the forward zone.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     "#",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The Domain Name served by the zone.",
+				Description: "The Domain Name served by the forward zone.",
 				Required:    true,
 				ForceNew:    true,
 			},
-			"space": {
-				Type:        schema.TypeString,
-				Description: "The name of a space associated to the zone.",
-				Optional:    true,
-				ForceNew:    false,
-				Default:     "",
-			},
-			"type": {
+			"forward": {
 				Type:         schema.TypeString,
-				Description:  "The type of the zone to create (Supported: Master).",
-				ValidateFunc: resourcednszonevalidatetype,
+				Description:  "The forwarding mode of the forward zone (Supported: Only, First; Default: Only).",
+				ValidateFunc: resourcednsforwardzonevalidateforward,
 				Optional:     true,
-				ForceNew:     true,
-				Default:      "Master",
+				Default:      "Only",
 			},
-			"createptr": {
-				Type:        schema.TypeBool,
-				Description: "Automaticaly create PTR records for the zone.",
-				Optional:    true,
-				ForceNew:    false,
-				Default:     false,
+			"forwarders": {
+				Type:        schema.TypeList,
+				Description: "The IP address list of the forwarder(s) to use for the forward zone.",
+				Required:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the zone.",
+				Description: "The class associated to the forward zone.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to the zone.",
+				Description: "The class parameters associated to the forward zone.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     map[string]string{},
@@ -80,23 +73,25 @@ func resourcednszone() *schema.Resource {
 	}
 }
 
-func resourcednszonevalidatetype(v interface{}, _ string) ([]string, []error) {
+func resourcednsforwardzonevalidateforward(v interface{}, _ string) ([]string, []error) {
 	switch strings.ToLower(v.(string)) {
-	case "master":
+	case "only":
+		return nil, nil
+	case "first":
 		return nil, nil
 	default:
-		return nil, []error{fmt.Errorf("Unsupported zone type.")}
+		return nil, []error{fmt.Errorf("Unsupported RR type.")}
 	}
 }
 
-func resourcednszoneExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourcednsforwardzoneExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("dnszone_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of DNS zone (oid): %s\n", d.Id())
+	log.Printf("[DEBUG] Checking existence of DNS forward zone (oid): %s\n", d.Id())
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/dns_zone_info", &parameters)
@@ -112,10 +107,10 @@ func resourcednszoneExists(d *schema.ResourceData, meta interface{}) (bool, erro
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS forward zone (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS forward zone (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -126,15 +121,8 @@ func resourcednszoneExists(d *schema.ResourceData, meta interface{}) (bool, erro
 	return false, err
 }
 
-func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcednsforwardzoneCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
-
-	// Gather required ID(s) from provided information
-	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
-	if siteErr != nil {
-		// Reporting a failure
-		return siteErr
-	}
 
 	// Building parameters
 	parameters := url.Values{}
@@ -144,18 +132,20 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("dnsview_name", d.Get("view").(string))
 	}
 	parameters.Add("dnszone_name", d.Get("name").(string))
-	parameters.Add("dnszone_type", strings.ToLower(d.Get("type").(string)))
-	parameters.Add("dnszone_site_id", siteID)
+	parameters.Add("dnszone_type", "forward")
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
+
+	parameters.Add("dnszone_forward", strings.ToLower(d.Get("forward").(string)))
+
+	// Building forwarder list
+	fwdList := ""
+	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
+		fwdList += fwd + ";"
+	}
+	parameters.Add("dnszone_forwarders", fwdList)
 
 	// Building class_parameters
 	classParameters := urlfromclassparams(d.Get("class_parameters"))
-	// Generate class parameter for createptr if required
-	if d.Get("createptr").(bool) {
-		classParameters.Add("dnsptr", "1")
-	} else {
-		classParameters.Add("dnsptr", "0")
-	}
 	parameters.Add("dnszone_class_parameters", classParameters.Encode())
 
 	// Sending the creation request
@@ -168,7 +158,7 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Created DNS zone (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created DNS forward zone (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -177,42 +167,37 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to create DNS zone: %s (%s)", d.Get("name").(string), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to create DNS forward zone: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to create DNS zone: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to create DNS forward zone: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcednsforwardzoneUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
-
-	// Gather required ID(s) from provided information
-	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
-	if siteErr != nil {
-		// Reporting a failure
-		return siteErr
-	}
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("dnszone_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
-	parameters.Add("dnszone_site_id", siteID)
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
+
+	parameters.Add("dnszone_forward", strings.ToLower(d.Get("forward").(string)))
+
+	// Building forwarder list
+	fwdList := ""
+	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
+		fwdList += fwd + ";"
+	}
+	parameters.Add("dnszone_forwarders", fwdList)
 
 	// Building class_parameters
 	classParameters := urlfromclassparams(d.Get("class_parameters"))
-	// Generate class parameter for createptr if required
-	if d.Get("createptr").(bool) {
-		classParameters.Add("dnsptr", "1")
-	} else {
-		classParameters.Add("dnsptr", "0")
-	}
 	parameters.Add("dnszone_class_parameters", classParameters.Encode())
 
 	// Sending the update request
@@ -225,7 +210,7 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Updated DNS zone (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated DNS forward zone (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -234,18 +219,18 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to update DNS zone: %s (%s)", d.Get("name").(string), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to update DNS forward zone: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to update DNS zone: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to update DNS forward zone: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourcednszoneDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcednsforwardzoneDelete(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -264,15 +249,15 @@ func resourcednszoneDelete(d *schema.ResourceData, meta interface{}) error {
 			// Reporting a failure
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-					return fmt.Errorf("SOLIDServer - Unable to delete DNS zone: %s (%s)", d.Get("name").(string), errMsg)
+					return fmt.Errorf("SOLIDServer - Unable to delete DNS forward zone: %s (%s)", d.Get("name").(string), errMsg)
 				}
 			}
 
-			return fmt.Errorf("SOLIDServer - Unable to delete DNS zone: %s", d.Get("name").(string))
+			return fmt.Errorf("SOLIDServer - Unable to delete DNS forward zone: %s", d.Get("name").(string))
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted DNS zone (oid): %s\n", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted DNS forward zone (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -285,7 +270,7 @@ func resourcednszoneDelete(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
+func resourcednsforwardzoneRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -304,25 +289,17 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("dnsserver", buf[0]["dns_name"].(string))
 			d.Set("view", buf[0]["dnsview_name"].(string))
 			d.Set("name", buf[0]["dnszone_name"].(string))
-			d.Set("type", buf[0]["dnszone_type"].(string))
 
-			if buf[0]["dnszone_site_name"].(string) != "#" {
-				d.Set("space", buf[0]["dnszone_site_name"].(string))
-			} else {
-				d.Set("space", "")
-			}
+			// Updating forwarder information
+			d.Set("forward", buf[0]["dnszone_forward"].(string))
+			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dnszone_forwarders"].(string), ";")))
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			if createptr, createptrExist := retrievedClassParameters["dnsptr"]; createptrExist {
-				if createptr[0] == "1" {
-					d.Set("createptr", true)
-				} else {
-					d.Set("createptr", false)
-				}
+			if _, createptrExist := retrievedClassParameters["dnsptr"]; createptrExist {
 				delete(retrievedClassParameters, "dnsptr")
 			}
 
@@ -342,24 +319,24 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS forward zone: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS zone (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS forward zone (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find DNS zone: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find DNS forward zone: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourcednsforwardzoneImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -380,23 +357,15 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			d.Set("name", buf[0]["dnszone_name"].(string))
 			d.Set("type", buf[0]["dnszone_type"].(string))
 
-			if buf[0]["dnszone_site_name"].(string) != "#" {
-				d.Set("space", buf[0]["dnszone_site_name"].(string))
-			} else {
-				d.Set("space", "")
-			}
+			// Updating forwarder list
+			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dnszone_forwarders"].(string), ";")))
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			if createptr, createptrExist := retrievedClassParameters["dnsptr"]; createptrExist {
-				if createptr[0] == "1" {
-					d.Set("createptr", true)
-				} else {
-					d.Set("createptr", false)
-				}
+			if _, createptrExist := retrievedClassParameters["dnsptr"]; createptrExist {
 				delete(retrievedClassParameters, "dnsptr")
 			}
 
@@ -415,14 +384,14 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to import DNS zone (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import DNS forward zone (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import DNS zone (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import DNS forward zone (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import DNS zone (oid): %s\n", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import DNS forward zone (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure

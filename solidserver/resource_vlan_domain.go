@@ -124,6 +124,12 @@ func resourcevlandomainCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to create VLAN Domain: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to create VLAN Domain: %s\n", d.Get("name").(string))
 	}
 
@@ -166,7 +172,13 @@ func resourcevlandomainUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to update VLAN Domain: %s\n", d.Get("name").(string))
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to VLAN Domain: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
+		return fmt.Errorf("SOLIDServer - Unable to VLAN Domain: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -188,11 +200,15 @@ func resourcevlandomainDelete(d *schema.ResourceData, meta interface{}) error {
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				// Reporting a failure
-				return fmt.Errorf("SOLIDServer - Unable to delete VLAN Domain : %s (%s)", d.Get("name"), errMsg)
+		if resp.StatusCode != 200 && resp.StatusCode != 204 {
+			// Reporting a failure
+			if len(buf) > 0 {
+				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+					return fmt.Errorf("SOLIDServer - Unable to delete VLAN Domain: %s (%s)", d.Get("name").(string), errMsg)
+				}
 			}
+
+			return fmt.Errorf("SOLIDServer - Unable to delete VLAN Domain: %s", d.Get("name").(string))
 		}
 
 		// Log deletion

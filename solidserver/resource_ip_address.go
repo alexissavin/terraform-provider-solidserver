@@ -203,7 +203,15 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 					return nil
 				}
 			} else {
-				log.Printf("[DEBUG] SOLIDServer - Failed IP address registration (%s), trying another one.\n", ipAddresses[i])
+				if len(buf) > 0 {
+					if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+						log.Printf("[DEBUG] SOLIDServer - Failed IP address registration for IP address: %s with address: %s (%s)\n", d.Get("name").(string), ipAddresses[i], errMsg)
+					} else {
+						log.Printf("[DEBUG] SOLIDServer - Failed IP address registration for IP address: %s with address: %s\n", d.Get("name").(string), ipAddresses[i])
+					}
+				} else {
+					log.Printf("[DEBUG] SOLIDServer - Failed IP address registration for IP address: %s with address: %s\n", d.Get("name").(string), ipAddresses[i])
+				}
 			}
 		} else {
 			// Reporting a failure
@@ -212,7 +220,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Reporting a failure
-	return fmt.Errorf("SOLIDServer - Unable to create IP address: %s", d.Get("name").(string))
+	return fmt.Errorf("SOLIDServer - Unable to create IP address: %s, unable to find a suitable address\n", d.Get("name").(string))
 }
 
 func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -264,6 +272,12 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				return fmt.Errorf("SOLIDServer - Unable to update IP address: %s (%s)", d.Get("name").(string), errMsg)
+			}
+		}
+
 		return fmt.Errorf("SOLIDServer - Unable to update IP address: %s\n", d.Get("name").(string))
 	}
 
@@ -286,10 +300,15 @@ func resourceipaddressDelete(d *schema.ResourceData, meta interface{}) error {
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode != 204 && len(buf) > 0 {
-			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP address : %s (%s)\n", d.Get("name"), errMsg)
+		if resp.StatusCode != 200 && resp.StatusCode != 204 {
+			// Reporting a failure
+			if len(buf) > 0 {
+				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+					return fmt.Errorf("SOLIDServer - Unable to delete IP address : %s (%s)", d.Get("name").(string), errMsg)
+				}
 			}
+
+			return fmt.Errorf("SOLIDServer - Unable to delete IP address : %s", d.Get("name").(string))
 		}
 
 		// Log deletion

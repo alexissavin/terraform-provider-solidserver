@@ -56,6 +56,14 @@ resource "solidserver_ip_subnet" "myFirstIPSubnet" {
   block            = "${solidserver_ip_subnet.myFirstIPBlock.name}"
   size             = 24
   name             = "myFirstIPSubnet"
+  terminal         = false
+}
+
+resource "solidserver_ip_subnet" "mySecondIPSubnet" {
+  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  block            = "${solidserver_ip_subnet.myFirstIPSubnet.name}"
+  size             = 29
+  name             = "mySecondIPSubnet"
   gateway_offset   = -1
   class            = "VIRTUAL"
   class_parameters {
@@ -65,7 +73,7 @@ resource "solidserver_ip_subnet" "myFirstIPSubnet" {
 
 resource "solidserver_ip_address" "myFirstIPAddress" {
   space   = "${solidserver_ip_space.myFirstSpace.name}"
-  subnet  = "${solidserver_ip_subnet.myFirstIPSubnet.name}"
+  subnet  = "${solidserver_ip_subnet.mySecondIPSubnet.name}"
   name    = "myfirstipaddress"
   device  = "${solidserver_device.myFirstDevice.name}"
   lifecycle {
@@ -94,8 +102,16 @@ resource "solidserver_ip6_subnet" "myFirstIP6Block" {
 resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   block            = "${solidserver_ip6_subnet.myFirstIP6Block.name}"
-  size             = 64
+  size             = 56
   name             = "myFirstIP6Subnet"
+  terminal         = false
+}
+
+resource "solidserver_ip6_subnet" "mySecondIP6Subnet" {
+  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  block            = "${solidserver_ip6_subnet.myFirstIP6Subnet.name}"
+  size             = 64
+  name             = "mySecondIP6Subnet"
   gateway_offset   = 1
   class            = "VIRTUAL"
   class_parameters {
@@ -105,7 +121,7 @@ resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
 
 resource "solidserver_ip6_address" "myFirstIP6Address" {
   space   = "${solidserver_ip_space.myFirstSpace.name}"
-  subnet  = "${solidserver_ip6_subnet.myFirstIP6Subnet.name}"
+  subnet  = "${solidserver_ip6_subnet.mySecondIP6Subnet.name}"
   name    = "myfirstip6address"
   device  = "${solidserver_device.myFirstDevice.name}"
   lifecycle {
@@ -140,6 +156,13 @@ resource "solidserver_dns_zone" "myFirstZone" {
   name      = "mycompany.priv"
   type      = "master"
   createptr = false
+}
+
+resource "solidserver_dns_forward_zone" "myFirstForwardZone" {
+  dnsserver = "ns.priv"
+  name       = "fwd.mycompany.priv"
+  forward    = "first"
+  forwarders = ["10.10.8.8", "10.10.4.4"]
 }
 
 resource "solidserver_dns_rr" "ARecords" {
