@@ -83,7 +83,7 @@ func dataSourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 
 	parameters := url.Values{}
 	// parameters.Add("ip_id", d.Id())
-	parameters.Add("WHERE", "site_name='"+d.Get("space")+"' AND hostaddr='"d.Get("address")+"'")
+	parameters.Add("WHERE", "site_name='" + d.Get("space").(string) + "' AND hostaddr='" + d.Get("address").(string) + "'")
 	
 	// Sending the read request
 	log.Printf("[DEBUG] SOLIDServer - lookup for IP address with oid: %s\n", d.Id())
