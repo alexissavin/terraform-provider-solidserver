@@ -7,20 +7,18 @@ import (
 	"log"
 	"net/url"
 	//"regexp"
-	"crypto/sha256"
-	"encoding/hex"
 	"strings"
 )
 
-func resourcednsserver() *schema.Resource {
+func resourcednssmart() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcednsserverCreate,
-		Read:   resourcednsserverRead,
-		Update: resourcednsserverUpdate,
-		Delete: resourcednsserverDelete,
-		Exists: resourcednsserverExists,
+		Create: resourcednssmartCreate,
+		Read:   resourcednssmartRead,
+		Update: resourcednssmartUpdate,
+		Delete: resourcednssmartDelete,
+		Exists: resourcednssmartExists,
 		Importer: &schema.ResourceImporter{
-			State: resourcednsserverImportState,
+			State: resourcednssmartImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -30,56 +28,11 @@ func resourcednsserver() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
-			"address": {
+			"arch": {
 				Type:        schema.TypeString,
-				Description: "IPv4 address of the DNS server.",
-				Required:    true,
-				ForceNew:    true,
-			},
-			"login": {
-				Type:        schema.TypeString,
-				Description: "The login to use for enrolling of the DNS server.",
-				Required:    true,
-				ForceNew:    true,
-				DiffSuppressFunc: func(k, old string, new string, d *schema.ResourceData) bool {
-					hash := sha256.Sum256([]byte(new))
-					if old == hex.EncodeToString(hash[:]) {
-						return true
-					}
-					return false
-				},
-			},
-			"password": {
-				Type:        schema.TypeString,
-				Description: "The password to use the enrolling of the DNS server.",
-				Required:    true,
-				ForceNew:    true,
-				DiffSuppressFunc: func(k, old string, new string, d *schema.ResourceData) bool {
-					hash := sha256.Sum256([]byte(new))
-					if old == hex.EncodeToString(hash[:]) {
-						return true
-					}
-					return false
-				},
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Description: "The type of DNS server (Supported: ipm (SOLIDserver or Linux Package); Default: ipm).",
-				Computed:    true,
-			},
-			"smart": {
-				Type:        schema.TypeString,
-				Description: "The SMART the DNS server will be a member of.",
+				Description: "The DNS SMART architecture (Suported: multimaster, masterslave, single; Default: masterslave).",
 				Optional:    true,
-				ForceNew:    true,
-				Default:     "",
-			},
-			"smart_role": {
-				Type:        schema.TypeString,
-				Description: "The role the DNS server will play within the SMART (Supported: master, slave; Default: slave).",
-				Optional:    true,
-				ForceNew:    true,
-				Default:     "slave",
+				Default:     "masterslave",
 			},
 			"comment": {
 				Type:        schema.TypeString,
@@ -87,10 +40,25 @@ func resourcednsserver() *schema.Resource {
 				Optional:    true,
 				Default:     "",
 			},
-			"version": {
+			"recursion": {
+				Type:        schema.TypeBool,
+				Description: "The recursion status of the DNS server.",
+				Optional:    true,
+				Default:     true,
+			},
+			"forward": {
 				Type:        schema.TypeString,
-				Description: "DNS Engine Version.",
-				Computed:    true,
+				Description: "The forwarding mode of the DNS server (disabled if empty).",
+				Optional:    true,
+				Default:     "",
+			},
+			"forwarders": {
+				Type:        schema.TypeList,
+				Description: "The IP address list of the forwarder(s) configured on the DNS server.",
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"class": {
 				Type:        schema.TypeString,
@@ -110,18 +78,18 @@ func resourcednsserver() *schema.Resource {
 	}
 }
 
-//FIXME - Validate dnsservertype
+// Validate dnssmart type
 //func resourcedsnservertypevalidate(v interface{}, _ string) ([]string, []error) {
 //}
 
-func resourcednsserverExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourcednssmartExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("dns_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of DNS server (oid): %s\n", d.Id())
+	log.Printf("[DEBUG] Checking existence of DNS SMART (oid): %s\n", d.Id())
 
 	// Sending read request
 	resp, body, err := s.Request("get", "rest/dns_server_info", &parameters)
@@ -137,10 +105,10 @@ func resourcednsserverExists(d *schema.ResourceData, meta interface{}) (bool, er
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS server (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS SMART (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS server (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS SMART (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -151,22 +119,33 @@ func resourcednsserverExists(d *schema.ResourceData, meta interface{}) (bool, er
 	return false, err
 }
 
-func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
+// vdns_dns_group_role="dns_name1&master;dns_name2&slave;"
+func resourcednssmartCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
 	parameters.Add("dns_name", strings.ToLower(d.Get("name").(string)))
-
-	// Send Temporary Credentials for enrollment
-	parameters.Add("ipmdns_https_login", d.Get("login").(string))
-	parameters.Add("ipmdns_https_password", d.Get("password").(string))
-
-	parameters.Add("dns_type", "ipm")
-
-	parameters.Add("hostaddr", d.Get("address").(string))
+	parameters.Add("vdns_arch", d.Get("arch").(string))
 	parameters.Add("dns_comment", d.Get("comment").(string))
+
+	// Configure recursion
+	if d.Get("recursion").(bool) {
+		parameters.Add("dns_recursion", "yes")
+	} else {
+		parameters.Add("dns_recursion", "no")
+	}
+
+	// Building forwarder list
+	parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+
+	fwdList := ""
+	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
+		fwdList += fwd + ";"
+	}
+
+	parameters.Add("dns_forwarders", fwdList)
 
 	parameters.Add("dns_class_name", d.Get("class").(string))
 	parameters.Add("dns_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
@@ -181,20 +160,8 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Created DNS server (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created DNS SMART (oid): %s\n", oid)
 				d.SetId(oid)
-
-				loginHash := sha256.Sum256([]byte(d.Get("login").(string)))
-				passwordHash := sha256.Sum256([]byte(d.Get("password").(string)))
-
-				d.Set("login", hex.EncodeToString(loginHash[:]))
-				d.Set("password", hex.EncodeToString(passwordHash[:]))
-
-				if strings.ToLower(d.Get("smart").(string)) != "" {
-					//FIXME - Handle Errors
-					dnsaddtosmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), strings.ToLower(d.Get("smart_role").(string)), meta)
-				}
-
 				return nil
 			}
 		}
@@ -202,18 +169,18 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to create DNS server: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to create DNS SMART: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to create DNS server: %s\n", strings.ToLower(d.Get("name").(string)))
+		return fmt.Errorf("SOLIDServer - Unable to create DNS SMART: %s\n", strings.ToLower(d.Get("name").(string)))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcednssmartUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -221,11 +188,25 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("dns_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("dns_name", strings.ToLower(d.Get("name").(string)))
-
-	parameters.Add("dns_type", "ipm")
-
-	parameters.Add("hostaddr", d.Get("address").(string))
+	parameters.Add("vdns_arch", d.Get("arch").(string))
 	parameters.Add("dns_comment", d.Get("comment").(string))
+
+	// Configure recursion
+	if d.Get("recursion").(bool) {
+		parameters.Add("dns_recursion", "yes")
+	} else {
+		parameters.Add("dns_recursion", "no")
+	}
+
+	// Building forwarder list
+	parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+
+	fwdList := ""
+	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
+		fwdList += fwd + ";"
+	}
+
+	parameters.Add("dns_forwarders", fwdList)
 
 	parameters.Add("dns_class_name", d.Get("class").(string))
 	parameters.Add("dns_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
@@ -240,7 +221,7 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Updated DNS server (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated DNS SMART (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -249,28 +230,23 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to update DNS server: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to update DNS SMART: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to update DNS server: %s\n", strings.ToLower(d.Get("name").(string)))
+		return fmt.Errorf("SOLIDServer - Unable to update DNS SMART: %s\n", strings.ToLower(d.Get("name").(string)))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourcednsserverDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcednssmartDelete(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("dns_id", d.Id())
-
-	if strings.ToLower(d.Get("smart").(string)) != "" {
-		//FIXME - Handle Errors
-		dnsdeletefromsmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), meta)
-	}
 
 	// Sending the deletion request
 	resp, body, err := s.Request("delete", "rest/dns_delete", &parameters)
@@ -284,15 +260,15 @@ func resourcednsserverDelete(d *schema.ResourceData, meta interface{}) error {
 			// Reporting a failure
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-					return fmt.Errorf("SOLIDServer - Unable to delete DNS server: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+					return fmt.Errorf("SOLIDServer - Unable to delete DNS SMART: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
 				}
 			}
 
-			return fmt.Errorf("SOLIDServer - Unable to delete DNS server: %s", strings.ToLower(d.Get("name").(string)))
+			return fmt.Errorf("SOLIDServer - Unable to delete DNS SMART: %s", strings.ToLower(d.Get("name").(string)))
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted DNS server (oid): %s\n", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted DNS SMART (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -305,7 +281,7 @@ func resourcednsserverDelete(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
+func resourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -322,10 +298,14 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", strings.ToLower(buf[0]["dns_name"].(string)))
-			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
+			d.Set("arch", buf[0]["vdns_arch"].(string))
 			d.Set("comment", buf[0]["dns_comment"].(string))
-			d.Set("version", buf[0]["dns_version"].(string))
-			d.Set("type", buf[0]["dns_type"].(string))
+
+			d.Set("recursion", buf[0]["dns_recursion"].(string))
+
+			// Updating forwarder information
+			d.Set("forward", buf[0]["dns_forward"].(string))
+			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
 
 			d.Set("class", buf[0]["dns_class_name"].(string))
 
@@ -350,24 +330,24 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS server: %s (%s)\n", strings.ToLower(d.Get("name").(string)), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS SMART: %s (%s)\n", strings.ToLower(d.Get("name").(string)), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS server (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS SMART (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find DNS server: %s\n", strings.ToLower(d.Get("name").(string)))
+		return fmt.Errorf("SOLIDServer - Unable to find DNS SMART: %s\n", strings.ToLower(d.Get("name").(string)))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourcednsserverImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourcednssmartImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -384,10 +364,14 @@ func resourcednsserverImportState(d *schema.ResourceData, meta interface{}) ([]*
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", strings.ToLower(buf[0]["dns_name"].(string)))
-			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
+			d.Set("arch", buf[0]["vdns_arch"].(string))
 			d.Set("comment", buf[0]["dns_comment"].(string))
-			d.Set("version", buf[0]["dns_version"].(string))
-			d.Set("type", buf[0]["dns_type"].(string))
+
+			d.Set("recursion", buf[0]["dns_recursion"].(string))
+
+			// Updating forwarder information
+			d.Set("forward", buf[0]["dns_forward"].(string))
+			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
 
 			d.Set("class", buf[0]["dns_class_name"].(string))
 
@@ -410,14 +394,14 @@ func resourcednsserverImportState(d *schema.ResourceData, meta interface{}) ([]*
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to import DNS server (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import DNS SMART (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import DNS server (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import DNS SMART (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import DNS server (oid): %s\n", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import DNS SMART (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure

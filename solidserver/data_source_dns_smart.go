@@ -11,7 +11,7 @@ import (
 
 func dataSourcednssmart() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourcednsserverRead,
+		Read: dataSourcednssmartRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -93,9 +93,6 @@ func dataSourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("vdns_arch", buf[0]["vdns_arch"].(string))
 			d.Set("vdns_members_name", toStringArrayInterface(strings.Split(buf[0]["vdns_members_name"].(string), ";")))
 
-			//FIXME - Parse the status for better understanding
-			//d.Set("state", buf[0]["dns_state"].(string))
-
 			d.Set("recursion", buf[0]["dns_recursion"].(string))
 			d.Set("forward", buf[0]["dns_forward"].(string))
 			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
@@ -122,15 +119,15 @@ func dataSourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable read information from DNS server: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable read information from DNS SMART: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to read information from DNS server %s\n", d.Get("name"))
+			log.Printf("[DEBUG] SOLIDServer - Unable to read information from DNS SMART: %s\n", d.Get("name"))
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find DNS server: %s\n", d.Get("name"))
+		return fmt.Errorf("SOLIDServer - Unable to find DNS SMART: %s\n", d.Get("name"))
 	}
 
 	// Reporting a failure
