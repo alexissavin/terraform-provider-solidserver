@@ -16,44 +16,46 @@ func dataSourceipaddress() *schema.Resource {
 		Read: dataSourceipaddressRead,
 
 		Schema: map[string]*schema.Schema{
+			/* Removed as suggestion ************************
 			"id": {
 				Type:        schema.TypeInt,
-				Description: "The id of the ip address",
+				Description: "The ID of the IP address.",
 				Required:    true,
 			},
+			*************************************************/
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The name of the space into which creating the IP address.",
-				Computed:    true,
+				Description: "The name of the space of the IP address.",
+				Required:    true,
 			},
 			"subnet": {
 				Type:        schema.TypeString,
-				Description: "The name of the subnet into which creating the IP address.",
+				Description: "The name of the subnet of the IP address.",
 				Computed:    true,
 			},
 			"pool": {
 				Type:        schema.TypeString,
-				Description: "The name of the pool into which creating the IP address.",
+				Description: "The name of the pool of the IP address.",
 				Computed:    true,
 			},
 			"address": {
 				Type:        schema.TypeString,
-				Description: "The provisionned IP address.",
-				Computed:    true,
+				Description: "The IP address.",
+				Required:    true,
 			},
 			"device": {
 				Type:        schema.TypeString,
-				Description: "Device Name to associate with the IP address (Require a 'Device Manager' license).",
+				Description: "Device Name associated to the IP address (Require a 'Device Manager' license).",
 				Computed:    true,
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The long name or FQDN of the IP address to create.",
+				Description: "The short name or FQDN of the IP address.",
 				Computed:    true,
 			},
 			"mac": {
 				Type:        schema.TypeString,
-				Description: "The MAC Address of the IP address to create.",
+				Description: "The MAC Address of the IP address.",
 				Computed:    true,
 			},
 
@@ -62,9 +64,9 @@ func dataSourceipaddress() *schema.Resource {
 				Description: "The class associated to the IP address.",
 				Computed:    true,
 			},
-			"cidr": {
+			"prefix_size": {
 				Type:        schema.TypeInt,
-				Description: "The CIDR associated to the IP address.",
+				Description: "The prefix_length associated to the IP address.",
 				Computed:    true,
 			},
 			"class_parameters": {
@@ -80,11 +82,12 @@ func dataSourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	parameters := url.Values{}
-	parameters.Add("ip_id", d.Id())
-
+	// parameters.Add("ip_id", d.Id())
+	parameters.Add("WHERE", "site_name='"+d.Get("space")+"' AND hostaddr='"d.Get("address")+"'")
+	
 	// Sending the read request
 	log.Printf("[DEBUG] SOLIDServer - lookup for IP address with oid: %s\n", d.Id())
-	resp, body, err := s.Request("get", "rest/ip_address_info", &parameters)
+	resp, body, err := s.Request("get", "rest/ip_address_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -98,7 +101,8 @@ func dataSourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("pool", buf[0]["pool_name"].(string))
 			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
 			d.Set("name", buf[0]["name"].(string))
-			d.Set("cidr", 32-math.Round(math.Log(buf[0]["subnet_size"].(float64))+2))
+			d.Set("prefix_size", 32-math.Round(math.Log(buf[0]["subnet_size"].(float64))+2))
+
 			if macIgnore, _ := regexp.MatchString("^EIP:", buf[0]["mac_addr"].(string)); !macIgnore {
 				d.Set("mac", buf[0]["mac_addr"].(string))
 			} else {
