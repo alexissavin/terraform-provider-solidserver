@@ -43,11 +43,11 @@ func resourcednsserver() *schema.Resource {
 				ForceNew:    true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					hash := sha256.Sum256([]byte(new))
-    			if strings.ToLower(old) == hex.EncodeToString(hash[:]) {
-      			return true 
-    			}
-    			return false
-  			},
+					if strings.ToLower(old) == hex.EncodeToString(hash[:]) {
+						return true
+					}
+					return false
+				},
 			},
 			"password": {
 				Type:        schema.TypeString,
@@ -55,18 +55,32 @@ func resourcednsserver() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-    			hash := sha256.Sum256([]byte(new))
-    			if strings.ToLower(old) == hex.EncodeToString(hash[:]) {
-      			return true 
-    			}
-    			return false
-  			},
+					hash := sha256.Sum256([]byte(new))
+					if strings.ToLower(old) == hex.EncodeToString(hash[:]) {
+						return true
+					}
+					return false
+				},
 			},
 			"type": {
 				Type:        schema.TypeString,
 				Description: "The type of DNS server (Suported: ipm (SOLIDserver DNS)).",
 				Optional:    true,
 				Default:     "ipm",
+			},
+			"smart": {
+				Type:        schema.TypeString,
+				Description: "The SMART the DNS server will be a member of.",
+				Optional:    true,
+				ForceNew:    true,
+				Default:     "",
+			},
+			"smart_role": {
+				Type:        schema.TypeString,
+				Description: "The role the DNS server will play within the SMART (Supported: master, slave; Default: slave).",
+				Optional:    true,
+				ForceNew:    true,
+				Default:     "slave",
 			},
 			"comment": {
 				Type:        schema.TypeString,
@@ -155,7 +169,6 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("hostaddr", d.Get("address").(string))
 	parameters.Add("dns_comment", d.Get("comment").(string))
 
-
 	parameters.Add("dns_class_name", d.Get("class").(string))
 	parameters.Add("dns_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
@@ -177,6 +190,8 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 
 				d.Set("login", hex.EncodeToString(loginHash[:]))
 				d.Set("password", hex.EncodeToString(passwordHash[:]))
+
+				//FIXME - If the SMART is not empty, join the SMART with the role SMART_ROLE
 
 				return nil
 			}

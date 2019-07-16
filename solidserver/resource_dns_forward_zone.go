@@ -188,7 +188,6 @@ func resourcednsforwardzoneUpdate(d *schema.ResourceData, meta interface{}) erro
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
 
-
 	// Building forwarder list
 	parameters.Add("dnszone_forward", strings.ToLower(d.Get("forward").(string)))
 
