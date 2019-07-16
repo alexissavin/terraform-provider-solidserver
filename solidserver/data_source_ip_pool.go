@@ -46,9 +46,9 @@ func dataSourceippool() *schema.Resource {
 				Description: "The size of the pool.",
 				Computed:    true,
 			},
-			"cidr": {
+			"prefix_size": {
 				Type:        schema.TypeString,
-				Description: "The cidr associated to the pool.",
+				Description: "The prefix_size associated to the pool.",
 				Computed:    true,
 			},
 			"class_parameters": {
@@ -105,7 +105,7 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 
 			d.Set("class_parameters", computedClassParameters)
 			cidrFloat, _ := strconv.ParseFloat(buf[0]["pool_size"].(string), 64)
-			d.Set("cidr", fmt.Sprintf("%d", int(32-math.Round(math.Log(cidrFloat)+2))))
+			d.Set("prefix_size", fmt.Sprintf("%d", int(32-math.Round(math.Log(cidrFloat)+2))))
 			return nil
 		}
 
