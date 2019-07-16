@@ -46,7 +46,7 @@ resource "solidserver_vlan" "myFirstVxlan" {
 resource "solidserver_ip_subnet" "myFirstIPBlock" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   request_ip       = "10.0.0.0"
-  size             = 8
+  prefix_size      = 8
   name             = "myFirstIPBlock"
   terminal         = false
 }
@@ -54,7 +54,7 @@ resource "solidserver_ip_subnet" "myFirstIPBlock" {
 resource "solidserver_ip_subnet" "myFirstIPSubnet" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   block            = "${solidserver_ip_subnet.myFirstIPBlock.name}"
-  size             = 24
+  prefix_size      = 24
   name             = "myFirstIPSubnet"
   terminal         = false
 }
@@ -62,7 +62,7 @@ resource "solidserver_ip_subnet" "myFirstIPSubnet" {
 resource "solidserver_ip_subnet" "mySecondIPSubnet" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   block            = "${solidserver_ip_subnet.myFirstIPSubnet.name}"
-  size             = 29
+  prefix_size      = 29
   name             = "mySecondIPSubnet"
   gateway_offset   = -1
   class            = "VIRTUAL"
@@ -94,7 +94,7 @@ data "solidserver_ip_ptr" "myFirstIPPTR" {
 resource "solidserver_ip6_subnet" "myFirstIP6Block" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   request_ip       = "2a00:2381:126d:0:0:0:0:0"
-  size             = 48
+  prefix_size      = 48
   name             = "myFirstIP6Block"
   terminal         = false
 }
@@ -102,7 +102,7 @@ resource "solidserver_ip6_subnet" "myFirstIP6Block" {
 resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   block            = "${solidserver_ip6_subnet.myFirstIP6Block.name}"
-  size             = 56
+  prefix_size      = 56
   name             = "myFirstIP6Subnet"
   terminal         = false
 }
@@ -110,7 +110,7 @@ resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
 resource "solidserver_ip6_subnet" "mySecondIP6Subnet" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   block            = "${solidserver_ip6_subnet.myFirstIP6Subnet.name}"
-  size             = 64
+  prefix_size      = 64
   name             = "mySecondIP6Subnet"
   gateway_offset   = 1
   class            = "VIRTUAL"

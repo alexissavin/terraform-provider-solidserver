@@ -18,11 +18,6 @@ func dataSourceusergroup() *schema.Resource {
 				Description: "The name of the user group.",
 				Required:    true,
 			},
-			"id": {
-				Description: "the internal id of the group",
-				Type:        schema.TypeString,
-				Computed:    true,
-			},
 		},
 	}
 }
@@ -50,7 +45,6 @@ func dataSourceusergroupRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Checking the answer
 	if resp.StatusCode == 200 && len(buf) > 0 {
-		d.Set("id", buf[0]["grp_id"].(string))
 		d.SetId(buf[0]["grp_id"].(string))
 
 		return nil

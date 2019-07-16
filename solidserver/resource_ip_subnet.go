@@ -44,7 +44,7 @@ func resourceipsubnet() *schema.Resource {
 				ForceNew:     true,
 				Default:      "",
 			},
-			"size": {
+			"prefix_size": {
 				Type:        schema.TypeInt,
 				Description: "The expected IP subnet's prefix length (ex: 24 for a '/24').",
 				Required:    true,
@@ -176,7 +176,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	subnetAddresses, subnetErr := ipsubnetfindbysize(siteID, blockInfo["id"].(string), d.Get("request_ip").(string), d.Get("size").(int), meta)
+	subnetAddresses, subnetErr := ipsubnetfindbysize(siteID, blockInfo["id"].(string), d.Get("request_ip").(string), d.Get("prefix_size").(int), meta)
 
 	if subnetErr != nil {
 		// Reporting a failure
@@ -189,7 +189,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("site_id", siteID)
 		parameters.Add("subnet_name", d.Get("name").(string))
 		parameters.Add("subnet_addr", hexiptoip(subnetAddresses[i]))
-		parameters.Add("subnet_prefix", strconv.Itoa(d.Get("size").(int)))
+		parameters.Add("subnet_prefix", strconv.Itoa(d.Get("prefix_size").(int)))
 		parameters.Add("subnet_class_name", d.Get("class").(string))
 
 		// New only
@@ -220,7 +220,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			if goffset > 0 {
 				gateway = longtoip(iptolong(hexiptoip(subnetAddresses[i])) + uint32(goffset))
 			} else {
-				gateway = longtoip(iptolong(hexiptoip(subnetAddresses[i])) + uint32(prefixlengthtosize(d.Get("size").(int))) - uint32(abs(goffset)) - 1)
+				gateway = longtoip(iptolong(hexiptoip(subnetAddresses[i])) + uint32(prefixlengthtosize(d.Get("prefix_size").(int))) - uint32(abs(goffset)) - 1)
 			}
 
 			classParameters.Add("gateway", gateway)
@@ -242,7 +242,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			var buf [](map[string]interface{})
 			json.Unmarshal([]byte(body), &buf)
 
-			prefix := hexiptoip(subnetAddresses[i]) + "/" + strconv.Itoa(d.Get("size").(int))
+			prefix := hexiptoip(subnetAddresses[i]) + "/" + strconv.Itoa(d.Get("prefix_size").(int))
 
 			// Checking the answer
 			if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
@@ -250,7 +250,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 					log.Printf("[DEBUG] SOLIDServer - Created IP subnet (oid): %s\n", oid)
 					d.SetId(oid)
 					d.Set("prefix", prefix)
-					d.Set("netmask", prefixlengthtohexip(d.Get("size").(int)))
+					d.Set("netmask", prefixlengthtohexip(d.Get("prefix_size").(int)))
 					if goffset != 0 {
 						d.Set("gateway", gateway)
 					}

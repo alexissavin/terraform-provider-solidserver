@@ -107,7 +107,7 @@ IP Subnet resource allows to create IP blocks and subnets from the following arg
 * `space` - (Required) The name of the space into which creating the IP block/subnet.
 * `block` - (Optional) The name of the parent IP block/subnet into which creating the IP subnet.
 * `request_ip` - (Optional) The requested IP block/subnet IP address. This argument is mandatory when creating a block.
-* `size` - (Required) The expected IP subnet's prefix length (ex: 24 for a '/24').
+* `prefix_size` - (Required) The expected IP subnet's prefix length (ex: 24 for a '/24').
 * `name` - (Required) The name of the IP subnet to create.
 * `gateway_offset` - (Optional) Offset for creating the gateway. Default is 0 (no gateway).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
@@ -118,7 +118,7 @@ Creating an IP Block:
 resource "solidserver_ip_subnet" "myFirstIPBlock" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   request_ip       = "10.0.0.0"
-  size             = 8
+  prefix_size      = 8
   name             = "myFirstIPBlock"
   terminal         = false
 }
@@ -129,7 +129,7 @@ Creating an IP Subnet:
 resource "solidserver_ip_subnet" "myFirstIPSubnet" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   block            = "${solidserver_ip_subnet.myFirstIPBlock.name}"
-  size             = 24
+  prefix_size      = 24
   name             = "myFirstIPSubnet"
   gateway_offset   = -1
   class            = "VIRTUAL"
@@ -147,7 +147,7 @@ IPv6 Subnet resource allows to create IPv6 subnets from the following arguments:
 * `space` - (Required) The name of the space into which creating the IPv6 subnet.
 * `block` - (Optional) The name of the parent IPv6 block/subnet into which creating the IPv6 subnet.
 * `request_ip` - (Optional) The requested IPv6 block/subnet IPv6 address. This argument is mandatory when creating a block.
-* `size` - (Required) The expected IPv6 subnet's prefix length (ex: 64 for a '/64').
+* `prefix_size` - (Required) The expected IPv6 subnet's prefix length (ex: 64 for a '/64').
 * `name` - (Required) The name of the IPv6 subnet to create.
 * `gateway_offset` - (Optional) Offset for creating the gateway. Default is 0 (no gateway).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
@@ -158,7 +158,7 @@ Creating an IPv6 Block:
 resource "solidserver_ip6_subnet" "myFirstIP6Block" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   request_ip       = "2a00:2381:126d:0:0:0:0:0"
-  size             = 48
+  prefix_size      = 48
   name             = "myFirstIP6Block"
   terminal         = false
 }
@@ -169,7 +169,7 @@ Creating an IPv6 Subnet:
 resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
   space            = "${solidserver_ip_space.myFirstSpace.name}"
   block            = "${solidserver_ip6_subnet.myFirstIP6Block.name}"
-  size             = 64
+  prefix_size      = 64
   name             = "myFirstIP6Subnet"
   gateway_offset   = 1
   class            = "VIRTUAL"

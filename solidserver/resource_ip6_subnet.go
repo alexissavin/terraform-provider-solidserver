@@ -44,7 +44,7 @@ func resourceip6subnet() *schema.Resource {
 				ForceNew:     true,
 				Default:      "",
 			},
-			"size": {
+			"prefix_size": {
 				Type:        schema.TypeInt,
 				Description: "The expected IP subnet's prefix length (ex: 24 for a '/24').",
 				Required:    true,
@@ -169,7 +169,7 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	subnetAddresses, subnetErr := ip6subnetfindbysize(siteID, blockInfo["id"].(string), d.Get("request_ip").(string), d.Get("size").(int), meta)
+	subnetAddresses, subnetErr := ip6subnetfindbysize(siteID, blockInfo["id"].(string), d.Get("request_ip").(string), d.Get("prefix_size").(int), meta)
 
 	if subnetErr != nil {
 		// Reporting a failure
@@ -182,7 +182,7 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("site_id", siteID)
 		parameters.Add("subnet6_name", d.Get("name").(string))
 		parameters.Add("subnet6_addr", hexip6toip6(subnetAddresses[i]))
-		parameters.Add("subnet6_prefix", strconv.Itoa(d.Get("size").(int)))
+		parameters.Add("subnet6_prefix", strconv.Itoa(d.Get("prefix_size").(int)))
 		parameters.Add("subnet6_class_name", d.Get("class").(string))
 
 		// New only
@@ -216,7 +216,7 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 				bigOffset := big.NewInt(int64(goffset))
 				gateway = hexip6toip6(BigIntToHexStr(bigStartAddr.Add(bigStartAddr, bigOffset)))
 			} else {
-				bigEndAddr := bigStartAddr.Add(bigStartAddr, prefix6lengthtosize(int64(d.Get("size").(int))))
+				bigEndAddr := bigStartAddr.Add(bigStartAddr, prefix6lengthtosize(int64(d.Get("prefix_size").(int))))
 				bigOffset := big.NewInt(int64(abs(goffset)))
 				gateway = hexip6toip6(BigIntToHexStr(bigEndAddr.Sub(bigEndAddr, bigOffset)))
 			}
@@ -240,7 +240,7 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 			var buf [](map[string]interface{})
 			json.Unmarshal([]byte(body), &buf)
 
-			prefix := hexip6toip6(subnetAddresses[i]) + "/" + strconv.Itoa(d.Get("size").(int))
+			prefix := hexip6toip6(subnetAddresses[i]) + "/" + strconv.Itoa(d.Get("prefix_size").(int))
 
 			// Checking the answer
 			if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
