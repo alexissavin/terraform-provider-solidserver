@@ -334,23 +334,35 @@ resource "solidserver_ip6_alias" "myFirstIP6Alias" {
 ```
 
 ## DNS SMART
-DNS SMART resource allows to create DNS SMART architectures managing several DNS servers as a unique entity. DNS SMART can be created from from the following arguments:
+DNS SMART resource allows to create DNS SMART architectures managing several DNS servers as a unique entity. DNS SMART can be created from the following arguments:
 
 * `name` - (Required) The name of the SMART to create.
 * `arch` - (Optional) The DNS SMART architecture (Suported: multimaster, masterslave, single; Default: masterslave).
 * `comment` - (Optional) Custom information about the DNS SMART.
 * `recursion` - (Optional) The recursion mode of the DNS SMART (Default: true).
 * `forward` - (Optional) The forwarding mode of the DNS SMART (Supported: disabled, first, only; Default: disabled).
-* `forwarders` - (Optional) The IP address list of the forwarder(s) configured to configure on the DNS SMART.
+* `forwarders` - (Optional) The IP address list of the forwarder(s) configured on the DNS SMART.
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
 ## DNS Server
+DNS Server resource allows to create DNS from the following arguments:
+
+* `name` - (Required) The name of the server to create.
+* `address` - (Required) The IPv4 address of the DNS server to create.
+* `login` - (Required) The login to use for enrolling of the DNS server.
+* `password` - (Required) The password to use the enrolling of the DNS server.
+* `type` - (Optional) The type of DNS server (Supported: ipm (SOLIDserver or Linux Package); Default: ipm).
+* `comment` - (Optional) Custom information about the DNS server.
+* `smart` - (Optional) The DNS server the DNS server must join.
+* `smart_role` - (Optional) The role the DNS server will play within the server (Supported: master, slave; Default: slave).
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
 ## DNS Zone
 DNS Zone resource allows to create zones from the following arguments:
 
-* `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the zone.
+* `dnsserver` - (Required) The name of the DNS server to create..
 * `view` - (Optional) The DNS view name hosting the zone (Default: none).
 * `name` - (Required) The Domain Name served by the zone.
 * `type` - (Optional) The type of the Zone to create (Supported: master; Default: master).
@@ -472,27 +484,25 @@ data "solidserver_usergroup" "t_group_01" {
 }
 ```
 
+
+# Available Data-Sources
+SOLIDServer provider allows to retrieve information from several resources listed below:
+
 ## DNS server
-Getting information for a DNS server already in the SOLIDserver, base on its name:
+Getting information from a DNS server managed by SOLIDserver, base on its name:
 ```
 data "solidserver_dns_server" "test" {
   name             = "ns.local"
 }
 ```
 Fields exposed through the datasource are:
-* `name` - (Required) The name of the DNS server
-* `createptr` - Automaticaly create PTR records for all zones on this server
-* `ipam_replication` - Information pushed back to the IPAM from the DNS server
-* `version` - DNS engine version
-* `address` - IPv4 address of the DNS server
-* `comment` - description associated to the DNS server
-* `type` - type of the DNS server: ipm, msdaemon, ans, aws, other, vdns
-* `vdns_arch` - Smart architecture if the server is a vdsn (Smart)
-* `vdns_parent_arch` - if the DNS server is part of a Smart architecture
-* `vdns_parent_id` - if the DNS server is part of a Smart architecture, provides the ID of the Smart server
-* `vdns_members_name` - if the server is a Smart, provides the list of the DNS vdns_members_name
-* `state` - current state of the server
-* `recursion` - is recursion activated on the server
-* `forward` - is forwarding activated on the server, describes the forwarding mode
-* `forwarders` - if forwarding is activated, lists the IP address of forwarding
-* `class_parameters`
+* `name` - (Required) The name of the DNS server.
+* `address` - The IPv4 address of the DNS server.
+* `type` - The type of the DNS server (ipm (SOLIDserver or Package), msdaemon, aws, other).
+* `comment` - Custom information about the DNS server.
+* `version` - The version of the DNS server engine running.
+* `recursion` - The recursion mode of the DNS server.
+* `forward` - The forwarding mode of the DNS server.
+* `forwarders` - The IP address list of the forwarder(s) configured on the DNS server.
+* `class` - The name of the class associated with the DNS server.
+* `class_parameters` - The class parameters associated with the DNS server class, as key/value.

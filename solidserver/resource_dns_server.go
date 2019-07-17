@@ -32,7 +32,7 @@ func resourcednsserver() *schema.Resource {
 			},
 			"address": {
 				Type:        schema.TypeString,
-				Description: "IPv4 address of the DNS server to create.",
+				Description: "The IPv4 address of the DNS server to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
@@ -67,6 +67,12 @@ func resourcednsserver() *schema.Resource {
 				Description: "The type of DNS server (Supported: ipm (SOLIDserver or Linux Package); Default: ipm).",
 				Computed:    true,
 			},
+			"comment": {
+				Type:        schema.TypeString,
+				Description: "Custom information about the DNS server.",
+				Optional:    true,
+				Default:     "",
+			},
 			"smart": {
 				Type:        schema.TypeString,
 				Description: "The DNS SMART the DNS server must join.",
@@ -80,12 +86,6 @@ func resourcednsserver() *schema.Resource {
 				Optional:    true,
 				ForceNew:    true,
 				Default:     "slave",
-			},
-			"comment": {
-				Type:        schema.TypeString,
-				Description: "Custom information about the DNS server.",
-				Optional:    true,
-				Default:     "",
 			},
 			"class": {
 				Type:        schema.TypeString,
