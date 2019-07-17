@@ -333,6 +333,20 @@ resource "solidserver_ip6_alias" "myFirstIP6Alias" {
 }
 ```
 
+## DNS SMART
+DNS SMART resource allows to create DNS SMART architectures managing several DNS servers as a unique entity. DNS SMART can be created from from the following arguments:
+
+* `name` - (Required) The name of the SMART to create.
+* `arch` - (Optional) The DNS SMART architecture (Suported: multimaster, masterslave, single; Default: masterslave).
+* `comment` - (Optional) Custom information about the DNS SMART.
+* `recursion` - (Optional) The recursion mode of the DNS SMART (Default: true).
+* `forward` - (Optional) The forwarding mode of the DNS SMART (Supported: disabled, first, only; Default: disabled).
+* `forwarders` - (Optional) The IP address list of the forwarder(s) configured to configure on the DNS SMART.
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+## DNS Server
+
 ## DNS Zone
 DNS Zone resource allows to create zones from the following arguments:
 

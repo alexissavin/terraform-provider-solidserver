@@ -26,13 +26,13 @@ func resourcednsserver() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the DNS server.",
+				Description: "The name of the DNS server to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"address": {
 				Type:        schema.TypeString,
-				Description: "IPv4 address of the DNS server.",
+				Description: "IPv4 address of the DNS server to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
@@ -69,7 +69,7 @@ func resourcednsserver() *schema.Resource {
 			},
 			"smart": {
 				Type:        schema.TypeString,
-				Description: "The SMART the DNS server will be a member of.",
+				Description: "The DNS SMART the DNS server must join.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     "",
@@ -86,11 +86,6 @@ func resourcednsserver() *schema.Resource {
 				Description: "Custom information about the DNS server.",
 				Optional:    true,
 				Default:     "",
-			},
-			"version": {
-				Type:        schema.TypeString,
-				Description: "DNS Engine Version.",
-				Computed:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
@@ -324,7 +319,6 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("name", strings.ToLower(buf[0]["dns_name"].(string)))
 			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
 			d.Set("comment", buf[0]["dns_comment"].(string))
-			d.Set("version", buf[0]["dns_version"].(string))
 			d.Set("type", buf[0]["dns_type"].(string))
 
 			d.Set("class", buf[0]["dns_class_name"].(string))
@@ -386,7 +380,6 @@ func resourcednsserverImportState(d *schema.ResourceData, meta interface{}) ([]*
 			d.Set("name", strings.ToLower(buf[0]["dns_name"].(string)))
 			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
 			d.Set("comment", buf[0]["dns_comment"].(string))
-			d.Set("version", buf[0]["dns_version"].(string))
 			d.Set("type", buf[0]["dns_type"].(string))
 
 			d.Set("class", buf[0]["dns_class_name"].(string))

@@ -24,7 +24,7 @@ func resourcednssmart() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the DNS server.",
+				Description: "The name of the SMART to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
@@ -36,25 +36,25 @@ func resourcednssmart() *schema.Resource {
 			},
 			"comment": {
 				Type:        schema.TypeString,
-				Description: "Custom information about the DNS server.",
+				Description: "Custom information about the DNS SMART.",
 				Optional:    true,
 				Default:     "",
 			},
 			"recursion": {
 				Type:        schema.TypeBool,
-				Description: "The recursion status of the DNS server.",
+				Description: "The recursion mode of the DNS SMART (Default: true).",
 				Optional:    true,
 				Default:     true,
 			},
 			"forward": {
 				Type:        schema.TypeString,
-				Description: "The forwarding mode of the DNS server (disabled if empty).",
+				Description: "The forwarding mode of the DNS SMART (Supported: disabled, first, only; Default: disabled).",
 				Optional:    true,
 				Default:     "",
 			},
 			"forwarders": {
 				Type:        schema.TypeList,
-				Description: "The IP address list of the forwarder(s) configured on the DNS server.",
+				Description: "The IP address list of the forwarder(s) configured to configure on the DNS SMART.",
 				Optional:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -62,14 +62,14 @@ func resourcednssmart() *schema.Resource {
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the DNS server.",
+				Description: "The class associated to the DNS SMART.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to the DNS server.",
+				Description: "The class parameters associated to the DNS SMART.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     map[string]string{},
@@ -79,7 +79,7 @@ func resourcednssmart() *schema.Resource {
 }
 
 // Validate dnssmart type
-//func resourcedsnservertypevalidate(v interface{}, _ string) ([]string, []error) {
+//func resourcednssmarttypevalidate(v interface{}, _ string) ([]string, []error) {
 //}
 
 func resourcednssmartExists(d *schema.ResourceData, meta interface{}) (bool, error) {
@@ -137,14 +137,18 @@ func resourcednssmartCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("dns_recursion", "no")
 	}
 
-	// Building forwarder list
-	parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+	// Building forward mode
+	if d.Get("forward").(string) == "disabled" {
+		parameters.Add("dns_forward", "")
+	} else {
+		parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+	}
 
+	// Building forwarder list
 	fwdList := ""
 	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
 		fwdList += fwd + ";"
 	}
-
 	parameters.Add("dns_forwarders", fwdList)
 
 	parameters.Add("dns_class_name", d.Get("class").(string))
@@ -198,14 +202,18 @@ func resourcednssmartUpdate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("dns_recursion", "no")
 	}
 
-	// Building forwarder list
-	parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+	// Building forward mode
+	if d.Get("forward").(string) == "disabled" {
+		parameters.Add("dns_forward", "")
+	} else {
+		parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+	}
 
+	// Building forwarder list
 	fwdList := ""
 	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
 		fwdList += fwd + ";"
 	}
-
 	parameters.Add("dns_forwarders", fwdList)
 
 	parameters.Add("dns_class_name", d.Get("class").(string))
@@ -303,8 +311,14 @@ func resourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 
 			d.Set("recursion", buf[0]["dns_recursion"].(string))
 
+			// Updating forward mode
+			if buf[0]["dns_forward"].(string) == "" {
+				d.Set("forward", "disabled")
+			} else {
+				d.Set("forward", strings.ToLower(buf[0]["dns_forward"].(string)))
+			}
+
 			// Updating forwarder information
-			d.Set("forward", buf[0]["dns_forward"].(string))
 			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
 
 			d.Set("class", buf[0]["dns_class_name"].(string))
@@ -369,8 +383,14 @@ func resourcednssmartImportState(d *schema.ResourceData, meta interface{}) ([]*s
 
 			d.Set("recursion", buf[0]["dns_recursion"].(string))
 
+			// Updating forward mode
+			if buf[0]["dns_forward"].(string) == "" {
+				d.Set("forward", "disabled")
+			} else {
+				d.Set("forward", strings.ToLower(buf[0]["dns_forward"].(string)))
+			}
+
 			// Updating forwarder information
-			d.Set("forward", buf[0]["dns_forward"].(string))
 			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
 
 			d.Set("class", buf[0]["dns_class_name"].(string))
