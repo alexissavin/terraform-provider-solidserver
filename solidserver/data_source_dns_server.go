@@ -96,12 +96,20 @@ func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("comment", buf[0]["dns_comment"].(string))
 			d.Set("version", buf[0]["dns_version"].(string))
 
-			d.Set("recursion", buf[0]["dns_recursion"].(string))
+			// Updating recursion mode
+			if buf[0]["dns_recursion"].(string) == "yes" {
+				d.Set("recursion", true)
+			} else {
+				d.Set("recursion", false)
+			}
 
 			// Updating forwarder information
 			d.Set("forward", buf[0]["dns_forward"].(string))
-			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
 
+			// Updating forwarder information
+			if buf[0]["dns_forwarders"].(string) != "" {
+				d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
+			}
 			d.Set("class", buf[0]["dns_class_name"].(string))
 
 			// Updating local class_parameters

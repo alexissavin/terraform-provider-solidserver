@@ -36,6 +36,7 @@ func dataSourcednssmart() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Default: []string{},
 			},
 			"recursion": {
 				Type:        schema.TypeBool,
@@ -93,9 +94,24 @@ func dataSourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("vdns_arch", buf[0]["vdns_arch"].(string))
 			d.Set("vdns_members_name", toStringArrayInterface(strings.Split(buf[0]["vdns_members_name"].(string), ";")))
 
-			d.Set("recursion", buf[0]["dns_recursion"].(string))
-			d.Set("forward", buf[0]["dns_forward"].(string))
-			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
+			// Updating recursion mode
+			if buf[0]["dns_recursion"].(string) == "yes" {
+				d.Set("recursion", true)
+			} else {
+				d.Set("recursion", false)
+			}
+
+			// Updating forward mode
+			if buf[0]["dns_forward"].(string) == "" {
+				d.Set("forward", "none")
+			} else {
+				d.Set("forward", strings.ToLower(buf[0]["dns_forward"].(string)))
+			}
+
+			// Updating forwarder information
+			if buf[0]["dns_forwarders"].(string) != "" {
+				d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
+			}
 
 			d.Set("class", buf[0]["dns_class_name"].(string))
 
