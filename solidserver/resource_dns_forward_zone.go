@@ -80,7 +80,7 @@ func resourcednsforwardzonevalidateforward(v interface{}, _ string) ([]string, [
 	case "first":
 		return nil, nil
 	default:
-		return nil, []error{fmt.Errorf("Unsupported RR type.")}
+		return nil, []error{fmt.Errorf("Zone forwarding mode.")}
 	}
 }
 
@@ -292,9 +292,17 @@ func resourcednsforwardzoneRead(d *schema.ResourceData, meta interface{}) error 
 			d.Set("view", buf[0]["dnsview_name"].(string))
 			d.Set("name", buf[0]["dnszone_name"].(string))
 
+			// Updating forward mode
+			if buf[0]["dnszone_forward"].(string) == "" {
+				d.Set("forward", "none")
+			} else {
+				d.Set("forward", strings.ToLower(buf[0]["dnszone_forward"].(string)))
+			}
+
 			// Updating forwarder information
-			d.Set("forward", buf[0]["dnszone_forward"].(string))
-			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dnszone_forwarders"].(string), ";")))
+			if buf[0]["dnszone_forwarders"].(string) != "" {
+				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnszone_forwarders"].(string), ";"), ";")))
+			}
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
@@ -359,8 +367,17 @@ func resourcednsforwardzoneImportState(d *schema.ResourceData, meta interface{})
 			d.Set("name", buf[0]["dnszone_name"].(string))
 			d.Set("type", buf[0]["dnszone_type"].(string))
 
-			// Updating forwarder list
-			d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dnszone_forwarders"].(string), ";")))
+			// Updating forward mode
+			if buf[0]["dnszone_forward"].(string) == "" {
+				d.Set("forward", "none")
+			} else {
+				d.Set("forward", strings.ToLower(buf[0]["dnszone_forward"].(string)))
+			}
+
+			// Updating forwarder information
+			if buf[0]["dnszone_forwarders"].(string) != "" {
+				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnszone_forwarders"].(string), ";"), ";")))
+			}
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})

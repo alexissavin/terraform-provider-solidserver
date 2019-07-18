@@ -110,7 +110,7 @@ func dataSourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 
 			// Updating forwarder information
 			if buf[0]["dns_forwarders"].(string) != "" {
-				d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
+				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_forwarders"].(string), ";"), ";")))
 			}
 
 			d.Set("class", buf[0]["dns_class_name"].(string))

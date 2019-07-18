@@ -103,14 +103,17 @@ func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("recursion", false)
 			}
 
-			// Updating forwarder information
-			d.Set("forward", buf[0]["dns_forward"].(string))
+			// Updating forward mode
+			if buf[0]["dns_forward"].(string) == "" {
+				d.Set("forward", "none")
+			} else {
+				d.Set("forward", strings.ToLower(buf[0]["dns_forward"].(string)))
+			}
 
 			// Updating forwarder information
 			if buf[0]["dns_forwarders"].(string) != "" {
-				d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
+				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_forwarders"].(string), ";"), ";")))
 			}
-			d.Set("class", buf[0]["dns_class_name"].(string))
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})

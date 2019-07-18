@@ -327,7 +327,7 @@ func resourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 
 			// Updating forwarder information
 			if buf[0]["dns_forwarders"].(string) != "" {
-				d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
+				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_forwarders"].(string), ";"), ";")))
 			}
 
 			d.Set("class", buf[0]["dns_class_name"].(string))
@@ -390,8 +390,15 @@ func resourcednssmartImportState(d *schema.ResourceData, meta interface{}) ([]*s
 			d.Set("arch", buf[0]["vdns_arch"].(string))
 			d.Set("comment", buf[0]["dns_comment"].(string))
 
+			// Updating recursion mode
+			if buf[0]["dns_recursion"].(string) == "yes" {
+				d.Set("recursion", true)
+			} else {
+				d.Set("recursion", false)
+			}
+
 			// Updating forward mode
-			if buf[0]["dns_recursion"].(string) == "" {
+			if buf[0]["dns_forward"].(string) == "" {
 				d.Set("forward", "none")
 			} else {
 				d.Set("forward", strings.ToLower(buf[0]["dns_forward"].(string)))
@@ -399,7 +406,7 @@ func resourcednssmartImportState(d *schema.ResourceData, meta interface{}) ([]*s
 
 			// Updating forwarder information
 			if buf[0]["dns_forwarders"].(string) != "" {
-				d.Set("forwarders", toStringArrayInterface(strings.Split(buf[0]["dns_forwarders"].(string), ";")))
+				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_forwarders"].(string), ";"), ";")))
 			}
 
 			d.Set("class", buf[0]["dns_class_name"].(string))

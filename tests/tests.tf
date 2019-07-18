@@ -151,15 +151,35 @@ resource "solidserver_ip6_alias" "myFirstIP6Alias" {
   name   = "myfirstip6cnamealias.mycompany.priv"
 }
 
+
+resource "solidserver_dns_smart" "myFirstDnsSMART" {
+  name       = "myfirstdnssmart.priv"
+  arch       = "multimaster"
+  comment    = "My First DNS SMART Autmatically created"
+  recursion  = true
+  forward    = "none"
+}
+
+
+resource "solidserver_dns_server" "myFirstDnsServer" {
+  name       = "myfirstdnsserver.priv"
+  address    = "127.0.0.1"
+  login      = "admin"
+  password   = "admin"
+  smart      = "${solidserver_dns_smart.myFirstDnsSMART.name}"
+  smart_role = "master"
+  comment    = "My First DNS Server Autmatically created"
+}
+
 resource "solidserver_dns_zone" "myFirstZone" {
-  dnsserver = "ns.priv"
+  dnsserver = "${solidserver_dns_smart.myFirstDnsSMART.name}"
   name      = "mycompany.priv"
   type      = "master"
   createptr = false
 }
 
 resource "solidserver_dns_forward_zone" "myFirstForwardZone" {
-  dnsserver = "ns.priv"
+  dnsserver = "${solidserver_dns_smart.myFirstDnsSMART.name}"
   name       = "fwd.mycompany.priv"
   forward    = "first"
   forwarders = ["10.10.8.8", "10.10.4.4"]
@@ -167,7 +187,7 @@ resource "solidserver_dns_forward_zone" "myFirstForwardZone" {
 
 resource "solidserver_dns_rr" "ARecords" {
   depends_on   = ["solidserver_dns_zone.myFirstZone"]
-  dnsserver    = "ns.priv"
+  dnsserver    = "${solidserver_dns_smart.myFirstDnsSMART.name}"
   name         = "aarecord-${count.index}.mycompany.priv"
   type         = "A"
   value        = "127.0.0.1"
@@ -176,7 +196,7 @@ resource "solidserver_dns_rr" "ARecords" {
 
 resource "solidserver_dns_rr" "CnameRecords" {
   depends_on   = ["solidserver_dns_rr.ARecords"]
-  dnsserver    = "ns.priv"
+  dnsserver    = "${solidserver_dns_smart.myFirstDnsSMART.name}"
   name         = "cnamerecord-${count.index}.mycompany.priv"
   type         = "CNAME"
   value        = "aarecord-${count.index}.mycompany.priv"
