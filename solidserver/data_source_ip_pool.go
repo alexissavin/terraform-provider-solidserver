@@ -3,12 +3,10 @@ package solidserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform/helper/schema"
 	"log"
-	"math"
 	"net/url"
 	"strconv"
-
-	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func dataSourceippool() *schema.Resource {
@@ -23,7 +21,7 @@ func dataSourceippool() *schema.Resource {
 			},
 			"subnet": {
 				Type:        schema.TypeString,
-				Description: "The subnet associated to the pool.",
+				Description: "The parent subnet of the pool.",
 				Required:    true,
 			},
 			"space": {
@@ -46,9 +44,14 @@ func dataSourceippool() *schema.Resource {
 				Description: "The size of the pool.",
 				Computed:    true,
 			},
+			"prefix": {
+				Type:        schema.TypeString,
+				Description: "The prefix of the parent subnet of the pool.",
+				Computed:    true,
+			},
 			"prefix_size": {
 				Type:        schema.TypeString,
-				Description: "The prefix_size associated to the pool.",
+				Description: "The size prefix of the parent subnet of the pool.",
 				Computed:    true,
 			},
 			"class_parameters": {
@@ -92,8 +95,8 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.SetId(buf[0]["pool_id"].(string))
 			d.Set("name", buf[0]["pool_name"].(string))
-			d.Set("start", buf[0]["start_ip_addr"].(string))
-			d.Set("end", buf[0]["end_ip_addr"].(string))
+			d.Set("start", buf[0]["start_hostaddr"].(string))
+			d.Set("end", buf[0]["end_hostaddr"].(string))
 			d.Set("size", buf[0]["pool_size"].(string))
 			// Updating local class_parameters
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["pool_class_parameters"].(string))
@@ -104,8 +107,12 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			d.Set("class_parameters", computedClassParameters)
-			cidrFloat, _ := strconv.ParseFloat(buf[0]["pool_size"].(string), 64)
-			d.Set("prefix_size", fmt.Sprintf("%d", int(32-math.Round(math.Log(cidrFloat)+2))))
+
+			prefix_length, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
+
+			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(sizetoprefixlength(prefix_length)))
+			d.Set("prefix", prefix_length)
+
 			return nil
 		}
 

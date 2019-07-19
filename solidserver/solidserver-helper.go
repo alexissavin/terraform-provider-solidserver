@@ -237,6 +237,19 @@ func resourcealiasvalidatetype(v interface{}, _ string) ([]string, []error) {
 	}
 }
 
+// Compute the prefix length from the size of a CIDR prefix
+// Return the prefix lenght
+func sizetoprefixlength(size int) int {
+	prefixlength := 32
+
+	for prefixlength > 0 && size > 1 {
+		size = size / 2
+		prefixlength--
+	}
+
+	return prefixlength
+}
+
 // Compute the actual size of a CIDR prefix from its length
 // Return -1 in case of failure
 func prefixlengthtosize(length int) int {

@@ -34,7 +34,7 @@ func resourceippool() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
-			"lower_ip": {
+			"start": {
 				Type:         schema.TypeString,
 				Description:  "The IP pool lower IP address.",
 				ValidateFunc: resourceipaddressrequestvalidateformat,
@@ -137,7 +137,7 @@ func resourceippoolCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
 	parameters.Add("subnet_id", subnetInfo["id"].(string))
-	parameters.Add("start_addr", iptohexip(d.Get("lower_ip").(string)))
+	parameters.Add("start_addr", iptohexip(d.Get("start").(string)))
 	parameters.Add("pool_size", strconv.Itoa(d.Get("size").(int)))
 	parameters.Add("pool_name", d.Get("name").(string))
 	parameters.Add("pool_class_name", d.Get("class").(string))
