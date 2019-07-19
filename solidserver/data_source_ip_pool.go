@@ -50,7 +50,7 @@ func dataSourceippool() *schema.Resource {
 				Computed:    true,
 			},
 			"prefix_size": {
-				Type:        schema.TypeString,
+				Type:        schema.TypeInt,
 				Description: "The size prefix of the parent subnet of the pool.",
 				Computed:    true,
 			},
@@ -95,8 +95,8 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.SetId(buf[0]["pool_id"].(string))
 			d.Set("name", buf[0]["pool_name"].(string))
-			d.Set("start", buf[0]["start_hostaddr"].(string))
-			d.Set("end", buf[0]["end_hostaddr"].(string))
+			d.Set("start", hexiptoip(buf[0]["start_ip_addr"].(string)))
+			d.Set("end", hexiptoip(buf[0]["end_ip_addr"].(string)))
 			d.Set("size", buf[0]["pool_size"].(string))
 			// Updating local class_parameters
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["pool_class_parameters"].(string))
@@ -108,10 +108,11 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 
 			d.Set("class_parameters", computedClassParameters)
 
-			prefix_length, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
+			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
+			prefix_length := sizetoprefixlength(subnet_size)
 
-			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(sizetoprefixlength(prefix_length)))
-			d.Set("prefix", prefix_length)
+			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefix_length))
+			d.Set("prefix_size", prefix_length)
 
 			return nil
 		}
