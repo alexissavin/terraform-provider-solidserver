@@ -579,8 +579,14 @@ func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta in
 					res["name"] = subnetName
 				}
 
-				//FIXME - res["address"] =
-				//FIXME - res["prefixSize"] =
+				if subnetSize, subnetSizeExist := buf[0]["subnet_size"].(string); subnetSizeExist {
+					res["size"], _ = strconv.Atoi(subnetSize)
+					res["prefix_length"] = sizetoprefixlength(res["size"].(int))
+				}
+
+				if subnetStartAddr, subnetStartAddrExist := buf[0]["start_ip_addr"].(string); subnetStartAddrExist {
+					res["start_addr"] = hexiptoip(subnetStartAddr)
+				}
 
 				if subnetLvl, subnetLvlExist := buf[0]["subnet_level"].(string); subnetLvlExist {
 					res["level"] = subnetLvl
@@ -661,8 +667,13 @@ func ip6subnetinfobyname(siteID string, subnetName string, terminal bool, meta i
 					res["name"] = subnetName
 				}
 
-				//FIXME - res["address"] =
-				//FIXME - res["prefixSize"] =
+				if subnetPrefixSize, subnetPrefixSizeExist := buf[0]["subnet6_prefix"].(string); subnetPrefixSizeExist {
+					res["prefix_length"], _ = strconv.Atoi(subnetPrefixSize)
+				}
+
+				if subnetStartAddr, subnetStartAddrExist := buf[0]["start_ip6_addr"].(string); subnetStartAddrExist {
+					res["start_addr"] = hexiptoip(subnetStartAddr)
+				}
 
 				if subnetLvl, subnetLvlExist := buf[0]["subnet_level"].(string); subnetLvlExist {
 					res["level"] = subnetLvl

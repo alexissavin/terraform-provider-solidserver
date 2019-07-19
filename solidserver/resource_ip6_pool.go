@@ -60,6 +60,16 @@ func resourceip6pool() *schema.Resource {
 				Required:    true,
 				ForceNew:    false,
 			},
+			"prefix": {
+				Type:        schema.TypeString,
+				Description: "The prefix of the parent subnet of the pool.",
+				Computed:    true,
+			},
+			"prefix_size": {
+				Type:        schema.TypeInt,
+				Description: "The size prefix of the parent subnet of the pool.",
+				Computed:    true,
+			},
 			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the IP v6 pool.",
@@ -172,6 +182,10 @@ func resourceip6poolCreate(d *schema.ResourceData, meta interface{}) error {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 				log.Printf("[DEBUG] SOLIDServer - Created IP v6 pool (oid): %s\n", oid)
 				d.SetId(oid)
+
+				d.Set("prefix", subnetInfo["start_addr"].(string)+"/"+strconv.Itoa(subnetInfo["prefix_length"].(int)))
+				d.Set("prefix_size", subnetInfo["prefix_length"].(int))
+
 				return nil
 			}
 		}

@@ -60,6 +60,16 @@ func resourceippool() *schema.Resource {
 				Required:    true,
 				ForceNew:    false,
 			},
+			"prefix": {
+				Type:        schema.TypeString,
+				Description: "The prefix of the parent subnet of the pool.",
+				Computed:    true,
+			},
+			"prefix_size": {
+				Type:        schema.TypeInt,
+				Description: "The size prefix of the parent subnet of the pool.",
+				Computed:    true,
+			},
 			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the IP pool.",
@@ -137,7 +147,7 @@ func resourceippoolCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
 	parameters.Add("subnet_id", subnetInfo["id"].(string))
-	parameters.Add("start_addr", iptohexip(d.Get("start").(string)))
+	parameters.Add("start_addr", d.Get("start").(string))
 	parameters.Add("pool_size", strconv.Itoa(d.Get("size").(int)))
 	parameters.Add("pool_name", d.Get("name").(string))
 	parameters.Add("pool_class_name", d.Get("class").(string))
@@ -172,6 +182,10 @@ func resourceippoolCreate(d *schema.ResourceData, meta interface{}) error {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 				log.Printf("[DEBUG] SOLIDServer - Created IP pool (oid): %s\n", oid)
 				d.SetId(oid)
+
+				d.Set("prefix", subnetInfo["start_addr"].(string)+"/"+strconv.Itoa(subnetInfo["prefix_length"].(int)))
+				d.Set("prefix_size", subnetInfo["prefix_length"].(int))
+
 				return nil
 			}
 		}
