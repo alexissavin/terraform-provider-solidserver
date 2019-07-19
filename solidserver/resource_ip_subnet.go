@@ -31,7 +31,7 @@ func resourceipsubnet() *schema.Resource {
 			},
 			"block": {
 				Type:        schema.TypeString,
-				Description: "The name of the block into which creating the IP subnet.",
+				Description: "The name of the parent IP block/subnet into which creating the IP subnet.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     "",
@@ -187,13 +187,11 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		// Building parameters
 		parameters := url.Values{}
 		parameters.Add("site_id", siteID)
+		parameters.Add("add_flag", "new_only")
 		parameters.Add("subnet_name", d.Get("name").(string))
 		parameters.Add("subnet_addr", hexiptoip(subnetAddresses[i]))
 		parameters.Add("subnet_prefix", strconv.Itoa(d.Get("prefix_size").(int)))
 		parameters.Add("subnet_class_name", d.Get("class").(string))
-
-		// New only
-		parameters.Add("add_flag", "new_only")
 
 		// If no block specified, create an IP block
 		if len(d.Get("block").(string)) == 0 {
@@ -230,6 +228,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		for k, v := range d.Get("class_parameters").(map[string]interface{}) {
 			classParameters.Add(k, v.(string))
 		}
+
 		parameters.Add("subnet_class_parameters", classParameters.Encode())
 
 		// Random Delay
@@ -283,11 +282,9 @@ func resourceipsubnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("subnet_id", d.Id())
+	parameters.Add("add_flag", "edit_only")
 	parameters.Add("subnet_name", d.Get("name").(string))
 	parameters.Add("subnet_class_name", d.Get("class").(string))
-
-	// Edit only
-	parameters.Add("add_flag", "edit_only")
 
 	if d.Get("terminal").(bool) {
 		parameters.Add("is_terminal", "1")

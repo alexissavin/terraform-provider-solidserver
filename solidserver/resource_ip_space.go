@@ -22,20 +22,20 @@ func resourceipspace() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the space to create.",
+				Description: "The name of the IP space to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the space.",
+				Description: "The class associated to the IP space.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to space.",
+				Description: "The class parameters associated to IP space.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     map[string]string{},
@@ -51,7 +51,7 @@ func resourceipspaceExists(d *schema.ResourceData, meta interface{}) (bool, erro
 	parameters := url.Values{}
 	parameters.Add("site_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of space (oid): %s\n", d.Id())
+	log.Printf("[DEBUG] Checking existence of IP space (oid): %s\n", d.Id())
 
 	// Sending read request
 	resp, body, err := s.Request("get", "rest/ip_site_info", &parameters)
@@ -67,10 +67,10 @@ func resourceipspaceExists(d *schema.ResourceData, meta interface{}) (bool, erro
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to find space (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IP space (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find space (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find IP space (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -101,7 +101,7 @@ func resourceipspaceCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Created space (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created IP space (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -110,11 +110,11 @@ func resourceipspaceCreate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to create space: %s (%s)", d.Get("name").(string), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to create IP space: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to create space: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to create IP space: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -142,7 +142,7 @@ func resourceipspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Updated space (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated IP space (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -151,11 +151,11 @@ func resourceipspaceUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to update space: %s (%s)", d.Get("name").(string), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to update IP space: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to update space: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to update IP space: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -181,15 +181,15 @@ func resourceipspaceDelete(d *schema.ResourceData, meta interface{}) error {
 			// Reporting a failure
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-					return fmt.Errorf("SOLIDServer - Unable to delete space: %s (%s)", d.Get("name").(string), errMsg)
+					return fmt.Errorf("SOLIDServer - Unable to delete IP space: %s (%s)", d.Get("name").(string), errMsg)
 				}
 			}
 
-			return fmt.Errorf("SOLIDServer - Unable to delete space: %s", d.Get("name").(string))
+			return fmt.Errorf("SOLIDServer - Unable to delete IP space: %s", d.Get("name").(string))
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted space (oid): %s\n", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted IP space (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -242,17 +242,17 @@ func resourceipspaceRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find space: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IP space: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find space (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find IP space (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find space: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IP space: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -298,14 +298,14 @@ func resourceipspaceImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to import space(oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import IP space(oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import space (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import IP space (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import space (oid): %s\n", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import IP space (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure

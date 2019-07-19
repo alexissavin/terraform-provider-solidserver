@@ -26,19 +26,19 @@ func resourceip6subnet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The name of the space into which creating the subnet.",
+				Description: "The name of the space into which creating the IP v6 subnet.",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"block": {
 				Type:        schema.TypeString,
-				Description: "The name of the block intyo which creating the IP subnet.",
+				Description: "The name of the block intyo which creating the IP v6 subnet.",
 				Optional:    true,
 				ForceNew:    true,
 			},
 			"request_ip": {
 				Type:         schema.TypeString,
-				Description:  "The optionally requested subnet IP address.",
+				Description:  "The optionally requested subnet IP v6 address.",
 				ValidateFunc: resourceip6addressrequestvalidateformat,
 				Optional:     true,
 				ForceNew:     true,
@@ -46,13 +46,13 @@ func resourceip6subnet() *schema.Resource {
 			},
 			"prefix_size": {
 				Type:        schema.TypeInt,
-				Description: "The expected IP subnet's prefix length (ex: 24 for a '/24').",
+				Description: "The expected IP v6 subnet's prefix length (ex: 24 for a '/24').",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"prefix": {
 				Type:        schema.TypeString,
-				Description: "The provisionned IP prefix.",
+				Description: "The provisionned IP v6 prefix.",
 				Computed:    true,
 			},
 			"gateway_offset": {
@@ -70,27 +70,27 @@ func resourceip6subnet() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the IP subnet to create.",
+				Description: "The name of the IP v6 subnet to create.",
 				Required:    true,
 				ForceNew:    false,
 			},
 			"terminal": {
 				Type:        schema.TypeBool,
-				Description: "The terminal property of the IP subnet.",
+				Description: "The terminal property of the IP v6 subnet.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the IP subnet.",
+				Description: "The class associated to the IP v6 subnet.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to the IP subnet.",
+				Description: "The class parameters associated to the IP v6 subnet.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     map[string]string{},
@@ -180,13 +180,11 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 		// Building parameters
 		parameters := url.Values{}
 		parameters.Add("site_id", siteID)
+		parameters.Add("add_flag", "new_only")
 		parameters.Add("subnet6_name", d.Get("name").(string))
 		parameters.Add("subnet6_addr", hexip6toip6(subnetAddresses[i]))
 		parameters.Add("subnet6_prefix", strconv.Itoa(d.Get("prefix_size").(int)))
 		parameters.Add("subnet6_class_name", d.Get("class").(string))
-
-		// New only
-		parameters.Add("add_flag", "new_only")
 
 		// If no block specified, create an IP block
 		if len(d.Get("block").(string)) == 0 {
@@ -280,11 +278,9 @@ func resourceip6subnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("subnet6_id", d.Id())
+	parameters.Add("add_flag", "edit_only")
 	parameters.Add("subnet6_name", d.Get("name").(string))
 	parameters.Add("subnet6_class_name", d.Get("class").(string))
-
-	// Edit only
-	parameters.Add("add_flag", "edit_only")
 
 	if d.Get("terminal").(bool) {
 		parameters.Add("is_terminal", "1")
@@ -306,6 +302,7 @@ func resourceip6subnetUpdate(d *schema.ResourceData, meta interface{}) error {
 	for k, v := range d.Get("class_parameters").(map[string]interface{}) {
 		classParameters.Add(k, v.(string))
 	}
+
 	parameters.Add("subnet6_class_parameters", classParameters.Encode())
 
 	// Sending the update request
