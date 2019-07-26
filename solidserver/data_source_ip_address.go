@@ -50,11 +50,6 @@ func dataSourceipaddress() *schema.Resource {
 				Description: "The MAC Address of the IP address.",
 				Computed:    true,
 			},
-			"class": {
-				Type:        schema.TypeString,
-				Description: "The class associated to the IP address.",
-				Computed:    true,
-			},
 			"prefix": {
 				Type:        schema.TypeString,
 				Description: "The IP address prefix.",
@@ -63,6 +58,16 @@ func dataSourceipaddress() *schema.Resource {
 			"prefix_size": {
 				Type:        schema.TypeInt,
 				Description: "The prefix_length associated to the IP address.",
+				Computed:    true,
+			},
+			"netmask": {
+				Type:        schema.TypeString,
+				Description: "The provisionned IP address netmask.",
+				Computed:    true,
+			},
+			"class": {
+				Type:        schema.TypeString,
+				Description: "The class associated to the IP address.",
 				Computed:    true,
 			},
 			"class_parameters": {
@@ -101,6 +106,7 @@ func dataSourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 
 			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefix_length))
 			d.Set("prefix_size", prefix_length)
+			d.Set("netmask", prefixlengthtohexip(prefix_length))
 
 			if macIgnore, _ := regexp.MatchString("^EIP:", buf[0]["mac_addr"].(string)); !macIgnore {
 				d.Set("mac", buf[0]["mac_addr"].(string))
