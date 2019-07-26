@@ -24,12 +24,12 @@ func dataSourcednssmart() *schema.Resource {
 				Description: "Custom information about the DNS SMART.",
 				Computed:    true,
 			},
-			"vdns_arch": {
+			"arch": {
 				Type:        schema.TypeString,
 				Description: "The SMART architecture type (masterslave|stealth|multimaster|single|farm).",
 				Computed:    true,
 			},
-			"vdns_members_name": {
+			"members": {
 				Type:        schema.TypeList,
 				Description: "The name of the DNS SMART members.",
 				Computed:    true,
@@ -91,8 +91,8 @@ func dataSourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId(buf[0]["dns_id"].(string))
 
 			d.Set("comment", buf[0]["dns_comment"].(string))
-			d.Set("vdns_arch", buf[0]["vdns_arch"].(string))
-			d.Set("vdns_members_name", toStringArrayInterface(strings.Split(buf[0]["vdns_members_name"].(string), ";")))
+			d.Set("arch", buf[0]["vdns_arch"].(string))
+			d.Set("members", toStringArrayInterface(strings.Split(buf[0]["vdns_members_name"].(string), ";")))
 
 			// Updating recursion mode
 			if buf[0]["dns_recursion"].(string) == "yes" {

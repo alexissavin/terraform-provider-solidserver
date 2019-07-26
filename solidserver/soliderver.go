@@ -27,7 +27,7 @@ type SOLIDserver struct {
 	Version                  int
 }
 
-func NewSOLIDserver(host string, username string, password string, sslverify bool, certsfile string) *SOLIDserver {
+func NewSOLIDserver(host string, username string, password string, sslverify bool, certsfile string) (*SOLIDserver, error) {
 	s := &SOLIDserver{
 		Host:                     host,
 		Username:                 username,
@@ -38,11 +38,11 @@ func NewSOLIDserver(host string, username string, password string, sslverify boo
 		Version:                  0,
 	}
 
-	if s.GetVersion() != nil {
-		return nil
+	if err := s.GetVersion(); err != nil {
+		return nil, err
 	}
 
-	return s
+	return s, nil
 }
 
 func (s *SOLIDserver) GetVersion() error {
@@ -104,7 +104,7 @@ func (s *SOLIDserver) GetVersion() error {
 		}
 	}
 
-	return fmt.Errorf("SOLIDServer - Error retrieving SOLIDserver Version\n")
+	return fmt.Errorf("SOLIDServer - Error retrieving SOLIDserver Version (No Answer)\n")
 }
 
 func (s *SOLIDserver) Request(method string, service string, parameters *url.Values) (*http.Response, string, error) {

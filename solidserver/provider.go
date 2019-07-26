@@ -73,6 +73,7 @@ func Provider() terraform.ResourceProvider {
 			"solidserver_dns_zone":         resourcednszone(),
 			"solidserver_dns_forward_zone": resourcednsforwardzone(),
 			"solidserver_dns_rr":           resourcednsrr(),
+			"solidserver_app_application":  resourceapplication(),
 			"solidserver_user":             resourceuser(),
 			"solidserver_usergroup":        resourceusergroup(),
 		},
@@ -82,7 +83,7 @@ func Provider() terraform.ResourceProvider {
 }
 
 func ProviderConfigure(d *schema.ResourceData) (interface{}, error) {
-	s := NewSOLIDserver(
+	s, err := NewSOLIDserver(
 		d.Get("host").(string),
 		d.Get("username").(string),
 		d.Get("password").(string),
@@ -90,5 +91,5 @@ func ProviderConfigure(d *schema.ResourceData) (interface{}, error) {
 		d.Get("additional_trust_certs_file").(string),
 	)
 
-	return s, nil
+	return s, err
 }

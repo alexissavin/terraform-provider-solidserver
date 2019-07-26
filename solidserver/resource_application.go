@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"net/url"
+	"strings"
 )
 
 func resourceapplication() *schema.Resource {
@@ -25,6 +26,20 @@ func resourceapplication() *schema.Resource {
 				Description: "The name of the application to create.",
 				Required:    true,
 				ForceNew:    true,
+			},
+			"fqdn": {
+				Type:        schema.TypeString,
+				Description: "The Fully Qualified Domain Name of the application to create.",
+				Required:    true,
+				ForceNew:    true,
+			},
+			"gslb_members": {
+				Type:        schema.TypeList,
+				Description: "The names of the GSLB servers applying the application traffic policy.",
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"class": {
 				Type:        schema.TypeString,
@@ -92,9 +107,17 @@ func resourceapplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
-	parameters.Add("appapplication_name", d.Get("name").(string))
+	parameters.Add("name", d.Get("name").(string))
+	parameters.Add("fqdn", d.Get("name").(string))
 	parameters.Add("appapplication_class_name", d.Get("class").(string))
 	parameters.Add("appapplication_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
+
+	// Building GSLB server list
+	GSLBList := ""
+	for _, GSLB := range toStringArray(d.Get("gslb_members").([]interface{})) {
+		GSLBList += GSLB + ";"
+	}
+	parameters.Add("gslbserver_list", GSLBList)
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -138,9 +161,17 @@ func resourceapplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("appapplication_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
-	parameters.Add("appapplication_name", d.Get("name").(string))
+	parameters.Add("name", d.Get("name").(string))
+	parameters.Add("fqdn", d.Get("name").(string))
 	parameters.Add("appapplication_class_name", d.Get("class").(string))
 	parameters.Add("appapplication_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
+
+	// Building GSLB server list
+	GSLBList := ""
+	for _, GSLB := range toStringArray(d.Get("gslb_members").([]interface{})) {
+		GSLBList += GSLB + ";"
+	}
+	parameters.Add("gslbserver_list", GSLBList)
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -246,6 +277,11 @@ func resourceapplicationRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("name", buf[0]["appapplication_name"].(string))
 			d.Set("class", buf[0]["appapplication_class_name"].(string))
 
+			// Updating gslb_members information
+			if buf[0]["appapplication_gslbserver_list"].(string) != "" {
+				d.Set("gslb_members", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ";"), ";")))
+			}
+
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["appapplication_class_parameters"].(string))
@@ -307,6 +343,11 @@ func resourceapplicationImportState(d *schema.ResourceData, meta interface{}) ([
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", buf[0]["appapplication_name"].(string))
 			d.Set("class", buf[0]["appapplication_class_name"].(string))
+
+			// Updating gslb_members information
+			if buf[0]["appapplication_gslbserver_list"].(string) != "" {
+				d.Set("gslb_members", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ";"), ";")))
+			}
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})

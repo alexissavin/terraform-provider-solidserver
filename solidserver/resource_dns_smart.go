@@ -34,6 +34,14 @@ func resourcednssmart() *schema.Resource {
 				Optional:    true,
 				Default:     "masterslave",
 			},
+			"members": {
+				Type:        schema.TypeList,
+				Description: "The name of the DNS SMART members.",
+				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"comment": {
 				Type:        schema.TypeString,
 				Description: "Custom information about the DNS SMART.",
@@ -309,6 +317,7 @@ func resourcednssmartRead(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", strings.ToLower(buf[0]["dns_name"].(string)))
 			d.Set("arch", buf[0]["vdns_arch"].(string))
+			d.Set("members", toStringArrayInterface(strings.Split(buf[0]["vdns_members_name"].(string), ";")))
 			d.Set("comment", buf[0]["dns_comment"].(string))
 
 			// Updating recursion mode
@@ -388,6 +397,7 @@ func resourcednssmartImportState(d *schema.ResourceData, meta interface{}) ([]*s
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", strings.ToLower(buf[0]["dns_name"].(string)))
 			d.Set("arch", buf[0]["vdns_arch"].(string))
+			d.Set("members", toStringArrayInterface(strings.Split(buf[0]["vdns_members_name"].(string), ";")))
 			d.Set("comment", buf[0]["dns_comment"].(string))
 
 			// Updating recursion mode
