@@ -488,8 +488,26 @@ data "solidserver_usergroup" "t_group_01" {
 # Available Data-Sources
 SOLIDServer provider allows to retrieve information from several resources listed below:
 
+## DNS SMART
+Getting information from a DNS SMART managed by SOLIDserver, based on its name:
+```
+data "solidserver_dns_smart" "test" {
+  name             = "smart.local"
+}
+```
+Fields exposed through the datasource are:
+* `name` - (Required) The name of the DNS server.
+* `comment` - Custom information about the DNS server.
+* `vdns_arch` - The SMART architecture type (masterslave|stealth|multimaster|single|farm).
+* `vdns_members_name` - The name of the DNS SMART members.
+* `recursion` - The recursion mode of the DNS server.
+* `forward` - The forwarding mode of the DNS server.
+* `forwarders` - The IP address list of the forwarder(s) configured on the DNS server.
+* `class` - The name of the class associated with the DNS server.
+* `class_parameters` - The class parameters associated with the DNS server class, as key/value.
+
 ## DNS server
-Getting information from a DNS server managed by SOLIDserver, base on its name:
+Getting information from a DNS server managed by SOLIDserver, based on its name:
 ```
 data "solidserver_dns_server" "test" {
   name             = "ns.local"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-
+	"strconv"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -16,22 +16,42 @@ func dataSourceipsubnet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the subnet.",
+				Description: "The name of the IP subnet.",
 				Required:    true,
 			},
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The space associated to the subnet.",
+				Description: "The space associated to the IP subnet.",
 				Required:    true,
+			},
+			"address": {
+				Type:        schema.TypeString,
+				Description: "The IP subnet address.",
+				Computed:    true,
+			},
+			"prefix": {
+				Type:        schema.TypeString,
+				Description: "The IP subnet prefix.",
+				Computed:    true,
+			},
+			"prefix_size": {
+				Type:        schema.TypeInt,
+				Description: "The expected IP subnet's prefix length (ex: 24 for a '/24').",
+				Computed:    true,
+			},
+			"netmask": {
+				Type:        schema.TypeString,
+				Description: "The provisionned IP subnet netmask.",
+				Computed:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the subnet.",
+				Description: "The class associated to the IP subnet.",
 				Computed:    true,
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to subnet.",
+				Description: "The class parameters associated to IP subnet.",
 				Computed:    true,
 			},
 		},
@@ -39,16 +59,11 @@ func dataSourceipsubnet() *schema.Resource {
 }
 
 func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
-	d.SetId("")
-
 	s := meta.(*SOLIDserver)
 
-	// Useful ?
-	if s == nil {
-		return fmt.Errorf("no SOLIDserver known on subnet %s", d.Get("name").(string))
-	}
+	d.SetId("")
 
-	log.Printf("[DEBUG] SOLIDServer - Looking for subnet: %s\n", d.Get("name").(string))
+	log.Printf("[DEBUG] SOLIDServer - Looking for IP subnet: %s\n", d.Get("name").(string))
 
 	// Building parameters
 	parameters := url.Values{}
@@ -68,10 +83,17 @@ func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.SetId(buf[0]["subnet_id"].(string))
+
+			address := hexiptoip(buf[0]["start_ip_addr"].(string))
+			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
+			prefix_length := sizetoprefixlength(subnet_size)
+			prefix := address + "/" + strconv.Itoa(prefix_length)
+
 			d.Set("name", buf[0]["subnet_name"].(string))
-			d.Set("start", buf[0]["start_ip_addr"].(string))
-			d.Set("end", buf[0]["end_ip_addr"].(string))
-			d.Set("size", buf[0]["subnet_size"].(string))
+			d.Set("address", address)
+			d.Set("prefix", prefix)
+			d.Set("prefix_size", prefix_length)
+			d.Set("netmask", prefixlengthtohexip(prefix_length))
 
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
@@ -92,15 +114,15 @@ func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to read information from subnet: %s (%s)\n", d.Get("name").(string), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP subnet: %s (%s)\n", d.Get("name").(string), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to read information from subnet: %s\n", d.Get("name").(string))
+			log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP subnet: %s\n", d.Get("name").(string))
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find subnet: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IP subnet: %s", d.Get("name").(string))
 	}
 
 	// Reporting a failure
