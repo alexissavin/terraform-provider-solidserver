@@ -488,6 +488,13 @@ data "solidserver_usergroup" "t_group_01" {
 # Available Data-Sources
 SOLIDServer provider allows to retrieve information from several resources listed below:
 
+## IP Space
+Getting information from an IP Space, based on its name:
+
+* `name` - (Required) The name of the IP Space.
+* `class` -  The name of the class associated with the IP Space.
+* `class_parameters` - The class parameters associated with the IP Space class, as key/value.
+
 ## DNS SMART
 Getting information from a DNS SMART managed by SOLIDserver, based on its name:
 ```

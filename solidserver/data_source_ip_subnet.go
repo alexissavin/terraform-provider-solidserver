@@ -3,10 +3,10 @@ package solidserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"net/url"
 	"strconv"
-	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func dataSourceipsubnet() *schema.Resource {
@@ -60,10 +60,7 @@ func dataSourceipsubnet() *schema.Resource {
 
 func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
-
 	d.SetId("")
-
-	log.Printf("[DEBUG] SOLIDServer - Looking for IP subnet: %s\n", d.Get("name").(string))
 
 	// Building parameters
 	parameters := url.Values{}

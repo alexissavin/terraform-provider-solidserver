@@ -3,12 +3,11 @@ package solidserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform/helper/schema"
 	"log"
-	"math"
 	"net/url"
 	"regexp"
-
-	"github.com/hashicorp/terraform/helper/schema"
+	"strconv"
 )
 
 func dataSourceipaddress() *schema.Resource {
@@ -16,13 +15,6 @@ func dataSourceipaddress() *schema.Resource {
 		Read: dataSourceipaddressRead,
 
 		Schema: map[string]*schema.Schema{
-			/* Removed as suggestion ************************
-			"id": {
-				Type:        schema.TypeInt,
-				Description: "The ID of the IP address.",
-				Required:    true,
-			},
-			*************************************************/
 			"space": {
 				Type:        schema.TypeString,
 				Description: "The name of the space of the IP address.",
@@ -58,10 +50,14 @@ func dataSourceipaddress() *schema.Resource {
 				Description: "The MAC Address of the IP address.",
 				Computed:    true,
 			},
-
 			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the IP address.",
+				Computed:    true,
+			},
+			"prefix": {
+				Type:        schema.TypeString,
+				Description: "The IP address prefix.",
 				Computed:    true,
 			},
 			"prefix_size": {
@@ -81,12 +77,11 @@ func dataSourceipaddress() *schema.Resource {
 func dataSourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
+	// Building parameters
 	parameters := url.Values{}
-	// parameters.Add("ip_id", d.Id())
-	parameters.Add("WHERE", "site_name='"+d.Get("space").(string)+"' AND hostaddr='"+d.Get("address").(string)+"'")
+	parameters.Add("WHERE", "site_name='"+d.Get("space").(string)+"' AND ip_addr='"+iptohexip(d.Get("address").(string))+"'")
 
 	// Sending the read request
-	log.Printf("[DEBUG] SOLIDServer - lookup for IP address with oid: %s\n", d.Id())
 	resp, body, err := s.Request("get", "rest/ip_address_list", &parameters)
 
 	if err == nil {
@@ -99,9 +94,13 @@ func dataSourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("space", buf[0]["site_name"].(string))
 			d.Set("subnet", buf[0]["subnet_name"].(string))
 			d.Set("pool", buf[0]["pool_name"].(string))
-			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
 			d.Set("name", buf[0]["name"].(string))
-			d.Set("prefix_size", 32-math.Round(math.Log(buf[0]["subnet_size"].(float64))+2))
+
+			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
+			prefix_length := sizetoprefixlength(subnet_size)
+
+			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefix_length))
+			d.Set("prefix_size", prefix_length)
 
 			if macIgnore, _ := regexp.MatchString("^EIP:", buf[0]["mac_addr"].(string)); !macIgnore {
 				d.Set("mac", buf[0]["mac_addr"].(string))

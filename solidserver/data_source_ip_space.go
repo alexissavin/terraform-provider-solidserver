@@ -15,17 +15,17 @@ func dataSourceipspace() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the space.",
+				Description: "The name of the IP space.",
 				Required:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the space.",
+				Description: "The class associated to the IP space.",
 				Computed:    true,
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to space.",
+				Description: "The class parameters associated to IP space.",
 				Computed:    true,
 			},
 		},
@@ -34,10 +34,7 @@ func dataSourceipspace() *schema.Resource {
 
 func dataSourceipspaceRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
-
 	d.SetId("")
-
-	log.Printf("[DEBUG] SOLIDServer - Looking for space: %s\n", d.Get("name").(string))
 
 	// Building parameters
 	parameters := url.Values{}
@@ -77,15 +74,15 @@ func dataSourceipspaceRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to read information from space: %s (%s)\n", d.Get("name").(string), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP space: %s (%s)\n", d.Get("name").(string), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to read information from space: %s\n", d.Get("name").(string))
+			log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP space: %s\n", d.Get("name").(string))
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find space: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IP space: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure

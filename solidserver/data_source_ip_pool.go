@@ -64,17 +64,8 @@ func dataSourceippool() *schema.Resource {
 }
 
 func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
-	d.SetId("")
-
 	s := meta.(*SOLIDserver)
-
-	// Useful ?
-	if s == nil {
-		return fmt.Errorf("no SOLIDserver known on pool %s", d.Get("name").(string))
-	}
-
-	log.Printf("[DEBUG] SOLIDServer - Looking for pool: %s\n", d.Get("name").(string))
-	//log.Printf("[DEBUG] SOLIDServer - display pool info %s\n", spew.Sdump(d))
+	d.SetId("")
 
 	// Building parameters
 	parameters := url.Values{}
@@ -98,6 +89,13 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("start", hexiptoip(buf[0]["start_ip_addr"].(string)))
 			d.Set("end", hexiptoip(buf[0]["end_ip_addr"].(string)))
 			d.Set("size", buf[0]["pool_size"].(string))
+
+			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
+			prefix_length := sizetoprefixlength(subnet_size)
+
+			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefix_length))
+			d.Set("prefix_size", prefix_length)
+
 			// Updating local class_parameters
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["pool_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
@@ -107,12 +105,6 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			d.Set("class_parameters", computedClassParameters)
-
-			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
-			prefix_length := sizetoprefixlength(subnet_size)
-
-			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefix_length))
-			d.Set("prefix_size", prefix_length)
 
 			return nil
 		}
