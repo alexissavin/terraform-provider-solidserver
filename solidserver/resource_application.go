@@ -108,7 +108,7 @@ func resourceapplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
 	parameters.Add("name", d.Get("name").(string))
-	parameters.Add("fqdn", d.Get("name").(string))
+	parameters.Add("fqdn", d.Get("fqdn").(string))
 	parameters.Add("appapplication_class_name", d.Get("class").(string))
 	parameters.Add("appapplication_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
@@ -162,7 +162,7 @@ func resourceapplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("appapplication_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("name", d.Get("name").(string))
-	parameters.Add("fqdn", d.Get("name").(string))
+	parameters.Add("fqdn", d.Get("fqdn").(string))
 	parameters.Add("appapplication_class_name", d.Get("class").(string))
 	parameters.Add("appapplication_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
