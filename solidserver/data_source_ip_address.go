@@ -100,6 +100,7 @@ func dataSourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("subnet", buf[0]["subnet_name"].(string))
 			d.Set("pool", buf[0]["pool_name"].(string))
 			d.Set("name", buf[0]["name"].(string))
+			d.Set("device", buf[0]["hostdev_name"].(string))
 
 			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
 			prefix_length := sizetoprefixlength(subnet_size)

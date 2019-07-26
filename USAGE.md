@@ -495,6 +495,48 @@ Getting information from an IP Space, based on its name:
 * `class` -  The name of the class associated with the IP Space.
 * `class_parameters` - The class parameters associated with the IP Space class, as key/value.
 
+## IP Subnet
+Getting information from an IP Subnet, based on its name and space:
+
+* `name` - (Required) The name of the IP Subnet.
+* `space` - (Required) The name of the IP Space.
+* `address` - The IP address of the IP Subnet.
+* `prefix` - The IP subnet prefix.
+* `prefix_size` - The IP subnet's prefix length (ex: 24 for a '/24').
+* `netmask` - The netmask of the IP Subnet.
+* `class` -  The name of the class associated with the IP Subnet.
+* `class_parameters` - The class parameters associated with the IP Subnet. class, as key/value.
+
+## IP Pool
+Getting information from an IP Pool, based on its name and space:
+
+* `name` - (Required) The name of the IP Pool.
+* `subnet` - (Required) The name of the IP Subnet.
+* `space` - (Required) The name of the IP Space.
+* `start` - The first IP address of the IP Pool.
+* `end` - The last IP address of the IP Pool.
+* `prefix` - The IP Pool subnet prefix.
+* `prefix_size` - The IP Pool subnet's prefix length (ex: 24 for a '/24').
+* `netmask` - The netmask of the IP Pool subnet.
+* `class` -  The name of the class associated with the IP Pool.
+* `class_parameters` - The class parameters associated with the IP Pool. class, as key/value.
+
+## IP Address
+Getting information from an IP Address, based on its name and space:
+
+* `address` - (Required) The IP Address.
+* `space` - (Required) The name of the IP Space.
+* `pool` - The name of the IP Pool.
+* `name` - The name of the IP Address.
+* `device` - The Device Name associated with the IP address.
+* `mac` - The MAC Address of the IP Address.
+* `end` - The last IP address of the IP Pool.
+* `prefix` - The IP Address subnet prefix.
+* `prefix_size` - The IP Address subnet's prefix length (ex: 24 for a '/24').
+* `netmask` - The netmask of the IP Address subnet.
+* `class` -  The name of the class associated with the IP Address.
+* `class_parameters` - The class parameters associated with the IP Address. class, as key/value.
+
 ## DNS SMART
 Getting information from a DNS SMART managed by SOLIDserver, based on its name:
 ```

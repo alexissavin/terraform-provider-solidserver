@@ -67,7 +67,6 @@ func resourceipaddress() *schema.Resource {
 				ForceNew:    false,
 				Default:     "",
 			},
-
 			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the IP address.",

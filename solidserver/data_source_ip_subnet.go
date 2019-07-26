@@ -36,12 +36,12 @@ func dataSourceipsubnet() *schema.Resource {
 			},
 			"prefix_size": {
 				Type:        schema.TypeInt,
-				Description: "The expected IP subnet's prefix length (ex: 24 for a '/24').",
+				Description: "The IP subnet's prefix length (ex: 24 for a '/24').",
 				Computed:    true,
 			},
 			"netmask": {
 				Type:        schema.TypeString,
-				Description: "The provisionned IP subnet netmask.",
+				Description: "The IP subnet netmask.",
 				Computed:    true,
 			},
 			"class": {
