@@ -90,11 +90,11 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("end", hexiptoip(buf[0]["end_ip_addr"].(string)))
 			d.Set("size", buf[0]["pool_size"].(string))
 
-			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
-			prefix_length := sizetoprefixlength(subnet_size)
+			subnetSize, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
+			prefixLength := sizetoprefixlength(subnetSize)
 
-			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefix_length))
-			d.Set("prefix_size", prefix_length)
+			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefixLength))
+			d.Set("prefix_size", prefixLength)
 
 			// Updating local class_parameters
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["pool_class_parameters"].(string))

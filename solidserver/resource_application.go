@@ -36,7 +36,7 @@ func resourceapplication() *schema.Resource {
 			"gslb_members": {
 				Type:        schema.TypeList,
 				Description: "The names of the GSLB servers applying the application traffic policy.",
-				Computed:    true,
+				Required:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -275,11 +275,12 @@ func resourceapplicationRead(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", buf[0]["appapplication_name"].(string))
+			d.Set("fqdn", buf[0]["appapplication_fqdn"].(string))
 			d.Set("class", buf[0]["appapplication_class_name"].(string))
 
 			// Updating gslb_members information
 			if buf[0]["appapplication_gslbserver_list"].(string) != "" {
-				d.Set("gslb_members", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ";"), ";")))
+				d.Set("gslb_members", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ","), ",")))
 			}
 
 			// Updating local class_parameters
@@ -342,11 +343,12 @@ func resourceapplicationImportState(d *schema.ResourceData, meta interface{}) ([
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", buf[0]["appapplication_name"].(string))
+			d.Set("fqdn", buf[0]["appapplication_fqdn"].(string))
 			d.Set("class", buf[0]["appapplication_class_name"].(string))
 
 			// Updating gslb_members information
 			if buf[0]["appapplication_gslbserver_list"].(string) != "" {
-				d.Set("gslb_members", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ";"), ";")))
+				d.Set("gslb_members", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ","), ",")))
 			}
 
 			// Updating local class_parameters

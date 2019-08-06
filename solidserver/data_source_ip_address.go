@@ -102,12 +102,12 @@ func dataSourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("name", buf[0]["name"].(string))
 			d.Set("device", buf[0]["hostdev_name"].(string))
 
-			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
-			prefix_length := sizetoprefixlength(subnet_size)
+			subnetSize, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
+			prefixLength := sizetoprefixlength(subnetSize)
 
-			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefix_length))
-			d.Set("prefix_size", prefix_length)
-			d.Set("netmask", prefixlengthtohexip(prefix_length))
+			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefixLength))
+			d.Set("prefix_size", prefixLength)
+			d.Set("netmask", prefixlengthtohexip(prefixLength))
 
 			if macIgnore, _ := regexp.MatchString("^EIP:", buf[0]["mac_addr"].(string)); !macIgnore {
 				d.Set("mac", buf[0]["mac_addr"].(string))
