@@ -47,7 +47,7 @@ func resourceapplicationnode() *schema.Resource {
 			},
 			"address": {
 				Type:        schema.TypeString,
-				Description: "The IP address (IPv4 or IPv6 depending on the pool) of the application node to create.",
+				Description: "The IP address (IPv4 or IPv6 depending on the node) of the application node to create.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     "ipv4",
@@ -92,22 +92,22 @@ func resourceapplicationnode() *schema.Resource {
 	}
 }
 
-func resourceapplicationpoolExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourceapplicationnodeExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("apppool_id", d.Id())
+	parameters.Add("appnode_id", d.Id())
 
 	if s.Version < 710 {
 		// Reporting a failure
 		return false, fmt.Errorf("SOLIDServer - Object not supported in this SOLIDserver version")
 	}
 
-	log.Printf("[DEBUG] Checking existence of application pool (oid): %s\n", d.Id())
+	log.Printf("[DEBUG] Checking existence of application node (oid): %s\n", d.Id())
 
 	// Sending read request
-	resp, body, err := s.Request("get", "rest/app_pool_info", &parameters)
+	resp, body, err := s.Request("get", "rest/app_node_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -120,10 +120,10 @@ func resourceapplicationpoolExists(d *schema.ResourceData, meta interface{}) (bo
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to find application pool (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find application node (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find application pool (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find application node (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -134,7 +134,7 @@ func resourceapplicationpoolExists(d *schema.ResourceData, meta interface{}) (bo
 	return false, err
 }
 
-func resourceapplicationpoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceapplicationnodeCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -162,7 +162,7 @@ func resourceapplicationpoolCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// Sending creation request
-	resp, body, err := s.Request("post", "rest/app_pool_add", &parameters)
+	resp, body, err := s.Request("post", "rest/app_node_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -171,7 +171,7 @@ func resourceapplicationpoolCreate(d *schema.ResourceData, meta interface{}) err
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Created application pool (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created application node (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -180,23 +180,23 @@ func resourceapplicationpoolCreate(d *schema.ResourceData, meta interface{}) err
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to create application pool: %s (%s)", d.Get("name").(string), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to create application node: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to create application pool: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to create application node: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourceapplicationpoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceapplicationnodeUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("apppool_id", d.Id())
+	parameters.Add("appnode_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("name", d.Get("name").(string))
 	parameters.Add("appapplication_name", d.Get("application").(string))
@@ -220,7 +220,7 @@ func resourceapplicationpoolUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// Sending the update request
-	resp, body, err := s.Request("put", "rest/app_pool_add", &parameters)
+	resp, body, err := s.Request("put", "rest/app_node_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -229,7 +229,7 @@ func resourceapplicationpoolUpdate(d *schema.ResourceData, meta interface{}) err
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Updated application pool (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated application node (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -238,23 +238,23 @@ func resourceapplicationpoolUpdate(d *schema.ResourceData, meta interface{}) err
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to update application pool: %s (%s)", d.Get("name").(string), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to update application node: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to update application pool: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to update application node: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourceapplicationpoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceapplicationnodeDelete(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("apppool_id", d.Id())
+	parameters.Add("appnode_id", d.Id())
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -262,7 +262,7 @@ func resourceapplicationpoolDelete(d *schema.ResourceData, meta interface{}) err
 	}
 
 	// Sending the deletion request
-	resp, body, err := s.Request("delete", "rest/app_pool_delete", &parameters)
+	resp, body, err := s.Request("delete", "rest/app_node_delete", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -273,15 +273,15 @@ func resourceapplicationpoolDelete(d *schema.ResourceData, meta interface{}) err
 			// Reporting a failure
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-					return fmt.Errorf("SOLIDServer - Unable to delete application pool: %s (%s)", d.Get("name").(string), errMsg)
+					return fmt.Errorf("SOLIDServer - Unable to delete application node: %s (%s)", d.Get("name").(string), errMsg)
 				}
 			}
 
-			return fmt.Errorf("SOLIDServer - Unable to delete application pool: %s", d.Get("name").(string))
+			return fmt.Errorf("SOLIDServer - Unable to delete application node: %s", d.Get("name").(string))
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted application (oid) pool: %s\n", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted application (oid) node: %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -294,12 +294,12 @@ func resourceapplicationpoolDelete(d *schema.ResourceData, meta interface{}) err
 	return err
 }
 
-func resourceapplicationpoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceapplicationnodeRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("apppool_id", d.Id())
+	parameters.Add("appnode_id", d.Id())
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -307,7 +307,7 @@ func resourceapplicationpoolRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/app_pool_info", &parameters)
+	resp, body, err := s.Request("get", "rest/app_node_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -315,24 +315,24 @@ func resourceapplicationpoolRead(d *schema.ResourceData, meta interface{}) error
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			d.Set("name", buf[0]["apppool_name"].(string))
+			d.Set("name", buf[0]["appnode_name"].(string))
 			d.Set("application", buf[0]["appapplication_name"].(string))
 			d.Set("fqdn", buf[0]["appapplication_fqdn"].(string))
-			d.Set("lb_mode", buf[0]["apppool_lb_mode"].(string))
+			d.Set("lb_mode", buf[0]["appnode_lb_mode"].(string))
 
 			// Updating affinity_state mode
-			if buf[0]["apppool_affinity_state"].(string) == "0" {
+			if buf[0]["appnode_affinity_state"].(string) == "0" {
 				d.Set("affinity", false)
 			} else {
 				d.Set("affinity", true)
 			}
 
-			sessionTime, _ := strconv.Atoi(buf[0]["apppool_affinity_session_time"].(string))
+			sessionTime, _ := strconv.Atoi(buf[0]["appnode_affinity_session_time"].(string))
 			d.Set("affinity_session_duration", sessionTime)
 
 			// Updating best active nodes value
-			if buf[0]["apppool_best_active_nodes"].(string) != "" {
-				bestActiveNodes, _ := strconv.Atoi(buf[0]["apppool_best_active_nodes"].(string))
+			if buf[0]["appnode_best_active_nodes"].(string) != "" {
+				bestActiveNodes, _ := strconv.Atoi(buf[0]["appnode_best_active_nodes"].(string))
 				d.Set("best_active_nodes", bestActiveNodes)
 			} else {
 				d.Set("best_active_nodes", 0)
@@ -344,29 +344,29 @@ func resourceapplicationpoolRead(d *schema.ResourceData, meta interface{}) error
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find application pool: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find application node: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find application pool (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find application node (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find application pool: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find application node: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
 	return err
 }
 
-func resourceapplicationpoolImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourceapplicationnodeImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("apppool_id", d.Id())
+	parameters.Add("appnode_id", d.Id())
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -374,7 +374,7 @@ func resourceapplicationpoolImportState(d *schema.ResourceData, meta interface{}
 	}
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/app_pool_info", &parameters)
+	resp, body, err := s.Request("get", "rest/app_node_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -382,24 +382,24 @@ func resourceapplicationpoolImportState(d *schema.ResourceData, meta interface{}
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			d.Set("name", buf[0]["apppool_name"].(string))
+			d.Set("name", buf[0]["appnode_name"].(string))
 			d.Set("application", buf[0]["appapplication_name"].(string))
 			d.Set("fqdn", buf[0]["appapplication_fqdn"].(string))
-			d.Set("lb_mode", buf[0]["apppool_lb_mode"].(string))
+			d.Set("lb_mode", buf[0]["appnode_lb_mode"].(string))
 
 			// Updating affinity_state mode
-			if buf[0]["apppool_affinity_state"].(string) == "0" {
+			if buf[0]["appnode_affinity_state"].(string) == "0" {
 				d.Set("affinity_state", false)
 			} else {
 				d.Set("affinity_state", true)
 			}
 
-			sessionTime, _ := strconv.Atoi(buf[0]["apppool_affinity_session_time"].(string))
+			sessionTime, _ := strconv.Atoi(buf[0]["appnode_affinity_session_time"].(string))
 			d.Set("affinity_session_duration", sessionTime)
 
 			// Updating best active nodes value
-			if buf[0]["apppool_best_active_nodes"].(string) != "" {
-				bestActiveNodes, _ := strconv.Atoi(buf[0]["apppool_best_active_nodes"].(string))
+			if buf[0]["appnode_best_active_nodes"].(string) != "" {
+				bestActiveNodes, _ := strconv.Atoi(buf[0]["appnode_best_active_nodes"].(string))
 				d.Set("best_active_nodes", bestActiveNodes)
 			} else {
 				d.Set("best_active_nodes", 0)
@@ -410,14 +410,14 @@ func resourceapplicationpoolImportState(d *schema.ResourceData, meta interface{}
 
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to import application pool (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import application node (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import application pool (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import application node (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import application pool (oid): %s\n", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import application node (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure
