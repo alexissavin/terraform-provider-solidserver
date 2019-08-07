@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 func resourceapplicationnode() *schema.Resource {
@@ -100,7 +101,7 @@ func resourceapplicationnode() *schema.Resource {
 
 // Build healthcheck parameters string
 // Return a string object
-func urlfromhealcheckparams(healthCheck string, parameters interface{}) string {
+func stringfromhealcheckparams(healthCheck string, parameters interface{}) string {
 	healtCheckParameters := parameters.(map[string]interface{})
 	res := ""
 
@@ -144,6 +145,30 @@ func urlfromhealcheckparams(healthCheck string, parameters interface{}) string {
 		return res + "&"
 	} else {
 		return res
+	}
+}
+
+// Build healthcheck parameters from a string
+// Return an interface{}
+func healcheckparamsfromstring(healthCheck string, parameters string) interface{} {
+	res := make(map[string]interface{})
+	buf := strings.Split(strings.TrimSuffix(parameters, "&"), "&")
+
+	if healthCheck == "tcp" {
+		res["tcp_port"] = buf[0]
+		return res
+	} else if healthCheck == "http" {
+		res["http_host"] = buf[0]
+		res["http_port"] = buf[1]
+		res["http_path"] = buf[2]
+		res["http_ssl"] = buf[3]
+		res["http_status_code"] = buf[4]
+		res["http_lookup_string"] = buf[5]
+		res["http_basic_auth"] = buf[6]
+		res["http_ssl_verify"] = buf[7]
+		return res
+	} else {
+		return nil
 	}
 }
 
@@ -206,7 +231,7 @@ func resourceapplicationnodeCreate(d *schema.ResourceData, meta interface{}) err
 	parameters.Add("apphealthcheck_freq", strconv.Itoa(d.Get("healthcheck_frequency").(int)))
 	parameters.Add("apphealthcheck_failover", strconv.Itoa(d.Get("failure_threshold").(int)))
 	parameters.Add("apphealthcheck_failback", strconv.Itoa(d.Get("failback_threshold").(int)))
-	parameters.Add("apphealthcheck_params", urlfromhealcheckparams(d.Get("healthcheck").(string), d.Get("healthcheck_parameters")))
+	parameters.Add("apphealthcheck_params", stringfromhealcheckparams(d.Get("healthcheck").(string), d.Get("healthcheck_parameters")))
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -261,7 +286,7 @@ func resourceapplicationnodeUpdate(d *schema.ResourceData, meta interface{}) err
 	parameters.Add("apphealthcheck_freq", strconv.Itoa(d.Get("healthcheck_frequency").(int)))
 	parameters.Add("apphealthcheck_failover", strconv.Itoa(d.Get("failure_threshold").(int)))
 	parameters.Add("apphealthcheck_failback", strconv.Itoa(d.Get("failback_threshold").(int)))
-	parameters.Add("apphealthcheck_params", urlfromhealcheckparams(d.Get("healthcheck").(string), d.Get("healthcheck_parameters").(string)))
+	parameters.Add("apphealthcheck_params", stringfromhealcheckparams(d.Get("healthcheck").(string), d.Get("healthcheck_parameters").(string)))
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -398,7 +423,7 @@ func resourceapplicationnodeRead(d *schema.ResourceData, meta interface{}) error
 			failback, _ := strconv.Atoi(buf[0]["apphealthcheck_failback"].(string))
 			d.Set("failback_threshold", failback)
 
-			//FIXME - Handle apphealthcheck_params
+			d.Set("healthcheck_parameters", healcheckparamsfromstring(buf[0]["apphealthcheck_name"].(string), buf[0]["apphealthcheck_params"].(string)))
 
 			return nil
 		}
@@ -476,9 +501,9 @@ func resourceapplicationnodeImportState(d *schema.ResourceData, meta interface{}
 			d.Set("failure_threshold", failover)
 
 			failback, _ := strconv.Atoi(buf[0]["apphealthcheck_failback"].(string))
-			d.Set("failback_threshold", failback)
+			d.Set("healthcheck_parameters", failback)
 
-			//FIXME - Handle apphealthcheck_params
+			d.Set("healthcheck_parameters", healcheckparamsfromstring(buf[0]["apphealthcheck_name"].(string), buf[0]["apphealthcheck_params"].(string)))
 
 			return []*schema.ResourceData{d}, nil
 		}

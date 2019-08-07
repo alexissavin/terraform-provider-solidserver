@@ -58,6 +58,7 @@ func resourceapplicationpool() *schema.Resource {
 				Optional:    true,
 				Default:     false,
 			},
+			//FIXME - Handling case where affinity_session_duration is set when affinity is disabled (info => 0)
 			"affinity_session_duration": {
 				Type:        schema.TypeInt,
 				Description: "The time each session is maintained in sec (Default: 300).",
