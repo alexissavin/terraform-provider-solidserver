@@ -40,10 +40,11 @@ func resourceapplicationnode() *schema.Resource {
 				ForceNew:    true,
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Description: "The name of the application node to create.",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "The name of the application node to create.",
+				DiffSuppressFunc: resourcediffsuppresscase,
+				Required:         true,
+				ForceNew:         true,
 			},
 			"address": {
 				Type:        schema.TypeString,
@@ -53,42 +54,96 @@ func resourceapplicationnode() *schema.Resource {
 				Default:     "ipv4",
 			},
 			"weight": {
-				Type:        schema.TypeString,
+				Type:        schema.TypeInt,
 				Description: "The weight of the application node to create.",
 				Optional:    true,
 				Default:     "latency",
 			},
-			"health-check": {
+			"healthcheck": {
 				Type:        schema.TypeString,
-				Description: "The health-check name for the application node to create (Supported: ok,ping,tcp,http; Default: ok).",
+				Description: "The healthcheck name for the application node to create (Supported: ok,ping,tcp,http; Default: ok).",
 				Optional:    true,
 				Default:     "ok",
 			},
-			"health-check_timeout": {
+			"healthcheck_timeout": {
 				Type:        schema.TypeInt,
-				Description: "The health-check timeout in second for the application node to create (Supported: 1-10; Default: 3).",
+				Description: "The healthcheck timeout in second for the application node to create (Supported: 1-10; Default: 3).",
 				Optional:    true,
 				Default:     3,
 			},
-			"health-check_frequency": {
+			"healthcheck_frequency": {
 				Type:        schema.TypeInt,
-				Description: "The health-check frequency in second for the application node to create (Supported: 10,30,60,300; Default: 60).",
+				Description: "The healthcheck frequency in second for the application node to create (Supported: 10,30,60,300; Default: 60).",
 				Optional:    true,
 				Default:     60,
 			},
 			"failure_threshold": {
 				Type:        schema.TypeInt,
-				Description: "The health-check failure threshold for the application node to create (Supported: 1-10; Default: 3).",
+				Description: "The healthcheck failure threshold for the application node to create (Supported: 1-10; Default: 3).",
 				Optional:    true,
 				Default:     3,
 			},
 			"failback_threshold": {
 				Type:        schema.TypeInt,
-				Description: "The health-check failback threshold for the application node to create (Supported: 1-10; Default: 3).",
+				Description: "The healthcheck failback threshold for the application node to create (Supported: 1-10; Default: 3).",
 				Optional:    true,
 				Default:     3,
 			},
+			"healthcheck_parameters": {
+				Type:        schema.TypeMap,
+				Description: "The healthcheck parameters.",
+				Computed:    true,
+			},
 		},
+	}
+}
+
+// Build healthcheck parameters string
+// Return a string object
+func urlfromhealcheckparams(healthCheck string, parameters interface{}) string {
+	healtCheckParameters := parameters.(map[string]interface{})
+	res := ""
+
+	if healthCheck == "tcp" {
+		if tcpPort, tcpPortExist := healtCheckParameters["tcp_port"].(string); tcpPortExist {
+			res += tcpPort + "&"
+		}
+		return res + "&"
+	} else if healthCheck == "http" {
+		if httpHost, httpHostExist := healtCheckParameters["http_host"].(string); httpHostExist {
+			res += httpHost
+		}
+		res += "&"
+		if httpPort, httpPortExist := healtCheckParameters["http_port"].(string); httpPortExist {
+			res += httpPort
+		}
+		res += "&"
+		if httpPath, httpPathExist := healtCheckParameters["http_path"].(string); httpPathExist {
+			res += httpPath
+		}
+		res += "&"
+		if httpSSL, httpSSLExist := healtCheckParameters["http_ssl"].(string); httpSSLExist {
+			res += httpSSL
+		}
+		res += "&"
+		if httpStatus, httpStatusExist := healtCheckParameters["http_status_code"].(string); httpStatusExist {
+			res += httpStatus
+		}
+		res += "&"
+		if httpLookup, httpLookupExist := healtCheckParameters["http_lookup_string"].(string); httpLookupExist {
+			res += httpLookup
+		}
+		res += "&"
+		if httpAuth, httpAuthExist := healtCheckParameters["http_basic_auth"].(string); httpAuthExist {
+			res += httpAuth
+		}
+		res += "&"
+		if httpSSLVerify, httpSSLVerifyExist := healtCheckParameters["http_ssl_verify"].(string); httpSSLVerifyExist {
+			res += httpSSLVerify
+		}
+		return res + "&"
+	} else {
+		return res
 	}
 }
 
@@ -141,20 +196,17 @@ func resourceapplicationnodeCreate(d *schema.ResourceData, meta interface{}) err
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
 	parameters.Add("name", d.Get("name").(string))
+	parameters.Add("hostaddr", d.Get("address").(string))
 	parameters.Add("appapplication_name", d.Get("application").(string))
 	parameters.Add("appapplication_fqdn", d.Get("fqdn").(string))
-	parameters.Add("type", d.Get("ip_version").(string))
-	parameters.Add("lb_mode", d.Get("lb_mode").(string))
-
-	// Building affinity_state mode
-	if d.Get("affinity").(bool) == false {
-		parameters.Add("affinity_state", "0")
-	} else {
-		parameters.Add("affinity_state", "1")
-	}
-
-	parameters.Add("affinity_session_time", strconv.Itoa(d.Get("affinity_session_duration").(int)))
-	parameters.Add("best_active_nodes", strconv.Itoa(d.Get("best_active_nodes").(int)))
+	parameters.Add("apppool_name", d.Get("pool").(string))
+	parameters.Add("weight", strconv.Itoa(d.Get("weight").(int)))
+	parameters.Add("apphealthcheck_name", d.Get("healthcheck").(string))
+	parameters.Add("apphealthcheck_timeout", strconv.Itoa(d.Get("healthcheck_timeout").(int)))
+	parameters.Add("apphealthcheck_freq", strconv.Itoa(d.Get("healthcheck_frequency").(int)))
+	parameters.Add("apphealthcheck_failover", strconv.Itoa(d.Get("failure_threshold").(int)))
+	parameters.Add("apphealthcheck_failback", strconv.Itoa(d.Get("failback_threshold").(int)))
+	parameters.Add("apphealthcheck_params", urlfromhealcheckparams(d.Get("healthcheck").(string), d.Get("healthcheck_parameters")))
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -199,20 +251,17 @@ func resourceapplicationnodeUpdate(d *schema.ResourceData, meta interface{}) err
 	parameters.Add("appnode_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("name", d.Get("name").(string))
+	parameters.Add("hostaddr", d.Get("address").(string))
 	parameters.Add("appapplication_name", d.Get("application").(string))
 	parameters.Add("appapplication_fqdn", d.Get("fqdn").(string))
-	parameters.Add("type", d.Get("ip_version").(string))
-	parameters.Add("lb_mode", d.Get("lb_mode").(string))
-
-	// Building affinity_state mode
-	if d.Get("affinity").(bool) == false {
-		parameters.Add("affinity_state", "0")
-	} else {
-		parameters.Add("affinity_state", "1")
-	}
-
-	parameters.Add("affinity_session_time", strconv.Itoa(d.Get("affinity_session_duration").(int)))
-	parameters.Add("best_active_nodes", strconv.Itoa(d.Get("best_active_nodes").(int)))
+	parameters.Add("apppool_name", d.Get("pool").(string))
+	parameters.Add("weight", strconv.Itoa(d.Get("weight").(int)))
+	parameters.Add("apphealthcheck_name", d.Get("healthcheck").(string))
+	parameters.Add("apphealthcheck_timeout", strconv.Itoa(d.Get("healthcheck_timeout").(int)))
+	parameters.Add("apphealthcheck_freq", strconv.Itoa(d.Get("healthcheck_frequency").(int)))
+	parameters.Add("apphealthcheck_failover", strconv.Itoa(d.Get("failure_threshold").(int)))
+	parameters.Add("apphealthcheck_failback", strconv.Itoa(d.Get("failback_threshold").(int)))
+	parameters.Add("apphealthcheck_params", urlfromhealcheckparams(d.Get("healthcheck").(string), d.Get("healthcheck_parameters").(string)))
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -316,27 +365,40 @@ func resourceapplicationnodeRead(d *schema.ResourceData, meta interface{}) error
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", buf[0]["appnode_name"].(string))
+
+			ipAddr, ipAddrExist := buf[0]["appnode_ip_addr"].(string)
+			ip6Addr, ip6AddrExist := buf[0]["appnode_ip6_addr"].(string)
+
+			if ipAddrExist && ipAddr != "#" {
+				d.Set("address", hexiptoip(ipAddr))
+			} else if ip6AddrExist && ip6Addr != "#" {
+				d.Set("address", hexip6toip6(ip6Addr))
+			} else {
+				log.Printf("[DEBUG] SOLIDServer - Error confilcting addressing IPv4/IPv6 on application node: %s\n", d.Get("name"))
+			}
+
 			d.Set("application", buf[0]["appapplication_name"].(string))
 			d.Set("fqdn", buf[0]["appapplication_fqdn"].(string))
-			d.Set("lb_mode", buf[0]["appnode_lb_mode"].(string))
+			d.Set("pool", buf[0]["apppool_name"].(string))
 
-			// Updating affinity_state mode
-			if buf[0]["appnode_affinity_state"].(string) == "0" {
-				d.Set("affinity", false)
-			} else {
-				d.Set("affinity", true)
-			}
+			weight, _ := strconv.Atoi(buf[0]["appnode_weight"].(string))
+			d.Set("weight", weight)
 
-			sessionTime, _ := strconv.Atoi(buf[0]["appnode_affinity_session_time"].(string))
-			d.Set("affinity_session_duration", sessionTime)
+			d.Set("healthcheck", buf[0]["apphealthcheck_name"].(string))
 
-			// Updating best active nodes value
-			if buf[0]["appnode_best_active_nodes"].(string) != "" {
-				bestActiveNodes, _ := strconv.Atoi(buf[0]["appnode_best_active_nodes"].(string))
-				d.Set("best_active_nodes", bestActiveNodes)
-			} else {
-				d.Set("best_active_nodes", 0)
-			}
+			timeout, _ := strconv.Atoi(buf[0]["apphealthcheck_timeout"].(string))
+			d.Set("healthcheck_timeout", timeout)
+
+			frequency, _ := strconv.Atoi(buf[0]["apphealthcheck_freq"].(string))
+			d.Set("healthcheck_frequency", frequency)
+
+			failover, _ := strconv.Atoi(buf[0]["apphealthcheck_failover"].(string))
+			d.Set("failure_threshold", failover)
+
+			failback, _ := strconv.Atoi(buf[0]["apphealthcheck_failback"].(string))
+			d.Set("failback_threshold", failback)
+
+			//FIXME - Handle apphealthcheck_params
 
 			return nil
 		}
@@ -383,27 +445,40 @@ func resourceapplicationnodeImportState(d *schema.ResourceData, meta interface{}
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", buf[0]["appnode_name"].(string))
+
+			ipAddr, ipAddrExist := buf[0]["appnode_ip_addr"].(string)
+			ip6Addr, ip6AddrExist := buf[0]["appnode_ip6_addr"].(string)
+
+			if ipAddrExist && ipAddr != "#" {
+				d.Set("address", hexiptoip(ipAddr))
+			} else if ip6AddrExist && ip6Addr != "#" {
+				d.Set("address", hexip6toip6(ip6Addr))
+			} else {
+				log.Printf("[DEBUG] SOLIDServer - Error confilcting addressing IPv4/IPv6 on application node: %s\n", d.Get("name"))
+			}
+
 			d.Set("application", buf[0]["appapplication_name"].(string))
 			d.Set("fqdn", buf[0]["appapplication_fqdn"].(string))
-			d.Set("lb_mode", buf[0]["appnode_lb_mode"].(string))
+			d.Set("pool", buf[0]["apppool_name"].(string))
 
-			// Updating affinity_state mode
-			if buf[0]["appnode_affinity_state"].(string) == "0" {
-				d.Set("affinity_state", false)
-			} else {
-				d.Set("affinity_state", true)
-			}
+			weight, _ := strconv.Atoi(buf[0]["appnode_weight"].(string))
+			d.Set("weight", weight)
 
-			sessionTime, _ := strconv.Atoi(buf[0]["appnode_affinity_session_time"].(string))
-			d.Set("affinity_session_duration", sessionTime)
+			d.Set("healthcheck", buf[0]["apphealthcheck_name"].(string))
 
-			// Updating best active nodes value
-			if buf[0]["appnode_best_active_nodes"].(string) != "" {
-				bestActiveNodes, _ := strconv.Atoi(buf[0]["appnode_best_active_nodes"].(string))
-				d.Set("best_active_nodes", bestActiveNodes)
-			} else {
-				d.Set("best_active_nodes", 0)
-			}
+			timeout, _ := strconv.Atoi(buf[0]["apphealthcheck_timeout"].(string))
+			d.Set("healthcheck_timeout", timeout)
+
+			frequency, _ := strconv.Atoi(buf[0]["apphealthcheck_freq"].(string))
+			d.Set("healthcheck_frequency", frequency)
+
+			failover, _ := strconv.Atoi(buf[0]["apphealthcheck_failover"].(string))
+			d.Set("failure_threshold", failover)
+
+			failback, _ := strconv.Atoi(buf[0]["apphealthcheck_failback"].(string))
+			d.Set("failback_threshold", failback)
+
+			//FIXME - Handle apphealthcheck_params
 
 			return []*schema.ResourceData{d}, nil
 		}

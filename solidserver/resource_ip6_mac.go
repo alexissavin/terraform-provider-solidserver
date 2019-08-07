@@ -34,7 +34,7 @@ func resourceip6mac() *schema.Resource {
 				Type:             schema.TypeString,
 				Description:      "The MAC Address o map with the IP v6 address.",
 				ValidateFunc:     resourceipmacrequestvalidateformat,
-				DiffSuppressFunc: resourcediffsuppresslowercase,
+				DiffSuppressFunc: resourcediffsuppresscase,
 				Required:         true,
 				ForceNew:         true,
 			},

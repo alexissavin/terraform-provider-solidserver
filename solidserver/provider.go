@@ -75,6 +75,7 @@ func Provider() terraform.ResourceProvider {
 			"solidserver_dns_rr":           resourcednsrr(),
 			"solidserver_app_application":  resourceapplication(),
 			"solidserver_app_pool":         resourceapplicationpool(),
+			"solidserver_app_node":         resourceapplicationnode(),
 			"solidserver_user":             resourceuser(),
 			"solidserver_usergroup":        resourceusergroup(),
 		},

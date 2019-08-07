@@ -190,7 +190,7 @@ func longtoip(iplong uint32) string {
 	return fmt.Sprintf("%d.%d.%d.%d", a, b, c, d)
 }
 
-func resourcediffsuppresslowercase(k, old, new string, d *schema.ResourceData) bool {
+func resourcediffsuppresscase(k, old, new string, d *schema.ResourceData) bool {
 	if strings.ToLower(old) == strings.ToLower(new) {
 		return true
 	}

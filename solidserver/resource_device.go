@@ -26,7 +26,7 @@ func resourcedevice() *schema.Resource {
 				Type:             schema.TypeString,
 				Description:      "The name of the device to create.",
 				ValidateFunc:     resourcedevicenamevalidateformat,
-				DiffSuppressFunc: resourcediffsuppresslowercase,
+				DiffSuppressFunc: resourcediffsuppresscase,
 				Required:         true,
 				ForceNew:         true,
 			},
