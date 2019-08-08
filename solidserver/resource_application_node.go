@@ -93,7 +93,7 @@ func resourceapplicationnode() *schema.Resource {
 			"healthcheck_parameters": {
 				Type:        schema.TypeMap,
 				Description: "The healthcheck parameters.",
-				Computed:    true,
+				Optional:    true,
 			},
 		},
 	}

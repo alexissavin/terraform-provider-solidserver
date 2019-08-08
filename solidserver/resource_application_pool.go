@@ -133,10 +133,12 @@ func resourceapplicationpoolCreate(d *schema.ResourceData, meta interface{}) err
 		parameters.Add("affinity_state", "0")
 	} else {
 		parameters.Add("affinity_state", "1")
+		parameters.Add("affinity_session_time", strconv.Itoa(d.Get("affinity_session_duration").(int)))
 	}
 
-	parameters.Add("affinity_session_time", strconv.Itoa(d.Get("affinity_session_duration").(int)))
-	parameters.Add("best_active_nodes", strconv.Itoa(d.Get("best_active_nodes").(int)))
+	if d.Get("lb_mode").(string) == "latency" {
+		parameters.Add("best_active_nodes", strconv.Itoa(d.Get("best_active_nodes").(int)))
+	}
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -191,10 +193,12 @@ func resourceapplicationpoolUpdate(d *schema.ResourceData, meta interface{}) err
 		parameters.Add("affinity_state", "0")
 	} else {
 		parameters.Add("affinity_state", "1")
+		parameters.Add("affinity_session_time", strconv.Itoa(d.Get("affinity_session_duration").(int)))
 	}
 
-	parameters.Add("affinity_session_time", strconv.Itoa(d.Get("affinity_session_duration").(int)))
-	parameters.Add("best_active_nodes", strconv.Itoa(d.Get("best_active_nodes").(int)))
+	if d.Get("lb_mode").(string) == "latency" {
+		parameters.Add("best_active_nodes", strconv.Itoa(d.Get("best_active_nodes").(int)))
+	}
 
 	if s.Version < 710 {
 		// Reporting a failure
@@ -316,8 +320,6 @@ func resourceapplicationpoolRead(d *schema.ResourceData, meta interface{}) error
 			if buf[0]["apppool_best_active_nodes"].(string) != "" {
 				bestActiveNodes, _ := strconv.Atoi(buf[0]["apppool_best_active_nodes"].(string))
 				d.Set("best_active_nodes", bestActiveNodes)
-			} else {
-				d.Set("best_active_nodes", 0)
 			}
 
 			return nil

@@ -24,7 +24,6 @@ resource "solidserver_ip_space" "myFirstSpace" {
   }
 }
 
-
 data "solidserver_ip_space" "myFirstSpaceData" {
   name = "${solidserver_ip_space.myFirstSpace.name}"
 }
@@ -151,7 +150,6 @@ resource "solidserver_ip6_alias" "myFirstIP6Alias" {
   name   = "myfirstip6cnamealias.mycompany.priv"
 }
 
-
 resource "solidserver_dns_smart" "myFirstDnsSMART" {
   name       = "myfirstdnssmart.priv"
   arch       = "multimaster"
@@ -159,7 +157,6 @@ resource "solidserver_dns_smart" "myFirstDnsSMART" {
   recursion  = true
   forward    = "none"
 }
-
 
 resource "solidserver_dns_server" "myFirstDnsServer" {
   name       = "myfirstdnsserver.priv"
@@ -201,6 +198,33 @@ resource "solidserver_dns_rr" "CnameRecords" {
   type         = "CNAME"
   value        = "aarecord-${count.index}.mycompany.priv"
   count        = 64
+}
+
+resource "solidserver_app_application" "myFirstApplicaton" {
+  name         = "MyFirsApp"
+  fqdn         = "myfirstapp.priv"
+  gslb_members = []
+}
+
+resource "solidserver_app_pool" "myFirstPool" {
+  name         = "myFirstPool"
+  application  = "${solidserver_app_application.myFirstApplicaton.name}"
+  fqdn         = "${solidserver_app_application.myFirstApplicaton.fqdn}"
+  affinity     = true
+  affinity_session_duration = 300
+}
+
+resource "solidserver_app_node" "myFirstNode" {
+  name         = "myFirstNode"
+  application  = "${solidserver_app_application.myFirstApplicaton.name}"
+  fqdn         = "${solidserver_app_application.myFirstApplicaton.fqdn}"
+  pool         = "${solidserver_app_pool.myFirstPool.name}"
+  address      = "127.0.0.1"
+  weight       = 1
+  healthcheck  = "tcp"
+  healthcheck_parameters {
+    tcp_port = "443"
+  }
 }
 
 output "sds-space01" {
