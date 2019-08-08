@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.1.0
+
+Features:
+* Adding resource IP Pool
+* Adding resource IPv6 Pool 
+* Adding resource DNS SMART
+* Adding resource DNS Server
+* Adding resource DNS Forward Zone (issue #21)
+* Adding resource Application
+* Adding resource Application Pool
+* Adding resource Application Node
+* Adding data source DNS SMART
+* Adding data source IP Address
+* Adding data source IP Pool
+* Adding data source IP Subnet
+* Adding data source IP Space
+
+Fixes:
+* Fixing data source DNS server
+* Fixing issue with nested subnets (issue #14)
+* Adding support of "space" parameter on DNS Zone (issue #16)
+
 ## 1.0.10
 
 Features:
