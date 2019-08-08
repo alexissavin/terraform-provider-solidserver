@@ -526,20 +526,31 @@ Application Node resource allows to create a node that is used to implement a tr
 * `failback_threshold` - (Optional) The healthcheck failback threshold for the application node to create (Supported: 1-10; Default: 3).
 * `healthcheck_parameters` - (Optional) The specific healcheck parameters, for tcp and http checks as key/value according to the following table:
 
-|Healtcheck|parameter|supported values|
+|Healtcheck|Parameter|Supported Values|
 |----------|---------|----------------|
-|tcp|tcp_port|1-65535|
-|----------|---------|----------------|
+|tcp|tcp_port|Any value between 1 and 65535.|
+|http|http_host|The SNI hostname to look for.|
+|http|http_port|Any value between 1 and 65535.|
+|http|http_path|The URL path to look for.|
+|http|http_ssl|Use 0 (disable) or 1 (enable) for HTTPS connection.|
+|http|http_status_code|The HTTP status code to expect.|
+|http|http_lookup_string|A string the must be included in the answer payload.|
+|http|http_basic_auth|HTTP basic auth header (<user>:<password>).|
+|http|http_ssl_verify|Use 0 or 1 to activate ssl certificate checks.|
 
-Creating an Application Pool:
+Creating an Application Node:
 ```
-resource "solidserver_app_pool" "myFirstPool" {
-  name         = "myFirstPool"
+resource "solidserver_app_node" "myFirstNode" {
+  name         = "myFirstNode"
   application  = "${solidserver_app_application.myFirstApplicaton.name}"
   fqdn         = "${solidserver_app_application.myFirstApplicaton.fqdn}"
-  lb_mode      = latency
-  affinity     = true
-  affinity_session_duration = 300
+  pool         = "${solidserver_app_pool.myFirstPool.name}"
+  address      = "127.0.0.1"
+  weight       = 1
+  healthcheck  = "tcp"
+  healthcheck_parameters {
+    tcp_port = "443"
+  }
 }
 ```
 
