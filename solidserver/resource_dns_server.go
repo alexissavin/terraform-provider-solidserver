@@ -1,15 +1,15 @@
 package solidserver
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"net/url"
-	//"regexp"
-	"crypto/sha256"
-	"encoding/hex"
 	"strings"
+	"time"
 )
 
 func resourcednsserver() *schema.Resource {
@@ -258,46 +258,52 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 func resourcednsserverDelete(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
-	// Building parameters
-	parameters := url.Values{}
-	parameters.Add("dns_id", d.Id())
+	for i := 0; i < 3; i++ {
+		// Building parameters
+		parameters := url.Values{}
+		parameters.Add("dns_id", d.Id())
 
-	if strings.ToLower(d.Get("smart").(string)) != "" {
-		//FIXME - Handle Errors
-		dnsdeletefromsmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), meta)
-	}
-
-	// Sending the deletion request
-	resp, body, err := s.Request("delete", "rest/dns_delete", &parameters)
-
-	if err == nil {
-		var buf [](map[string]interface{})
-		json.Unmarshal([]byte(body), &buf)
-
-		// Checking the answer
-		if resp.StatusCode != 200 && resp.StatusCode != 204 {
-			// Reporting a failure
-			if len(buf) > 0 {
-				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-					return fmt.Errorf("SOLIDServer - Unable to delete DNS server: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
-				}
-			}
-
-			return fmt.Errorf("SOLIDServer - Unable to delete DNS server: %s", strings.ToLower(d.Get("name").(string)))
+		if strings.ToLower(d.Get("smart").(string)) != "" {
+			//FIXME - Handle Errors
+			dnsdeletefromsmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), meta)
 		}
 
-		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted DNS server (oid): %s\n", d.Id())
+		// Sending the deletion request
+		resp, body, err := s.Request("delete", "rest/dns_delete", &parameters)
 
-		// Unset local ID
-		d.SetId("")
+		if err == nil {
+			var buf [](map[string]interface{})
+			json.Unmarshal([]byte(body), &buf)
 
-		// Reporting a success
-		return nil
+			// Checking the answer
+			if resp.StatusCode == 200 || resp.StatusCode == 204 {
+				// Log deletion
+				log.Printf("[DEBUG] SOLIDServer - Deleted DNS server (oid): %s\n", d.Id())
+
+				// Unset local ID
+				d.SetId("")
+
+				// Reporting a success
+				return nil
+			} else {
+				// Logging a failure
+				if len(buf) > 0 {
+					if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+						log.Printf("SOLIDServer - Unable to delete DNS server: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+					}
+				} else {
+					log.Printf("SOLIDServer - Unable to delete DNS server: %s", strings.ToLower(d.Get("name").(string)))
+				}
+				time.Sleep(time.Duration(8 * time.Second))
+			}
+		} else {
+			// Reporting a failure
+			return err
+		}
 	}
 
 	// Reporting a failure
-	return err
+	return fmt.Errorf("SOLIDServer - Unable to delete DNS server: Too many unsuccessful deletion attempts")
 }
 
 func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
