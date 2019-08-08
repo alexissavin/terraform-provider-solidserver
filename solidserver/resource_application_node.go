@@ -58,7 +58,7 @@ func resourceapplicationnode() *schema.Resource {
 				Type:        schema.TypeInt,
 				Description: "The weight of the application node to create.",
 				Optional:    true,
-				Default:     "latency",
+				Default:     1,
 			},
 			"healthcheck": {
 				Type:        schema.TypeString,

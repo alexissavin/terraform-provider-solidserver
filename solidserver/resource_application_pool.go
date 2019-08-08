@@ -48,9 +48,9 @@ func resourceapplicationpool() *schema.Resource {
 			},
 			"lb_mode": {
 				Type:        schema.TypeString,
-				Description: "The load balancing mode of the application pool to create (Supported: weighted,round-robin,latency; Default: latency).",
+				Description: "The load balancing mode of the application pool to create (Supported: weighted,round-robin,latency; Default: round-robin).",
 				Optional:    true,
-				Default:     "latency",
+				Default:     "round-robin",
 			},
 			"affinity": {
 				Type:        schema.TypeBool,

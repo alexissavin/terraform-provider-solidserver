@@ -345,19 +345,43 @@ DNS SMART resource allows to create DNS SMART architectures managing several DNS
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
+Creating a DNS SMART:
+```
+resource "solidserver_dns_smart" "myFirstDnsSMART" {
+  name       = "myfirstdnssmart.priv"
+  arch       = "multimaster"
+  comment    = "My First DNS SMART Autmatically created"
+  recursion  = true
+  forward    = "none"
+}
+```
+
 ## DNS Server
-DNS Server resource allows to create DNS from the following arguments:
+DNS Server resource allows to register a DNS server from the following arguments:
 
 * `name` - (Required) The name of the server to create.
 * `address` - (Required) The IPv4 address of the DNS server to create.
 * `login` - (Required) The login to use for enrolling of the DNS server.
-* `password` - (Required) The password to use the enrolling of the DNS server.
+* `password` - (Required) The password to use the enrolling of the DNS server (will be hashed in the terraform state file).
 * `type` - (Optional) The type of DNS server (Supported: ipm (SOLIDserver or Linux Package); Default: ipm).
 * `comment` - (Optional) Custom information about the DNS server.
 * `smart` - (Optional) The DNS server the DNS server must join.
 * `smart_role` - (Optional) The role the DNS server will play within the server (Supported: master, slave; Default: slave).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+Registering a DNS Server:
+```
+resource "solidserver_dns_server" "myFirstDnsServer" {
+  name       = "myfirstdnsserver.priv"
+  address    = "127.0.0.1"
+  login      = "admin"
+  password   = "admin"
+  smart      = "${solidserver_dns_smart.myFirstDnsSMART.name}"
+  smart_role = "master"
+  comment    = "My First DNS Server Autmatically created"
+}
+```
 
 ## DNS Zone
 DNS Zone resource allows to create zones from the following arguments:
@@ -436,6 +460,86 @@ resource "solidserver_dns_rr" "aaRecord" {
   name         = "${solidserver_ip_ptr.myFirstIPPTR.address.dname}"
   type         = "PTR"
   value        = "myapp.mycompany.priv"
+}
+```
+
+## Application
+Application resource allows to create an application that can be used to implement a traffic policy used by SOLIDserver GSLB(s). It support the following arguments:
+
+* `name` - (Required) The name of the application to create.
+* `fqdn` - (Optional) The Fully Qualified Domain Name of the application to create.
+* `gslb_members` - (Optional) The names of the GSLB servers applying the application traffic policy.
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+Creating an Application:
+```
+resource "solidserver_app_application" "myFirstApplicaton" {
+  name         = "MyFirsApp"
+  fqdn         = "myfirstapp.priv"
+  gslb_members = ["ns0.priv", "ns1.priv"]
+  class        = "INTERNAL_APP"
+  class_parameters {
+    owner = "MR. Smith"
+    contact = "a.smith@mycompany.priv"
+  }
+}
+```
+
+## Application Pool
+Application Pool resource allows to create a pool that is used to implement a traffic policy. Application Pools are groups of nodes serving the same application and monitored by SOLIDserver GSLB(s). This object support the following arguments:
+
+* `name` - (Required) The name of the application pool to create.
+* `application` - (Required) The name of the application associated to the pool.
+* `fqdn` - (Required) The fqdn of the application associated to the pool.
+* `ip_version` - (Optional) The IP protocol version used by the application pool to create (Supported: ipv4, ipv6; Default: ipv4).
+* `lb_mode` - (Optional) The load balancing mode of the application pool to create (Supported: weighted,round-robin,latency; Default: round-robin).
+* `affinity` - (Optional) Enable session affinity for the application pool.
+* `affinity_session_duration` - (Optional) The time each session is maintained in sec (Default: 300).
+* `best_active_nodes` - (Optional) Number of best active nodes when lb_mode is set to latency.
+
+Creating an Application Pool:
+```
+resource "solidserver_app_pool" "myFirstPool" {
+  name         = "myFirstPool"
+  application  = "${solidserver_app_application.myFirstApplicaton.name}"
+  fqdn         = "${solidserver_app_application.myFirstApplicaton.fqdn}"
+  lb_mode      = latency
+  affinity     = true
+  affinity_session_duration = 300
+}
+```
+
+## Application Node
+Application Node resource allows to create a node that is used to implement a traffic policy. Application Nodes are applicative endpoints monitored by SOLIDserver GSLB(s). This object support the following arguments:
+
+* `name` - (Required) The name of the application node to create.
+* `address` - (Required) The IPv4 or IPv6 address (depending on the pool) of the application node to create.
+* `application` - (Required) The name of the application associated to the node.
+* `fqdn` - (Required) The fqdn of the application associated to the node.
+* `pool` - (Required) The pool associated to the node.
+* `weight` - (Optional) The weight of the application node to create (Supported: > 0 ; Default: 1).
+* `healthcheck` - (Optional) The healthcheck name for the application node to create (Supported: ok,ping,tcp,http; Default: ok).
+* `healthcheck_timeout` - (Optional) The healthcheck timeout in second for the application node to create (Supported: 1-10; Default: 3).
+* `healthcheck_frequency` - (Optional) The healthcheck frequency in second for the application node to create (Supported: 10,30,60,300; Default: 60).
+* `failure_threshold` - (Optional) The healthcheck failure threshold for the application node to create (Supported: 1-10; Default: 3).
+* `failback_threshold` - (Optional) The healthcheck failback threshold for the application node to create (Supported: 1-10; Default: 3).
+* `healthcheck_parameters` - (Optional) The specific healcheck parameters, for tcp and http checks as key/value according to the following table:
+
+|Healtcheck|parameter|supported values|
+|----------|---------|----------------|
+|tcp|tcp_port|1-65535|
+|----------|---------|----------------|
+
+Creating an Application Pool:
+```
+resource "solidserver_app_pool" "myFirstPool" {
+  name         = "myFirstPool"
+  application  = "${solidserver_app_application.myFirstApplicaton.name}"
+  fqdn         = "${solidserver_app_application.myFirstApplicaton.fqdn}"
+  lb_mode      = latency
+  affinity     = true
+  affinity_session_duration = 300
 }
 ```
 
