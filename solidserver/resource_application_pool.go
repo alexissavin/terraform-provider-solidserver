@@ -58,7 +58,6 @@ func resourceapplicationpool() *schema.Resource {
 				Optional:    true,
 				Default:     false,
 			},
-			//FIXME - Handling case where affinity_session_duration is set when affinity is disabled (info => 0)
 			"affinity_session_duration": {
 				Type:        schema.TypeInt,
 				Description: "The time each session is maintained in sec (Default: 300).",
@@ -308,10 +307,10 @@ func resourceapplicationpoolRead(d *schema.ResourceData, meta interface{}) error
 				d.Set("affinity", false)
 			} else {
 				d.Set("affinity", true)
-			}
 
-			sessionTime, _ := strconv.Atoi(buf[0]["apppool_affinity_session_time"].(string))
-			d.Set("affinity_session_duration", sessionTime)
+				sessionTime, _ := strconv.Atoi(buf[0]["apppool_affinity_session_time"].(string))
+				d.Set("affinity_session_duration", sessionTime)
+			}
 
 			// Updating best active nodes value
 			if buf[0]["apppool_best_active_nodes"].(string) != "" {
@@ -375,10 +374,10 @@ func resourceapplicationpoolImportState(d *schema.ResourceData, meta interface{}
 				d.Set("affinity_state", false)
 			} else {
 				d.Set("affinity_state", true)
-			}
 
-			sessionTime, _ := strconv.Atoi(buf[0]["apppool_affinity_session_time"].(string))
-			d.Set("affinity_session_duration", sessionTime)
+				sessionTime, _ := strconv.Atoi(buf[0]["apppool_affinity_session_time"].(string))
+				d.Set("affinity_session_duration", sessionTime)
+			}
 
 			// Updating best active nodes value
 			if buf[0]["apppool_best_active_nodes"].(string) != "" {

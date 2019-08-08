@@ -107,40 +107,40 @@ func stringfromhealcheckparams(healthCheck string, parameters interface{}) strin
 
 	if healthCheck == "tcp" {
 		if tcpPort, tcpPortExist := healtCheckParameters["tcp_port"].(string); tcpPortExist {
-			res += tcpPort + "&"
+			res += url.QueryEscape(tcpPort) + "&"
 		}
 		return res + "&"
 	} else if healthCheck == "http" {
 		if httpHost, httpHostExist := healtCheckParameters["http_host"].(string); httpHostExist {
-			res += httpHost
+			res += url.QueryEscape(httpHost)
 		}
 		res += "&"
 		if httpPort, httpPortExist := healtCheckParameters["http_port"].(string); httpPortExist {
-			res += httpPort
+			res += url.QueryEscape(httpPort)
 		}
 		res += "&"
 		if httpPath, httpPathExist := healtCheckParameters["http_path"].(string); httpPathExist {
-			res += httpPath
+			res += url.QueryEscape(httpPath)
 		}
 		res += "&"
 		if httpSSL, httpSSLExist := healtCheckParameters["http_ssl"].(string); httpSSLExist {
-			res += httpSSL
+			res += url.QueryEscape(httpSSL)
 		}
 		res += "&"
 		if httpStatus, httpStatusExist := healtCheckParameters["http_status_code"].(string); httpStatusExist {
-			res += httpStatus
+			res += url.QueryEscape(httpStatus)
 		}
 		res += "&"
 		if httpLookup, httpLookupExist := healtCheckParameters["http_lookup_string"].(string); httpLookupExist {
-			res += httpLookup
+			res += url.QueryEscape(httpLookup)
 		}
 		res += "&"
 		if httpAuth, httpAuthExist := healtCheckParameters["http_basic_auth"].(string); httpAuthExist {
-			res += httpAuth
+			res += url.QueryEscape(httpAuth)
 		}
 		res += "&"
 		if httpSSLVerify, httpSSLVerifyExist := healtCheckParameters["http_ssl_verify"].(string); httpSSLVerifyExist {
-			res += httpSSLVerify
+			res += url.QueryEscape(httpSSLVerify)
 		}
 		return res + "&"
 	} else {
@@ -155,20 +155,20 @@ func healcheckparamsfromstring(healthCheck string, parameters string) interface{
 	buf := strings.Split(strings.TrimSuffix(parameters, "&"), "&")
 
 	if healthCheck == "tcp" {
-		res["tcp_port"] = buf[0]
+		res["tcp_port"], _ = url.QueryUnescape(buf[0])
 		return res
 	} else if healthCheck == "http" {
-		res["http_host"] = buf[0]
-		res["http_port"] = buf[1]
-		res["http_path"] = buf[2]
-		res["http_ssl"] = buf[3]
-		res["http_status_code"] = buf[4]
-		res["http_lookup_string"] = buf[5]
-		res["http_basic_auth"] = buf[6]
-		res["http_ssl_verify"] = buf[7]
+		res["http_host"], _ = url.QueryUnescape(buf[0])
+		res["http_port"], _ = url.QueryUnescape(buf[1])
+		res["http_path"], _ = url.QueryUnescape(buf[2])
+		res["http_ssl"], _ = url.QueryUnescape(buf[3])
+		res["http_status_code"], _ = url.QueryUnescape(buf[4])
+		res["http_lookup_string"], _ = url.QueryUnescape(buf[5])
+		res["http_basic_auth"], _ = url.QueryUnescape(buf[6])
+		res["http_ssl_verify"], _ = url.QueryUnescape(buf[7])
 		return res
 	} else {
-		return nil
+		return res
 	}
 }
 
@@ -286,7 +286,7 @@ func resourceapplicationnodeUpdate(d *schema.ResourceData, meta interface{}) err
 	parameters.Add("apphealthcheck_freq", strconv.Itoa(d.Get("healthcheck_frequency").(int)))
 	parameters.Add("apphealthcheck_failover", strconv.Itoa(d.Get("failure_threshold").(int)))
 	parameters.Add("apphealthcheck_failback", strconv.Itoa(d.Get("failback_threshold").(int)))
-	parameters.Add("apphealthcheck_params", stringfromhealcheckparams(d.Get("healthcheck").(string), d.Get("healthcheck_parameters").(string)))
+	parameters.Add("apphealthcheck_params", stringfromhealcheckparams(d.Get("healthcheck").(string), d.Get("healthcheck_parameters")))
 
 	if s.Version < 710 {
 		// Reporting a failure
