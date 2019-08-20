@@ -7,8 +7,6 @@ It allows managing all IPAM objects through CRUD operations.
 
 This provider is compatible with [SOLIDserver](https://www.efficientip.com/products/solidserver/) version 6.0.2 and higher.
 
-Current production version is 1.0.10
-
 # Build
 
 Download the latest revision of the master branch then use the go compiler to generate the binary.
