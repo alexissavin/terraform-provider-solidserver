@@ -11,7 +11,7 @@ provider "solidserver" {
 resource "solidserver_device" "myFirstDevice" {
   name   = "myfirstdevice"
   class  = "CUSTOM_DEVICE"
-  class_parameters {
+  class_parameters = {
     serial = "AHCK42"
   }
 }
@@ -19,7 +19,7 @@ resource "solidserver_device" "myFirstDevice" {
 resource "solidserver_ip_space" "myFirstSpace" {
   name   = "myFirstSpace"
   class  = "CUSTOM_SPACE"
-  class_parameters {
+  class_parameters = {
     LOCATION = "PARIS"
   }
 }
@@ -32,7 +32,7 @@ resource "solidserver_vlan_domain" "myFirstVxlanDomain" {
   name   = "myFirstVxlanDomain"
   vxlan  = false
   class  = "CUSTOM_VLAN_DOMAIN"
-  class_parameters {
+  class_parameters = {
     LOCATION = "PARIS"
   }
 }
@@ -65,7 +65,7 @@ resource "solidserver_ip_subnet" "mySecondIPSubnet" {
   name             = "mySecondIPSubnet"
   gateway_offset   = -1
   class            = "VIRTUAL"
-  class_parameters {
+  class_parameters = {
     vnid = "12666"
   }
 }
@@ -113,7 +113,7 @@ resource "solidserver_ip6_subnet" "mySecondIP6Subnet" {
   name             = "mySecondIP6Subnet"
   gateway_offset   = 1
   class            = "VIRTUAL"
-  class_parameters {
+  class_parameters = {
     vnid = "12666"
   }
 }
@@ -222,7 +222,7 @@ resource "solidserver_app_node" "myFirstNode" {
   address      = "127.0.0.1"
   weight       = 1
   healthcheck  = "tcp"
-  healthcheck_parameters {
+  healthcheck_parameters = {
     tcp_port = "443"
   }
 }
