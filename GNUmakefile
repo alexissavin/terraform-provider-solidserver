@@ -26,18 +26,23 @@ release:
 	if ! [ -d "./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-linux_amd64" ]; then mkdir "./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-linux_amd64"; fi
 	if ! [ -d "./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-freebsd_amd64" ]; then mkdir "./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-freebsd_amd64"; fi
 	if ! [ -d "./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-windows_amd64" ]; then mkdir "./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-windows_amd64"; fi
+	if ! [ -d "./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-macos_amd64" ]; then mkdir "./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-macos_amd64"; fi
 	cp -r ./README.md ./USAGE.md ./LICENSE ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-linux_amd64/
 	cp -r ./README.md ./USAGE.md ./LICENSE ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-freebsd_amd64/
 	cp -r ./README.md ./USAGE.md ./LICENSE ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-windows_amd64/
+	cp -r ./README.md ./USAGE.md ./LICENSE ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-macos_amd64/
 	env GOOS=linux GOARCH=amd64 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-linux_amd64/terraform-provider-solidserver_$(RELEASE)-linux_amd64
 	env GOOS=freebsd GOARCH=amd64 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-freebsd_amd64/terraform-provider-solidserver_$(RELEASE)-freebsd_amd64
 	env GOOS=windows GOARCH=amd64 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-windows_amd64/terraform-provider-solidserver_$(RELEASE)-windows_amd64
+	env GOOS=darwin GOARCH=amd64 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-macos_amd64/terraform-provider-solidserver_$(RELEASE)-macos_amd64
 	zip -j -r ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-linux_amd64.zip ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-linux_amd64
 	zip -j -r ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-freebsd_amd64.zip ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-freebsd_amd64
 	zip -j -r ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-windows_amd64.zip ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-windows_amd64
+	zip -j -r ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-macos_amd64.zip ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-macos_amd64
 	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-linux_amd64
 	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-freebsd_amd64
 	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-windows_amd64
+	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)-macos_amd64
 
 test: fmtcheck vet
 	go test -v ./... || exit 1
