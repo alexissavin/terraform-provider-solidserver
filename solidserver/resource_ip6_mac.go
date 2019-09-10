@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"strings"
@@ -26,7 +27,7 @@ func resourceip6mac() *schema.Resource {
 			"address": {
 				Type:         schema.TypeString,
 				Description:  "The IP v6 address to map with the MAC address.",
-				ValidateFunc: resourceip6addressrequestvalidateformat,
+				ValidateFunc: validation.SingleIP(),
 				Required:     true,
 				ForceNew:     true,
 			},

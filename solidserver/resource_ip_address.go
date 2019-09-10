@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"regexp"
@@ -36,7 +37,7 @@ func resourceipaddress() *schema.Resource {
 			"request_ip": {
 				Type:         schema.TypeString,
 				Description:  "The optionally requested IP address.",
-				ValidateFunc: resourceipaddressrequestvalidateformat,
+				ValidateFunc: validation.SingleIP(),
 				Optional:     true,
 				ForceNew:     true,
 				Default:      "",

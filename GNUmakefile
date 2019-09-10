@@ -2,6 +2,7 @@ SHELL := /bin/bash
 GO_FILES?=$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=solidserver
 
+# To provide the version use 'make release VERSION=1.1.1'
 ifdef VERSION
 	RELEASE := v$(VERSION)
 else

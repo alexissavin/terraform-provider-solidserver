@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"strings"
@@ -31,10 +32,11 @@ func resourcednsserver() *schema.Resource {
 				ForceNew:    true,
 			},
 			"address": {
-				Type:        schema.TypeString,
-				Description: "The IPv4 address of the DNS server to create.",
-				Required:    true,
-				ForceNew:    true,
+				Type:         schema.TypeString,
+				Description:  "The IPv4 address of the DNS server to create.",
+				ValidateFunc: validation.SingleIP(),
+				Required:     true,
+				ForceNew:     true,
 			},
 			"login": {
 				Type:        schema.TypeString,
@@ -81,11 +83,12 @@ func resourcednsserver() *schema.Resource {
 				Default:     "",
 			},
 			"smart_role": {
-				Type:        schema.TypeString,
-				Description: "The role the DNS server will play within the SMART (Supported: master, slave; Default: slave).",
-				Optional:    true,
-				ForceNew:    true,
-				Default:     "slave",
+				Type:         schema.TypeString,
+				Description:  "The role the DNS server will play within the SMART (Supported: master, slave; Default: slave).",
+				ValidateFunc: validation.StringInSlice([]string{"master", "slave"}, false),
+				Optional:     true,
+				ForceNew:     true,
+				Default:      "slave",
 			},
 			"class": {
 				Type:        schema.TypeString,

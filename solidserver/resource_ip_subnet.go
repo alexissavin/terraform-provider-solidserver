@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"math/rand"
 	"net/url"
@@ -39,7 +40,7 @@ func resourceipsubnet() *schema.Resource {
 			"request_ip": {
 				Type:         schema.TypeString,
 				Description:  "The optionally requested subnet IP address.",
-				ValidateFunc: resourceipaddressrequestvalidateformat,
+				ValidateFunc: validation.SingleIP(),
 				Optional:     true,
 				ForceNew:     true,
 				Default:      "",

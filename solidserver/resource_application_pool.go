@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"strconv"
@@ -47,10 +48,11 @@ func resourceapplicationpool() *schema.Resource {
 				Default:     "ipv4",
 			},
 			"lb_mode": {
-				Type:        schema.TypeString,
-				Description: "The load balancing mode of the application pool to create (Supported: weighted,round-robin,latency; Default: round-robin).",
-				Optional:    true,
-				Default:     "round-robin",
+				Type:         schema.TypeString,
+				Description:  "The load balancing mode of the application pool to create (Supported: weighted,round-robin,latency; Default: round-robin).",
+				ValidateFunc: validation.StringInSlice([]string{"weighted", "round-robin", "latency"}, false),
+				Optional:     true,
+				Default:      "round-robin",
 			},
 			"affinity": {
 				Type:        schema.TypeBool,
@@ -65,10 +67,11 @@ func resourceapplicationpool() *schema.Resource {
 				Default:     300,
 			},
 			"best_active_nodes": {
-				Type:        schema.TypeInt,
-				Description: "Number of best active nodes when lb_mode is set to latency.",
-				Optional:    true,
-				Default:     1,
+				Type:         schema.TypeInt,
+				Description:  "Number of best active nodes when lb_mode is set to latency.",
+				ValidateFunc: validation.IntAtLeast(1),
+				Optional:     true,
+				Default:      1,
 			},
 		},
 	}

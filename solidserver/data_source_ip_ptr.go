@@ -3,6 +3,7 @@ package solidserver
 import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"math/rand"
 	"strconv"
 )
@@ -15,7 +16,7 @@ func dataSourceipptr() *schema.Resource {
 			"address": {
 				Type:         schema.TypeString,
 				Description:  "The IP address to convert into PTR domain name.",
-				ValidateFunc: resourceipaddressrequestvalidateformat,
+				ValidateFunc: validation.SingleIP(),
 				Required:     true,
 			},
 			"dname": {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 )
@@ -25,7 +26,7 @@ func resourceip6alias() *schema.Resource {
 			"address": {
 				Type:         schema.TypeString,
 				Description:  "The IP v6 address for which the alias will be associated to.",
-				ValidateFunc: resourceip6addressrequestvalidateformat,
+				ValidateFunc: validation.SingleIP(),
 				Required:     true,
 				ForceNew:     true,
 			},

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"strconv"
@@ -37,7 +38,7 @@ func resourceip6pool() *schema.Resource {
 			"start": {
 				Type:         schema.TypeString,
 				Description:  "The IP v6 pool lower IP v6 address.",
-				ValidateFunc: resourceipaddressrequestvalidateformat,
+				ValidateFunc: validation.SingleIP(),
 				Required:     true,
 				ForceNew:     true,
 			},
