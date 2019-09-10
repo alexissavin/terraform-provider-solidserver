@@ -286,13 +286,17 @@ func hostdevidbyname(hostdevName string, meta interface{}) (string, error) {
 
 // Return an available IP addresses from site_id, block_id and expected subnet_size
 // Or an empty table of string in case of failure
-func ipaddressfindfree(subnetID string, meta interface{}) ([]string, error) {
+func ipaddressfindfree(subnetID string, poolID string, meta interface{}) ([]string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("subnet_id", subnetID)
 	parameters.Add("max_find", "4")
+
+	if len(poolID) > 0 {
+		parameters.Add("pool_id", poolID)
+	}
 
 	// Sending the creation request
 	resp, body, err := s.Request("get", "rpc/ip_find_free_address", &parameters)
@@ -322,13 +326,17 @@ func ipaddressfindfree(subnetID string, meta interface{}) ([]string, error) {
 
 // Return an available IP addresses from site_id, block_id and expected subnet_size
 // Or an empty table of string in case of failure
-func ip6addressfindfree(subnetID string, meta interface{}) ([]string, error) {
+func ip6addressfindfree(subnetID string, poolID string, meta interface{}) ([]string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("subnet6_id", subnetID)
 	parameters.Add("max_find", "4")
+
+	if len(poolID) > 0 {
+		parameters.Add("pool6_id", poolID)
+	}
 
 	// Sending the creation request
 	resp, body, err := s.Request("get", "rpc/ip6_find_free_address6", &parameters)
@@ -507,6 +515,35 @@ func ipsubnetidbyname(siteID string, subnetName string, terminal bool, meta inte
 	return "", err
 }
 
+// Return the oid of a pool from site_id and pool_name
+// Or an empty string in case of failure
+func ippoolidbyname(siteID string, poolName string, meta interface{}) (string, error) {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"pool_name='"+strings.ToLower(poolName)+"'")
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/ip_pool_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if poolID, poolIDExist := buf[0]["pool_id"].(string); poolIDExist {
+				return poolID, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP pool: %s\n", poolName)
+
+	return "", err
+}
+
 // Return a map of information about a subnet from site_id, subnet_name and is_terminal property
 // Or nil in case of failure
 func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta interface{}) (map[string]interface{}, error) {
@@ -592,6 +629,35 @@ func ip6subnetidbyname(siteID string, subnetName string, terminal bool, meta int
 	}
 
 	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet: %s\n", subnetName)
+
+	return "", err
+}
+
+// Return the oid of a pool from site_id and pool_name
+// Or an empty string in case of failure
+func ip6poolidbyname(siteID string, poolName string, meta interface{}) (string, error) {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"pool6_name='"+strings.ToLower(poolName)+"'")
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/ip6_pool6_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if poolID, poolIDExist := buf[0]["pool6_id"].(string); poolIDExist {
+				return poolID, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 pool: %s\n", poolName)
 
 	return "", err
 }

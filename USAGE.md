@@ -186,6 +186,7 @@ IP Address resource allows to assign an IP from the following arguments:
 
 * `space` - (Required) The name of the space into which creating the IP address.
 * `subnet` - (Required) The name of the subnet into which creating the IP address.
+* `pool` - (Optional) The name of the pool into which creating the IP address.
 * `request_ip` - (Optional) An optional request for a specific IP address. If this address is unavailable the provisioning request will fail.
 * `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
 * `device` - (Optional) Device Name to associate with the IP address (Require a 'Device Manager' license).
@@ -212,15 +213,16 @@ resource "solidserver_ip_address" "myFirstIPAddress" {
 ## IPv6 Address
 IPv6 Address resource allows to assign an IP from the following arguments:
 
-* `space` - (Required) The name of the space into which creating the IP address.
-* `subnet` - (Required) The name of the subnet into which creating the IP address.
-* `request_ip` - (Optional) An optional request for a specific IP v6 address. If this address is unavailable the provisioning request will fail.
-* `name` - (Required) The name of the IP address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
-* `device` - (Optional) Device Name to associate with the IP address (Require a 'Device Manager' license).
+* `space` - (Required) The name of the space into which creating the IPv6 address.
+* `subnet` - (Required) The name of the subnet into which creating the IPv6 address.
+* `pool` - (Optional) The name of the pool into which creating the IPv6 address.
+* `request_ip` - (Optional) An optional request for a specific IPv6 address. If this address is unavailable the provisioning request will fail.
+* `name` - (Required) The name of the IPv6 address to create. If a FQDN is specified and SOLIDServer is configured to sync IPAM to DNS, this will create the appropriate DNS A Record.
+* `device` - (Optional) Device Name to associate with the IPv6 address (Require a 'Device Manager' license).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 
-For convenience, the IP address' subnet name is expected, not its ID. This allow to create IP addresses within existing subnets.
+For convenience, the IPv6 address' subnet name is expected, not its ID. This allow to create IPv6 addresses within existing subnets.
 If you intend to create a dedicated subnet first, use the `depends_on` parameter to inform terraform of the expected dependency.
 
 Creating an IPv6 address:

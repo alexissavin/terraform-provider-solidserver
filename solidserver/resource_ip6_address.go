@@ -34,6 +34,13 @@ func resourceip6address() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
+			"pool": {
+				Type:        schema.TypeString,
+				Description: "The name of the pool into which creating the IP v6 address.",
+				Optional:    true,
+				ForceNew:    true,
+				Default:     "",
+			},
 			"request_ip": {
 				Type:         schema.TypeString,
 				Description:  "The optionally requested IP v6 address.",
@@ -131,6 +138,7 @@ func resourceip6addressCreate(d *schema.ResourceData, meta interface{}) error {
 
 	var ipAddresses []string = nil
 	var deviceID string = ""
+	var poolID string = ""
 
 	// Gather required ID(s) from provided information
 	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
@@ -143,6 +151,17 @@ func resourceip6addressCreate(d *schema.ResourceData, meta interface{}) error {
 	if SubnetErr != nil {
 		// Reporting a failure
 		return SubnetErr
+	}
+
+	if len(d.Get("pool").(string)) > 0 {
+		var poolErr error = nil
+
+		poolID, poolErr = ip6poolidbyname(siteID, d.Get("pool").(string), meta)
+
+		if poolErr != nil {
+			// Reporting a failure
+			return poolErr
+		}
 	}
 
 	// Retrieving device ID
@@ -163,7 +182,7 @@ func resourceip6addressCreate(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		var ipErr error = nil
 
-		ipAddresses, ipErr = ip6addressfindfree(subnetID, meta)
+		ipAddresses, ipErr = ip6addressfindfree(subnetID, poolID, meta)
 
 		if ipErr != nil {
 			// Reporting a failure

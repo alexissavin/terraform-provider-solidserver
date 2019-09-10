@@ -34,6 +34,13 @@ func resourceipaddress() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
+			"pool": {
+				Type:        schema.TypeString,
+				Description: "The name of the pool into which creating the IP address.",
+				Optional:    true,
+				ForceNew:    true,
+				Default:     "",
+			},
 			"request_ip": {
 				Type:         schema.TypeString,
 				Description:  "The optionally requested IP address.",
@@ -130,6 +137,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 
 	var ipAddresses []string = nil
 	var deviceID string = ""
+	var poolID string = ""
 
 	// Gather required ID(s) from provided information
 	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
@@ -139,10 +147,21 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 		return siteErr
 	}
 
-	subnetID, SubnetErr := ipsubnetidbyname(siteID, d.Get("subnet").(string), true, meta)
-	if SubnetErr != nil {
+	subnetID, subnetErr := ipsubnetidbyname(siteID, d.Get("subnet").(string), true, meta)
+	if subnetErr != nil {
 		// Reporting a failure
-		return SubnetErr
+		return subnetErr
+	}
+
+	if len(d.Get("pool").(string)) > 0 {
+		var poolErr error = nil
+
+		poolID, poolErr = ippoolidbyname(siteID, d.Get("pool").(string), meta)
+
+		if poolErr != nil {
+			// Reporting a failure
+			return poolErr
+		}
 	}
 
 	// Retrieving device ID
@@ -163,7 +182,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		var ipErr error = nil
 
-		ipAddresses, ipErr = ipaddressfindfree(subnetID, meta)
+		ipAddresses, ipErr = ipaddressfindfree(subnetID, poolID, meta)
 
 		if ipErr != nil {
 			// Reporting a failure
