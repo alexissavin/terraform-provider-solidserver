@@ -7,7 +7,6 @@ import (
 	"log"
 	"math/big"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -196,45 +195,6 @@ func resourcediffsuppresscase(k, old, new string, d *schema.ResourceData) bool {
 	}
 
 	return false
-}
-
-// Validate MAC address format
-func resourceipmacrequestvalidateformat(v interface{}, _ string) ([]string, []error) {
-	if match, _ := regexp.MatchString(`([0-9a-f][0-9a-f]:){5}([0-9a-f][0-9a-f])`, strings.ToLower(v.(string))); match == true {
-		return nil, nil
-	}
-
-	return nil, []error{fmt.Errorf("Unsupported MAC address request format.\n")}
-}
-
-// Validate IPv4 format
-func resourceipaddressrequestvalidateformat(v interface{}, _ string) ([]string, []error) {
-	if match, _ := regexp.MatchString(`([0-9]{1,3}\.){3,3}[0-9]{1,3}`, strings.ToUpper(v.(string))); match == true {
-		return nil, nil
-	}
-
-	return nil, []error{fmt.Errorf("Unsupported IP address request format.\n")}
-}
-
-// Validate IPv6 format
-func resourceip6addressrequestvalidateformat(v interface{}, _ string) ([]string, []error) {
-	if match, _ := regexp.MatchString(`([0-9A-F]{1,4}:){7,7}([0-9A-F]{1,4})`, strings.ToUpper(v.(string))); match == true {
-		return nil, nil
-	}
-
-	return nil, []error{fmt.Errorf("Unsupported IP v6 address request format (Only non-compressed format is supported).\n")}
-}
-
-// Validate the alias format
-func resourcealiasvalidatetype(v interface{}, _ string) ([]string, []error) {
-	switch strings.ToUpper(v.(string)) {
-	case "A":
-		return nil, nil
-	case "CNAME":
-		return nil, nil
-	default:
-		return nil, []error{fmt.Errorf("Unsupported Alias type.\n")}
-	}
 }
 
 // Compute the prefix length from the size of a CIDR prefix

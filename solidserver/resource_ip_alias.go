@@ -39,7 +39,7 @@ func resourceipalias() *schema.Resource {
 			"type": {
 				Type:         schema.TypeString,
 				Description:  "The type of the Alias to create (Supported: A, CNAME; Default: CNAME).",
-				ValidateFunc: resourcealiasvalidatetype,
+				ValidateFunc: validation.StringInSlice([]string{"A", "CNAME"}, true),
 				Default:      "CNAME",
 				Optional:     true,
 				ForceNew:     true,

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
+	"regexp"
 	"strings"
 )
 
@@ -34,7 +35,7 @@ func resourceipmac() *schema.Resource {
 			"mac": {
 				Type:             schema.TypeString,
 				Description:      "The MAC Address o map with the IP address.",
-				ValidateFunc:     resourceipmacrequestvalidateformat,
+				ValidateFunc:     validation.StringMatch(regexp.MustCompile("^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$"), "Unsupported MAC address format."),
 				DiffSuppressFunc: resourcediffsuppresscase,
 				Required:         true,
 				ForceNew:         true,
