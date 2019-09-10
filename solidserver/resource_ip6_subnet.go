@@ -56,6 +56,12 @@ func resourceip6subnet() *schema.Resource {
 				Description: "The provisionned IP v6 prefix.",
 				Computed:    true,
 			},
+			"address": {
+				Type:        schema.TypeString,
+				Description: "The provisionned IP v6 network address.",
+				Computed:    true,
+				ForceNew:    true,
+			},
 			"gateway_offset": {
 				Type:        schema.TypeInt,
 				Description: "Offset for creating the gateway. Default is 0 (No gateway).",
@@ -247,6 +253,7 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 					log.Printf("[DEBUG] SOLIDServer - Created IP v6 subnet (oid): %s\n", oid)
 					d.SetId(oid)
 					d.Set("prefix", prefix)
+					d.Set("address", hexip6toip6(subnetAddresses[i]))
 					if goffset != 0 {
 						d.Set("gateway", gateway)
 					}

@@ -76,7 +76,6 @@ func resourceip6address() *schema.Resource {
 				ForceNew:     false,
 				Default:      "",
 			},
-
 			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the IP v6 address.",

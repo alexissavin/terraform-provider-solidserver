@@ -181,6 +181,29 @@ resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
 
 Note: The gateway_offset value can be positive (offset start at the first address of the subnet) or negative (offset start at the last address of the subnet).
 
+## IP Pool
+IP Pool resource allows to create IP pools from the following arguments:
+
+* `space` - (Required) The name of the space into which creating the IPv6 subnet.
+* `subnet` - (Required) The name of the parent IP subnet into which creating the IP pool.
+* `start` - (Required) The IP pool lower IP address.
+* `size` - (Required) The size of the IP pool to create.
+* `name` - (Required) The name of the IP pool to create.
+* `dhcp_range` - (Optional) Specify wether to create the equivalent DHCP range, or not (Default: false).
+* `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
+* `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+```
+
+resource "solidserver_ip_pool" "myFirstIPPool" {
+  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  subnet           = "${solidserver_ip_subnet.mySecondIPSubnet.name}"
+  name             = "myFirstIPPool"
+  start            = "${solidserver_ip_subnet.mySecondIPSubnet.address}"
+  size             = 2
+}
+```
+
 ## IP Address
 IP Address resource allows to assign an IP from the following arguments:
 

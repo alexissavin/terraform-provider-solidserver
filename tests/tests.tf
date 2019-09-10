@@ -70,9 +70,18 @@ resource "solidserver_ip_subnet" "mySecondIPSubnet" {
   }
 }
 
+resource "solidserver_ip_pool" "myFirstIPPool" {
+  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  subnet           = "${solidserver_ip_subnet.mySecondIPSubnet.name}"
+  name             = "myFirstIPPool"
+  start            = "${solidserver_ip_subnet.mySecondIPSubnet.address}"
+  size             = 2
+}
+
 resource "solidserver_ip_address" "myFirstIPAddress" {
   space   = "${solidserver_ip_space.myFirstSpace.name}"
   subnet  = "${solidserver_ip_subnet.mySecondIPSubnet.name}"
+  pool    = "${solidserver_ip_pool.myFirstIPPool.name}"
   name    = "myfirstipaddress"
   device  = "${solidserver_device.myFirstDevice.name}"
   lifecycle {

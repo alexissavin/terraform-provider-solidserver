@@ -56,6 +56,12 @@ func resourceipsubnet() *schema.Resource {
 				Description: "The provisionned IP prefix.",
 				Computed:    true,
 			},
+			"address": {
+				Type:        schema.TypeString,
+				Description: "The provisionned IP network address.",
+				Computed:    true,
+				ForceNew:    true,
+			},
 			"netmask": {
 				Type:        schema.TypeString,
 				Description: "The provisionned IP address netmask.",
@@ -250,6 +256,7 @@ func resourceipsubnetCreate(d *schema.ResourceData, meta interface{}) error {
 					log.Printf("[DEBUG] SOLIDServer - Created IP subnet (oid): %s\n", oid)
 					d.SetId(oid)
 					d.Set("prefix", prefix)
+					d.Set("address", hexiptoip(subnetAddresses[i]))
 					d.Set("netmask", prefixlengthtohexip(d.Get("prefix_size").(int)))
 					if goffset != 0 {
 						d.Set("gateway", gateway)
