@@ -195,7 +195,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters := url.Values{}
 		parameters.Add("site_id", siteID)
 		parameters.Add("add_flag", "new_only")
-		parameters.Add("name", d.Get("name").(string))
+		parameters.Add("ip_name", d.Get("name").(string))
 		parameters.Add("hostaddr", ipAddresses[i])
 		parameters.Add("hostdev_id", deviceID)
 		parameters.Add("ip_class_name", d.Get("class").(string))
@@ -264,7 +264,7 @@ func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("ip_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
-	parameters.Add("name", d.Get("name").(string))
+	parameters.Add("ip_name", d.Get("name").(string))
 	parameters.Add("hostdev_id", deviceID)
 	parameters.Add("ip_class_name", d.Get("class").(string))
 
