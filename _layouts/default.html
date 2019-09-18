@@ -14,12 +14,11 @@
 
     <!-- HEADER -->
     <div id="header_wrap" class="outer">
-        <header class="inner">
+        <header class="inner" style="background-image: url({{ site.image }})">
           {% if site.github.is_project_page %}
             <a id="forkme_banner" href="{{ site.github.repository_url }}">View on GitHub</a>
           {% endif %}
 
-          <img src="{{ site.image }}" alt="{{ page.title | default: site.title | default: site.github.repository_name }}" class="project-name" />
           <h2 id="project_tagline">{{ site.description | default: site.github.project_tagline }}</h2>
 
           {% if site.show_downloads %}
