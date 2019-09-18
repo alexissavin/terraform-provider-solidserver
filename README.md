@@ -6,8 +6,8 @@ This provider allows to easily interact with EfficientIP [SOLIDserver](https://w
 It allows to manage supported resources through CRUD operations for efficient DDI orchestration.
 
 <p align="center">
-  <a align="center" href="http://www.youtube.com/watch?v=daQ0xEWNvYY">
-    <img src="http://img.youtube.com/vi/daQ0xEWNvYY/0.jpg" title="What is DDI ?">
+  <a align="center" href="https://www.efficientip.com/resources/video-what-is-ddi/">
+    <img width="560" height="315" position="center" src="http://img.youtube.com/vi/daQ0xEWNvYY/0.jpg" title="What is DDI ?">
   </a>
 </p>
 
