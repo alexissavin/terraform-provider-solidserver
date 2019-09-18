@@ -13,13 +13,11 @@
   <body>
 
     <!-- HEADER -->
-    <div id="header_wrap" class="outer" style="height:245px; background-image:url({{ site.image }}); background-repeat:no-repeat">
-        <header class="inner" style="vertical-align:bottom">
+    <div id="header_wrap" class="outer">
+        <header class="inner" style="background-image:url({{ site.image }}); background-repeat:no-repeat">
           {% if site.github.is_project_page %}
             <a id="forkme_banner" href="{{ site.github.repository_url }}">View on GitHub</a>
           {% endif %}
-
-          <h2 id="project_tagline">{{ site.description | default: site.github.project_tagline }}</h2>
 
           {% if site.show_downloads %}
             <section id="downloads">
