@@ -7,7 +7,7 @@ It allows to manage supported resources through CRUD operations for efficient DD
 
 <p align="center">
   <a align="center" href="https://www.efficientip.com/resources/video-what-is-ddi/">
-    <img width="560" height="315" object-fit="cover" src="http://img.youtube.com/vi/daQ0xEWNvYY/0.jpg" title="What is DDI ?">
+    <img width="560" src="https://i.ytimg.com/vi/daQ0xEWNvYY/maxresdefault.jpg" title="What is DDI ?">
   </a>
 </p>
 
