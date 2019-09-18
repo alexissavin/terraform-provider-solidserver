@@ -5,9 +5,7 @@
 This provider allows to easily interact with EfficientIP [SOLIDserver](https://www.efficientip.com/products/solidserver/)'s REST API.
 It allows to manage supported resources through CRUD operations for efficient DDI orchestration.
 
-<div align="center">
 [![](http://img.youtube.com/vi/daQ0xEWNvYY/0.jpg)](http://www.youtube.com/watch?v=daQ0xEWNvYY "What's DDI ?")
-</div>
 
 This provider is compatible with EfficientIP [SOLIDserver](https://www.efficientip.com/products/solidserver/) version 6.0.2 and higher.
 
