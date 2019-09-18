@@ -2,7 +2,7 @@
 
 # EfficientIP SOLIDserver Provider
 
-This provider allows to easily interact with EfficientIP [SOLIDserver](https://www.efficientip.com/products/solidserver/)'s REST API.
+This provider allows to easily interact with EfficientIP's [SOLIDserver](https://www.efficientip.com/products/solidserver/) REST API.
 It allows to manage supported resources through CRUD operations for efficient DDI orchestration.
 
 <p align="center">
