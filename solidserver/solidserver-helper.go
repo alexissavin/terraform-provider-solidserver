@@ -292,7 +292,7 @@ func ipaddressfindfree(subnetID string, poolID string, meta interface{}) ([]stri
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("subnet_id", subnetID)
-	parameters.Add("max_find", "4")
+	parameters.Add("max_find", "32")
 
 	if len(poolID) > 0 {
 		parameters.Add("pool_id", poolID)
@@ -332,7 +332,7 @@ func ip6addressfindfree(subnetID string, poolID string, meta interface{}) ([]str
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("subnet6_id", subnetID)
-	parameters.Add("max_find", "4")
+	parameters.Add("max_find", "32")
 
 	if len(poolID) > 0 {
 		parameters.Add("pool6_id", poolID)
