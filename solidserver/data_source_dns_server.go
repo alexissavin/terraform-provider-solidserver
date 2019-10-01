@@ -78,7 +78,7 @@ func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "dns_name='"+d.Get("name").(string)+"' AND type!='vdns'")
+	parameters.Add("WHERE", "dns_name='"+d.Get("name").(string)+"' AND dns_type!='vdns'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/dns_server_list", &parameters)

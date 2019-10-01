@@ -167,6 +167,10 @@ resource "solidserver_dns_smart" "myFirstDnsSMART" {
   forward    = "none"
 }
 
+data "solidserver_dns_smart" "myFirstDnsSMARTData" {
+  name = "${solidserver_dns_smart.myFirstDnsSMART.name}"
+}
+
 resource "solidserver_dns_server" "myFirstDnsServer" {
   name       = "myfirstdnsserver.priv"
   address    = "127.0.0.1"
@@ -175,6 +179,10 @@ resource "solidserver_dns_server" "myFirstDnsServer" {
   smart      = "${solidserver_dns_smart.myFirstDnsSMART.name}"
   smart_role = "master"
   comment    = "My First DNS Server Autmatically created"
+}
+
+data "solidserver_dns_server" "myFirstDnsServerData" {
+  name = "${solidserver_dns_server.myFirstDnsServer.name}"
 }
 
 resource "solidserver_dns_zone" "myFirstZone" {
