@@ -117,7 +117,7 @@ func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
-			retrievedClassParameters, _ := url.ParseQuery(buf[0]["site_class_parameters"].(string))
+			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dns_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
 			for ck := range currentClassParameters {
