@@ -108,10 +108,6 @@ func resourcednsserver() *schema.Resource {
 	}
 }
 
-//FIXME - Validate dnsservertype
-//func resourcedsnservertypevalidate(v interface{}, _ string) ([]string, []error) {
-//}
-
 func resourcednsserverExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	s := meta.(*SOLIDserver)
 

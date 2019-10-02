@@ -24,7 +24,7 @@ func resourcednssmart() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the SMART to create.",
+				Description: "The name of the DNS SMART to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
@@ -85,10 +85,6 @@ func resourcednssmart() *schema.Resource {
 		},
 	}
 }
-
-// Validate dnssmart type
-//func resourcednssmarttypevalidate(v interface{}, _ string) ([]string, []error) {
-//}
 
 func resourcednssmartExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	s := meta.(*SOLIDserver)
