@@ -28,7 +28,7 @@ func resourcednsrr() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
-			"dnsview_name": {
+			"dnsview": {
 				Type:        schema.TypeString,
 				Description: "The View name of the RR to create.",
 				Optional:    true,
@@ -136,9 +136,9 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("value1", d.Get("value").(string))
 	parameters.Add("rr_ttl", strconv.Itoa(d.Get("ttl").(int)))
 
-	// Add dnsview_name parameter if it is supplied
-	if len(d.Get("dnsview_name").(string)) != 0 {
-		parameters.Add("dnsview_name", d.Get("dnsview_name").(string))
+	// Add dnsview parameter if it is supplied
+	if len(d.Get("dnsview").(string)) != 0 {
+		parameters.Add("dnsview_name", d.Get("dnsview").(string))
 	}
 
 	// Sending the creation request
@@ -184,9 +184,9 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("value1", d.Get("value").(string))
 	parameters.Add("rr_ttl", strconv.Itoa(d.Get("ttl").(int)))
 
-	// Add dnsview_name parameter if it is supplied
-	if len(d.Get("dnsview_name").(string)) != 0 {
-		parameters.Add("dnsview_name", d.Get("dnsview_name").(string))
+	// Add dnsview parameter if it is supplied
+	if len(d.Get("dnsview").(string)) != 0 {
+		parameters.Add("dnsview_name", d.Get("dnsview").(string))
 	}
 
 	// Sending the update request
@@ -226,9 +226,9 @@ func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("rr_id", d.Id())
 
-	// Add dnsview_name parameter if it is supplied
-	if len(d.Get("dnsview_name").(string)) != 0 {
-		parameters.Add("dnsview_name", d.Get("dnsview_name").(string))
+	// Add dnsview parameter if it is supplied
+	if len(d.Get("dnsview").(string)) != 0 {
+		parameters.Add("dnsview_name", d.Get("dnsview").(string))
 	}
 
 	// Sending the deletion request
@@ -288,6 +288,10 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("value", buf[0]["value1"].(string))
 			d.Set("ttl", ttl)
 
+			if buf[0]["dnsview_name"].(string) != "#" {
+				d.Set("dnsview", buf[0]["dnsview_name"].(string))
+			}
+
 			return nil
 		}
 
@@ -335,9 +339,8 @@ func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*sche
 			d.Set("value", buf[0]["value1"].(string))
 			d.Set("ttl", ttl)
 
-			// Add dnsview_name parameter if it is supplied
-			if len(d.Get("dnsview_name").(string)) != 0 {
-				d.Set("dnsview_name", buf[0]["dnsview_name"].(string))
+			if buf[0]["dnsview_name"].(string) != "#" {
+				d.Set("dnsview", buf[0]["dnsview_name"].(string))
 			}
 
 			return []*schema.ResourceData{d}, nil
