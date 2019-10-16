@@ -161,19 +161,56 @@ func stringfromhealcheckparams(healthCheck string, parameters interface{}) strin
 func healcheckparamsfromstring(healthCheck string, parameters string) interface{} {
 	res := make(map[string]interface{})
 	buf := strings.Split(strings.TrimSuffix(parameters, "&"), "&")
+	bufLen := len(buf)
 
 	if healthCheck == "tcp" {
-		res["tcp_port"], _ = url.QueryUnescape(buf[0])
+		if bufLen >= 1 {
+			res["tcp_port"], _ = url.QueryUnescape(buf[0])
+		} else {
+			res["tcp_port"] = ""
+		}
 		return res
 	} else if healthCheck == "http" {
-		res["http_host"], _ = url.QueryUnescape(buf[0])
-		res["http_port"], _ = url.QueryUnescape(buf[1])
-		res["http_path"], _ = url.QueryUnescape(buf[2])
-		res["http_ssl"], _ = url.QueryUnescape(buf[3])
-		res["http_status_code"], _ = url.QueryUnescape(buf[4])
-		res["http_lookup_string"], _ = url.QueryUnescape(buf[5])
-		res["http_basic_auth"], _ = url.QueryUnescape(buf[6])
-		res["http_ssl_verify"], _ = url.QueryUnescape(buf[7])
+		if bufLen >= 1 {
+			res["http_host"], _ = url.QueryUnescape(buf[0])
+		} else {
+			res["http_host"] = ""
+		}
+		if bufLen >= 2 {
+			res["http_port"], _ = url.QueryUnescape(buf[1])
+		} else {
+			res["http_port"] = "80"
+		}
+		if bufLen >= 3 {
+			res["http_path"], _ = url.QueryUnescape(buf[2])
+		} else {
+			res["http_path"] = ""
+		}
+		if bufLen >= 4 {
+			res["http_ssl"], _ = url.QueryUnescape(buf[3])
+		} else {
+			res["http_ssl"] = "0"
+		}
+		if bufLen >= 5 {
+			res["http_status_code"], _ = url.QueryUnescape(buf[4])
+		} else {
+			res["http_status_code"] = ""
+		}
+		if bufLen >= 6 {
+			res["http_lookup_string"], _ = url.QueryUnescape(buf[5])
+		} else {
+			res["http_lookup_string"] = ""
+		}
+		if bufLen >= 7 {
+			res["http_basic_auth"], _ = url.QueryUnescape(buf[6])
+		} else {
+			res["http_basic_auth"] = ""
+		}
+		if bufLen >= 8 {
+			res["http_ssl_verify"], _ = url.QueryUnescape(buf[7])
+		} else {
+			res["http_ssl_verify"] = "0"
+		}
 		return res
 	} else {
 		return res

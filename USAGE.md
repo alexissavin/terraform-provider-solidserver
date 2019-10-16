@@ -560,7 +560,7 @@ Application Node resource allows to create a node that is used to implement a tr
 |http|http_ssl|Use 0 (disable) or 1 (enable) for HTTPS connection.|
 |http|http_status_code|The HTTP status code to expect.|
 |http|http_lookup_string|A string the must be included in the answer payload.|
-|http|http_basic_auth|HTTP basic auth header (<user>:<password>).|
+|http|http_basic_auth|HTTP basic auth header (user:password).|
 |http|http_ssl_verify|Use 0 or 1 to activate ssl certificate checks.|
 
 Creating an Application Node:
