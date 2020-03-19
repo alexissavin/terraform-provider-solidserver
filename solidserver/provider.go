@@ -52,6 +52,8 @@ func Provider() terraform.ResourceProvider {
 			"solidserver_dns_smart":  dataSourcednssmart(),
 			"solidserver_dns_server": dataSourcednsserver(),
 			"solidserver_usergroup":  dataSourceusergroup(),
+			"solidserver_cdb_name":   dataSourcecdbname(),
+			"solidserver_cdb_data":   dataSourcecdbdata(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -79,6 +81,8 @@ func Provider() terraform.ResourceProvider {
 			"solidserver_app_node":         resourceapplicationnode(),
 			"solidserver_user":             resourceuser(),
 			"solidserver_usergroup":        resourceusergroup(),
+			"solidserver_cdb_name":         resourcecdbname(),
+			"solidserver_cdb_data":         resourcecdbdata(),
 		},
 
 		ConfigureFunc: ProviderConfigure,
