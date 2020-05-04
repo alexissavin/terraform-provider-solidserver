@@ -1,10 +1,10 @@
-# Call this sample with terraform plan -var 'solidserver_host=<IP|FQDN> -var solidserver_user=<USER> -var solidserver_password=<PASSWORD>'
+# Call this sample with terraform plan -var 'solidserver_host=<IP|FQDN>' -var 'solidserver_user=<USER>' -var 'solidserver_password=<PASSWORD>'
 
 # Configure the SOLIDserver Provider
 provider "solidserver" {
-  host      = "${var.solidserver_host}"
-  username  = "${var.solidserver_user}"
-  password  = "${var.solidserver_password}"
+  host      = var.solidserver_host
+  username  = var.solidserver_user
+  password  = var.solidserver_password
   sslverify = false
 }
 
@@ -25,7 +25,7 @@ resource "solidserver_ip_space" "myFirstSpace" {
 }
 
 data "solidserver_ip_space" "myFirstSpaceData" {
-  name = "${solidserver_ip_space.myFirstSpace.name}"
+  name = solidserver_ip_space.myFirstSpace.name
 }
 
 resource "solidserver_vlan_domain" "myFirstVxlanDomain" {
@@ -38,12 +38,13 @@ resource "solidserver_vlan_domain" "myFirstVxlanDomain" {
 }
 
 resource "solidserver_vlan" "myFirstVxlan" {
-  vlan_domain      = "${solidserver_vlan_domain.myFirstVxlanDomain.name}"
+  depends_on       = [solidserver_vlan_domain.myFirstVxlanDomain]
+  vlan_domain      = solidserver_vlan_domain.myFirstVxlanDomain.name
   name             = "myFirstVxlan"
 }
 
 resource "solidserver_ip_subnet" "myFirstIPBlock" {
-  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  space            = solidserver_ip_space.myFirstSpace.name
   request_ip       = "10.0.0.0"
   prefix_size      = 8
   name             = "myFirstIPBlock"
@@ -51,16 +52,16 @@ resource "solidserver_ip_subnet" "myFirstIPBlock" {
 }
 
 resource "solidserver_ip_subnet" "myFirstIPSubnet" {
-  space            = "${solidserver_ip_space.myFirstSpace.name}"
-  block            = "${solidserver_ip_subnet.myFirstIPBlock.name}"
+  space            = solidserver_ip_space.myFirstSpace.name
+  block            = solidserver_ip_subnet.myFirstIPBlock.name
   prefix_size      = 24
   name             = "myFirstIPSubnet"
   terminal         = false
 }
 
 resource "solidserver_ip_subnet" "mySecondIPSubnet" {
-  space            = "${solidserver_ip_space.myFirstSpace.name}"
-  block            = "${solidserver_ip_subnet.myFirstIPSubnet.name}"
+  space            = solidserver_ip_space.myFirstSpace.name
+  block            = solidserver_ip_subnet.myFirstIPSubnet.name
   prefix_size      = 29
   name             = "mySecondIPSubnet"
   gateway_offset   = -1
@@ -71,36 +72,36 @@ resource "solidserver_ip_subnet" "mySecondIPSubnet" {
 }
 
 resource "solidserver_ip_pool" "myFirstIPPool" {
-  space            = "${solidserver_ip_space.myFirstSpace.name}"
-  subnet           = "${solidserver_ip_subnet.mySecondIPSubnet.name}"
+  space            = solidserver_ip_space.myFirstSpace.name
+  subnet           = solidserver_ip_subnet.mySecondIPSubnet.name
   name             = "myFirstIPPool"
-  start            = "${solidserver_ip_subnet.mySecondIPSubnet.address}"
+  start            = solidserver_ip_subnet.mySecondIPSubnet.address
   size             = 2
 }
 
 resource "solidserver_ip_address" "myFirstIPAddress" {
-  space   = "${solidserver_ip_space.myFirstSpace.name}"
-  subnet  = "${solidserver_ip_subnet.mySecondIPSubnet.name}"
-  pool    = "${solidserver_ip_pool.myFirstIPPool.name}"
+  space   = solidserver_ip_space.myFirstSpace.name
+  subnet  = solidserver_ip_subnet.mySecondIPSubnet.name
+  pool    = solidserver_ip_pool.myFirstIPPool.name
   name    = "myfirstipaddress"
-  device  = "${solidserver_device.myFirstDevice.name}"
+  device  = solidserver_device.myFirstDevice.name
   lifecycle {
-    ignore_changes = ["mac"]
+    ignore_changes = [mac]
   }
 }
 
 resource "solidserver_ip_mac" "myFirstIPMacAassoc" {
-  space   = "${solidserver_ip_space.myFirstSpace.name}"
-  address = "${solidserver_ip_address.myFirstIPAddress.address}"
+  space   = solidserver_ip_space.myFirstSpace.name
+  address = solidserver_ip_address.myFirstIPAddress.address
   mac     = "00:11:22:33:44:55"
 }
 
 data "solidserver_ip_ptr" "myFirstIPPTR" {
-  address = "${solidserver_ip_address.myFirstIPAddress.address}"
+  address = solidserver_ip_address.myFirstIPAddress.address
 }
 
 resource "solidserver_ip6_subnet" "myFirstIP6Block" {
-  space            = "${solidserver_ip_space.myFirstSpace.name}"
+  space            = solidserver_ip_space.myFirstSpace.name
   request_ip       = "2a00:2381:126d:0:0:0:0:0"
   prefix_size      = 48
   name             = "myFirstIP6Block"
@@ -108,16 +109,16 @@ resource "solidserver_ip6_subnet" "myFirstIP6Block" {
 }
 
 resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
-  space            = "${solidserver_ip_space.myFirstSpace.name}"
-  block            = "${solidserver_ip6_subnet.myFirstIP6Block.name}"
+  space            = solidserver_ip_space.myFirstSpace.name
+  block            = solidserver_ip6_subnet.myFirstIP6Block.name
   prefix_size      = 56
   name             = "myFirstIP6Subnet"
   terminal         = false
 }
 
 resource "solidserver_ip6_subnet" "mySecondIP6Subnet" {
-  space            = "${solidserver_ip_space.myFirstSpace.name}"
-  block            = "${solidserver_ip6_subnet.myFirstIP6Subnet.name}"
+  space            = solidserver_ip_space.myFirstSpace.name
+  block            = solidserver_ip6_subnet.myFirstIP6Subnet.name
   prefix_size      = 64
   name             = "mySecondIP6Subnet"
   gateway_offset   = 1
@@ -128,34 +129,34 @@ resource "solidserver_ip6_subnet" "mySecondIP6Subnet" {
 }
 
 resource "solidserver_ip6_address" "myFirstIP6Address" {
-  space   = "${solidserver_ip_space.myFirstSpace.name}"
-  subnet  = "${solidserver_ip6_subnet.mySecondIP6Subnet.name}"
+  space   = solidserver_ip_space.myFirstSpace.name
+  subnet  = solidserver_ip6_subnet.mySecondIP6Subnet.name
   name    = "myfirstip6address"
-  device  = "${solidserver_device.myFirstDevice.name}"
+  device  = solidserver_device.myFirstDevice.name
   lifecycle {
-    ignore_changes = ["mac"]
+    ignore_changes = [mac]
   }
 }
 
 data "solidserver_ip6_ptr" "myFirstIPPTR" {
-  address = "${solidserver_ip6_address.myFirstIP6Address.address}"
+  address = solidserver_ip6_address.myFirstIP6Address.address
 }
 
 resource "solidserver_ip6_mac" "myFirstIP6MacAassoc" {
-  space   = "${solidserver_ip_space.myFirstSpace.name}"
-  address = "${solidserver_ip6_address.myFirstIP6Address.address}"
+  space   = solidserver_ip_space.myFirstSpace.name
+  address = solidserver_ip6_address.myFirstIP6Address.address
   mac     = "06:16:26:36:46:56"
 }
 
 resource "solidserver_ip_alias" "myFirstIPAlias" {
-  space  = "${solidserver_ip_space.myFirstSpace.name}"
-  address = "${solidserver_ip_address.myFirstIPAddress.address}"
+  space  = solidserver_ip_space.myFirstSpace.name
+  address = solidserver_ip_address.myFirstIPAddress.address
   name   = "myfirstipcnamealias.mycompany.priv"
 }
 
 resource "solidserver_ip6_alias" "myFirstIP6Alias" {
-  space  = "${solidserver_ip_space.myFirstSpace.name}"
-  address = "${solidserver_ip6_address.myFirstIP6Address.address}"
+  space  = solidserver_ip_space.myFirstSpace.name
+  address = solidserver_ip6_address.myFirstIP6Address.address
   name   = "myfirstip6cnamealias.mycompany.priv"
 }
 
@@ -168,7 +169,7 @@ resource "solidserver_dns_smart" "myFirstDnsSMART" {
 }
 
 data "solidserver_dns_smart" "myFirstDnsSMARTData" {
-  name = "${solidserver_dns_smart.myFirstDnsSMART.name}"
+  name = solidserver_dns_smart.myFirstDnsSMART.name
 }
 
 resource "solidserver_dns_server" "myFirstDnsServer" {
@@ -176,32 +177,32 @@ resource "solidserver_dns_server" "myFirstDnsServer" {
   address    = "127.0.0.1"
   login      = "admin"
   password   = "admin"
-  smart      = "${solidserver_dns_smart.myFirstDnsSMART.name}"
+  smart      = solidserver_dns_smart.myFirstDnsSMART.name
   smart_role = "master"
   comment    = "My First DNS Server Autmatically created"
 }
 
 data "solidserver_dns_server" "myFirstDnsServerData" {
-  name = "${solidserver_dns_server.myFirstDnsServer.name}"
+  name = solidserver_dns_server.myFirstDnsServer.name
 }
 
 resource "solidserver_dns_zone" "myFirstZone" {
-  dnsserver = "${solidserver_dns_smart.myFirstDnsSMART.name}"
+  dnsserver = solidserver_dns_smart.myFirstDnsSMART.name
   name      = "mycompany.priv"
   type      = "master"
   createptr = false
 }
 
 resource "solidserver_dns_forward_zone" "myFirstForwardZone" {
-  dnsserver = "${solidserver_dns_smart.myFirstDnsSMART.name}"
+  dnsserver = solidserver_dns_smart.myFirstDnsSMART.name
   name       = "fwd.mycompany.priv"
   forward    = "first"
   forwarders = ["10.10.8.8", "10.10.4.4"]
 }
 
 resource "solidserver_dns_rr" "ARecords" {
-  depends_on   = ["solidserver_dns_zone.myFirstZone"]
-  dnsserver    = "${solidserver_dns_smart.myFirstDnsSMART.name}"
+  depends_on   = [solidserver_dns_zone.myFirstZone]
+  dnsserver    = solidserver_dns_smart.myFirstDnsSMART.name
   name         = "aarecord-${count.index}.mycompany.priv"
   type         = "A"
   value        = "127.0.0.1"
@@ -209,8 +210,8 @@ resource "solidserver_dns_rr" "ARecords" {
 }
 
 resource "solidserver_dns_rr" "CnameRecords" {
-  depends_on   = ["solidserver_dns_rr.ARecords"]
-  dnsserver    = "${solidserver_dns_smart.myFirstDnsSMART.name}"
+  depends_on   = [solidserver_dns_rr.ARecords]
+  dnsserver    = solidserver_dns_smart.myFirstDnsSMART.name
   name         = "cnamerecord-${count.index}.mycompany.priv"
   type         = "CNAME"
   value        = "aarecord-${count.index}.mycompany.priv"
@@ -225,23 +226,45 @@ resource "solidserver_app_application" "myFirstApplicaton" {
 
 resource "solidserver_app_pool" "myFirstPool" {
   name         = "myFirstPool"
-  application  = "${solidserver_app_application.myFirstApplicaton.name}"
-  fqdn         = "${solidserver_app_application.myFirstApplicaton.fqdn}"
+  application  = solidserver_app_application.myFirstApplicaton.name
+  fqdn         = solidserver_app_application.myFirstApplicaton.fqdn
   affinity     = true
   affinity_session_duration = 300
 }
 
 resource "solidserver_app_node" "myFirstNode" {
   name         = "myFirstNode"
-  application  = "${solidserver_app_application.myFirstApplicaton.name}"
-  fqdn         = "${solidserver_app_application.myFirstApplicaton.fqdn}"
-  pool         = "${solidserver_app_pool.myFirstPool.name}"
+  application  = solidserver_app_application.myFirstApplicaton.name
+  fqdn         = solidserver_app_application.myFirstApplicaton.fqdn
+  pool         = solidserver_app_pool.myFirstPool.name
   address      = "127.0.0.1"
   weight       = 1
   healthcheck  = "tcp"
   healthcheck_parameters = {
     tcp_port = "443"
   }
+}
+
+resource "solidserver_cdb_name" "myFirstCustomDB" {
+  name         = "myFirstCustomDB"
+  label1       = "Country Code"
+  label2       = "Country Name"
+}
+
+data "solidserver_cdb_name" "myFirstCustomDBDataSource" {
+  name         = "myFirstCustomDB"
+}
+
+resource "solidserver_cdb_data" "myFirstCustomData" {
+  custom_db    = solidserver_cdb_name.myFirstCustomDB.name
+  value1       = "FR"
+  value2       = "France"
+}
+
+resource "solidserver_cdb_data" "mySecondCustomData" {
+  custom_db    = solidserver_cdb_name.myFirstCustomDB.name
+  value1       = "US"
+  value2       = "United States of America"
 }
 
 output "sds-space01" {

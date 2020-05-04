@@ -1,14 +1,14 @@
 variable "solidserver_host" {
-  type = "string"
+  type = string
   default = ""
 }
 
 variable "solidserver_user" {
-  type = "string"
+  type = string
   default = ""
 }
 
 variable "solidserver_password" {
-  type = "string"
+  type = string
   default = ""
 }

@@ -918,6 +918,35 @@ func ip6subnetfindbysize(siteID string, blockID string, requestedIP string, pref
 	return []string{}, err
 }
 
+// Return the oid of a Custom DB from name
+// Or an empty string in case of failure
+func cdbnameidbyname(name string, meta interface{}) (string, error) {
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "name='"+name+"'")
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/custom_db_name_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if cdbnameID, cdbnameIDExist := buf[0]["custom_db_name_id"].(string); cdbnameIDExist {
+				return cdbnameID, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find Custom DB: %s\n", name)
+
+	return "", err
+}
+
 // Update a DNS SMART member's role list
 // Return false in case of failure
 func dnssmartmembersupdate(smartName string, smartMembersRole string, meta interface{}) bool {

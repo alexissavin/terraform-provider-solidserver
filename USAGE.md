@@ -624,6 +624,41 @@ data "solidserver_usergroup" "t_group_01" {
 }
 ```
 
+## Custom DB
+Custom DB resource allows to write custom data in the SOLIDserver database. It can be reused by classes. Custom DB can be created from the following arguments:
+
+* `name` - (Required) The name of the Custom DB.
+* `label1` - (Optional) The name of the first column.
+* `label2` - (Optional) The name of the second column.
+* ...
+* `label10` - (Optional) The name of the tenth column.
+
+Creating a Custom DB:
+```
+resource "solidserver_cdb_name" "myFirstCustomDB" {
+  name = "myFirstCustomDB"
+  label1 = "Country Code"
+  label2 = "Country Name"
+}
+```
+
+## Custom DB Data
+Custom DB Data resource allows to write values in a Custom DB. Custom DB Data can be created from the following arguments:
+
+* `custom_db` - (Required) The name of the Custom DB into which writing the data.
+* `value1` - (Required) The value of the first column.
+* `value2` - (Optional) The value of the second column.
+* ...
+* `value10` - (Optional) The value of the tenth column.
+
+Writing a Custom DB Data
+```
+resource "solidserver_cdb_data" "myFirstCustomData" {
+  custom_db = "myFirstCustomDB"
+  value1 = "FR"
+  value2 = "France"
+}
+```
 
 # Available Data-Sources
 SOLIDServer provider allows to retrieve information from several resources listed below:
@@ -713,3 +748,32 @@ Fields exposed through the datasource are:
 * `forwarders` - The IP address list of the forwarder(s) configured on the DNS server.
 * `class` - The name of the class associated with the DNS server.
 * `class_parameters` - The class parameters associated with the DNS server class, as key/value.
+
+## Custom DB
+Getting information from a Custom DB, based on its name:
+```
+data "solidserver_cdb_name" "myFirstCustomDB" {
+  name             = "myFirstCustomDB"
+}
+```
+Fields exposed through the datasource are:
+* `name` - (Required) The name of the Custom DB.
+* `label1` - The name of the first column.
+* `label2` - The name of the second column.
+* ...
+* `label10` - The name of the tenth column.
+
+## Custom DB Data
+Getting information from a Custom DB Data, based on the first column:
+```
+data "solidserver_cdb_data" "myCustomData" {
+  custom_db        = "myFirstCustomDB"
+  value1           = "FR"
+}
+```
+Fields exposed through the datasource are:
+* `custom_db` - (Required) The name of the Custom DB.
+* `value1` - (Required) The value of the first column. Acting like a database key.
+* `value2` - The value of the second column.
+* ...
+* `value10` - The value of the tenth column.
