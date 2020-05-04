@@ -252,6 +252,7 @@ resource "solidserver_cdb_name" "myFirstCustomDB" {
 }
 
 data "solidserver_cdb_name" "myFirstCustomDBDataSource" {
+  depends_on   = [solidserver_cdb_name.myFirstCustomDB]
   name         = "myFirstCustomDB"
 }
 
