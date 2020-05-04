@@ -482,7 +482,7 @@ data "solidserver_ip_ptr" "myFirstIPPTR" {
 resource "solidserver_dns_rr" "aaRecord" {
   dnsserver    = "ns.mycompany.priv"
   dnsview_name = "Internal"
-  name         = "${solidserver_ip_ptr.myFirstIPPTR.address.dname}"
+  name         = "${solidserver_ip_ptr.myFirstIPPTR.dname}"
   type         = "PTR"
   value        = "myapp.mycompany.priv"
 }
