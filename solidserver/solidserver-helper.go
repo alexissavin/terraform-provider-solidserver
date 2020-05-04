@@ -371,7 +371,7 @@ func vlanidfindfree(vlmdomainName string, meta interface{}) ([]string, error) {
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("limit", "4")
+	parameters.Add("limit", "16")
 
 	if s.Version < 700 {
 		parameters.Add("WHERE", "vlmdomain_name='"+strings.ToLower(vlmdomainName)+"' AND row_enabled='2'")
@@ -834,7 +834,7 @@ func ipsubnetfindbysize(siteID string, blockID string, requestedIP string, prefi
 	parameters := url.Values{}
 	parameters.Add("site_id", siteID)
 	parameters.Add("prefix", strconv.Itoa(prefixSize))
-	parameters.Add("max_find", "4")
+	parameters.Add("max_find", "16")
 
 	// Specifying a suggested subnet IP address
 	if len(requestedIP) > 0 {
@@ -881,7 +881,7 @@ func ip6subnetfindbysize(siteID string, blockID string, requestedIP string, pref
 	parameters := url.Values{}
 	parameters.Add("site_id", siteID)
 	parameters.Add("prefix", strconv.Itoa(prefixSize))
-	parameters.Add("max_find", "4")
+	parameters.Add("max_find", "16")
 
 	// Specifying a suggested subnet IP address
 	if len(requestedIP) > 0 {
