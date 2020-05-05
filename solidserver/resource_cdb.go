@@ -8,15 +8,15 @@ import (
 	"net/url"
 )
 
-func resourcecdbname() *schema.Resource {
+func resourcecdb() *schema.Resource {
 	return &schema.Resource{
-		Create: resourcecdbnameCreate,
-		Read:   resourcecdbnameRead,
-		Update: resourcecdbnameUpdate,
-		Delete: resourcecdbnameDelete,
-		Exists: resourcecdbnameExists,
+		Create: resourcecdbCreate,
+		Read:   resourcecdbRead,
+		Update: resourcecdbUpdate,
+		Delete: resourcecdbDelete,
+		Exists: resourcecdbExists,
 		Importer: &schema.ResourceImporter{
-			State: resourcecdbnameImportState,
+			State: resourcecdbImportState,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -100,7 +100,7 @@ func resourcecdbname() *schema.Resource {
 	}
 }
 
-func resourcecdbnameExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+func resourcecdbExists(d *schema.ResourceData, meta interface{}) (bool, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -137,7 +137,7 @@ func resourcecdbnameExists(d *schema.ResourceData, meta interface{}) (bool, erro
 	return false, err
 }
 
-func resourcecdbnameCreate(d *schema.ResourceData, meta interface{}) error {
+func resourcecdbCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -185,7 +185,7 @@ func resourcecdbnameCreate(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func resourcecdbnameUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourcecdbUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -234,7 +234,7 @@ func resourcecdbnameUpdate(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func resourcecdbnameDelete(d *schema.ResourceData, meta interface{}) error {
+func resourcecdbDelete(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -274,7 +274,7 @@ func resourcecdbnameDelete(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func resourcecdbnameRead(d *schema.ResourceData, meta interface{}) error {
+func resourcecdbRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
@@ -325,7 +325,7 @@ func resourcecdbnameRead(d *schema.ResourceData, meta interface{}) error {
 	return err
 }
 
-func resourcecdbnameImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+func resourcecdbImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters

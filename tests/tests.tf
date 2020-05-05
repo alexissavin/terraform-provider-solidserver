@@ -245,25 +245,25 @@ resource "solidserver_app_node" "myFirstNode" {
   }
 }
 
-resource "solidserver_cdb_name" "myFirstCustomDB" {
+resource "solidserver_cdb" "myFirstCustomDB" {
   name         = "myFirstCustomDB"
   label1       = "Country Code"
   label2       = "Country Name"
 }
 
-data "solidserver_cdb_name" "myFirstCustomDBDataSource" {
-  depends_on   = [solidserver_cdb_name.myFirstCustomDB]
+data "solidserver_cdb" "myFirstCustomDBDataSource" {
+  depends_on   = [solidserver_cdb.myFirstCustomDB]
   name         = "myFirstCustomDB"
 }
 
 resource "solidserver_cdb_data" "myFirstCustomData" {
-  custom_db    = solidserver_cdb_name.myFirstCustomDB.name
+  custom_db    = solidserver_cdb.myFirstCustomDB.name
   value1       = "FR"
   value2       = "France"
 }
 
 resource "solidserver_cdb_data" "mySecondCustomData" {
-  custom_db    = solidserver_cdb_name.myFirstCustomDB.name
+  custom_db    = solidserver_cdb.myFirstCustomDB.name
   value1       = "US"
   value2       = "United States of America"
 }

@@ -8,9 +8,9 @@ import (
 	"net/url"
 )
 
-func dataSourcecdbname() *schema.Resource {
+func dataSourcecdb() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourcecdbnameRead,
+		Read: dataSourcecdbRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -72,7 +72,7 @@ func dataSourcecdbname() *schema.Resource {
 	}
 }
 
-func dataSourcecdbnameRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourcecdbRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 	d.SetId("")
 

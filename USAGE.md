@@ -635,7 +635,7 @@ Custom DB resource allows to write custom data in the SOLIDserver database. It c
 
 Creating a Custom DB:
 ```
-resource "solidserver_cdb_name" "myFirstCustomDB" {
+resource "solidserver_cdb" "myFirstCustomDB" {
   name = "myFirstCustomDB"
   label1 = "Country Code"
   label2 = "Country Name"
@@ -752,7 +752,7 @@ Fields exposed through the datasource are:
 ## Custom DB
 Getting information from a Custom DB, based on its name:
 ```
-data "solidserver_cdb_name" "myFirstCustomDB" {
+data "solidserver_cdb" "myFirstCustomDB" {
   name             = "myFirstCustomDB"
 }
 ```
