@@ -156,7 +156,8 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	if len(d.Get("pool").(string)) > 0 {
 		var poolErr error = nil
 
-		poolID, poolErr = ippoolidbyname(siteID, d.Get("pool").(string), meta)
+		poolID, poolErr = ippoolidbyname(siteID, d.Get("pool").(string), d.Get("subnet").(string), meta)
+    log.Printf("[DEBUG] SOLIDServer - Got poolID " + poolID ) 
 
 		if poolErr != nil {
 			// Reporting a failure

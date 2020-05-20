@@ -517,12 +517,13 @@ func ipsubnetidbyname(siteID string, subnetName string, terminal bool, meta inte
 
 // Return the oid of a pool from site_id and pool_name
 // Or an empty string in case of failure
-func ippoolidbyname(siteID string, poolName string, meta interface{}) (string, error) {
+func ippoolidbyname(siteID string, poolName string, subnetName string, meta interface{}) (string, error) {
 	s := meta.(*SOLIDserver)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"pool_name='"+strings.ToLower(poolName)+"'")
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"pool_name='"+strings.ToLower(poolName)+"'" + 
+                  " and subnet_name like '" + strings.ToLower(subnetName) + "'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip_pool_list", &parameters)
