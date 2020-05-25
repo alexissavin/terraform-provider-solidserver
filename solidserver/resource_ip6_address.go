@@ -155,7 +155,7 @@ func resourceip6addressCreate(d *schema.ResourceData, meta interface{}) error {
 	if len(d.Get("pool").(string)) > 0 {
 		var poolErr error = nil
 
-		poolID, poolErr = ip6poolidbyname(siteID, d.Get("pool").(string), meta)
+		poolID, poolErr = ip6poolidbyname(siteID, d.Get("pool").(string), d.Get("subnet").(string), meta)
 
 		if poolErr != nil {
 			// Reporting a failure
