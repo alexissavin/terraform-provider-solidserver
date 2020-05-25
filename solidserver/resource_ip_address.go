@@ -71,7 +71,7 @@ func resourceipaddress() *schema.Resource {
 			"mac": {
 				Type:         schema.TypeString,
 				Description:  "The MAC Address of the IP address to create.",
-				ValidateFunc: validation.StringMatch(regexp.MustCompile("^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$"), "Unsupported MAC address format."),
+				ValidateFunc: validation.StringMatch(regexp.MustCompile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"), "Unsupported MAC address format."),
 				Optional:     true,
 				ForceNew:     false,
 				Default:      "",
