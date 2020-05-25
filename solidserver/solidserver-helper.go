@@ -522,8 +522,7 @@ func ippoolidbyname(siteID string, poolName string, subnetName string, meta inte
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"pool_name='"+strings.ToLower(poolName)+"'" + 
-                  " and subnet_name='" + strings.ToLower(subnetName) + "'")
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"pool_name='"+strings.ToLower(poolName)+"' AND subnet_name='"+strings.ToLower(subnetName)+"'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip_pool_list", &parameters)
