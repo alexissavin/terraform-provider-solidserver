@@ -3,11 +3,12 @@ package solidserver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"regexp"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceipaddress() *schema.Resource {
@@ -69,12 +70,13 @@ func resourceipaddress() *schema.Resource {
 				ForceNew:    false,
 			},
 			"mac": {
-				Type:         schema.TypeString,
-				Description:  "The MAC Address of the IP address to create.",
-				ValidateFunc: validation.StringMatch(regexp.MustCompile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"), "Unsupported MAC address format."),
-				Optional:     true,
-				ForceNew:     false,
-				Default:      "",
+				Type:             schema.TypeString,
+				Description:      "The MAC Address of the IP address to create.",
+				ValidateFunc:     validation.StringMatch(regexp.MustCompile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"), "Unsupported MAC address format."),
+				Optional:         true,
+				ForceNew:         false,
+				DiffSuppressFunc: resourcediffsuppresscase,
+				Default:          "",
 			},
 			"class": {
 				Type:        schema.TypeString,
