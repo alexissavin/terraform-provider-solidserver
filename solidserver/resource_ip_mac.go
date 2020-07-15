@@ -35,7 +35,7 @@ func resourceipmac() *schema.Resource {
 			"mac": {
 				Type:             schema.TypeString,
 				Description:      "The MAC Address o map with the IP address.",
-				ValidateFunc:     validation.StringMatch(regexp.MustCompile("^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$"), "Unsupported MAC address format."),
+				ValidateFunc:     validation.StringMatch(regexp.MustCompile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"), "Unsupported MAC address format."),
 				DiffSuppressFunc: resourcediffsuppresscase,
 				Required:         true,
 				ForceNew:         true,
