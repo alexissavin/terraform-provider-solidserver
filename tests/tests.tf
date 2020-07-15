@@ -93,7 +93,7 @@ resource "solidserver_ip_address" "myFirstIPAddress" {
 resource "solidserver_ip_mac" "myFirstIPMacAassoc" {
   space   = solidserver_ip_space.myFirstSpace.name
   address = solidserver_ip_address.myFirstIPAddress.address
-  mac     = "00:11:22:33:44:55"
+  mac     = "00:1A:2B:3C:4D:5E"
 }
 
 data "solidserver_ip_ptr" "myFirstIPPTR" {
@@ -145,7 +145,7 @@ data "solidserver_ip6_ptr" "myFirstIPPTR" {
 resource "solidserver_ip6_mac" "myFirstIP6MacAassoc" {
   space   = solidserver_ip_space.myFirstSpace.name
   address = solidserver_ip6_address.myFirstIP6Address.address
-  mac     = "06:16:26:36:46:56"
+  mac     = "06:1a:2b:3c:4d:5e"
 }
 
 resource "solidserver_ip_alias" "myFirstIPAlias" {
