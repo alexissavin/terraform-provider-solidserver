@@ -22,7 +22,7 @@ build:
 	go mod vendor
 	if ! [ -d ${TERRAFORM_PLUGINS_DIRECTORY} ]; then mkdir -p ${TERRAFORM_PLUGINS_DIRECTORY}; fi
 	go build -o ${TERRAFORM_PLUGINS_DIRECTORY}/terraform-provider-${PKG_NAME}
-	if ! [ -d ./_test ]; then	cd _test && rm -rf .terraform && cd ..; fi
+	if ! [ -d ./_tests ]; then	cd _tests && rm -rf .terraform && cd ..; fi
 
 release:
 	go get -v ./...

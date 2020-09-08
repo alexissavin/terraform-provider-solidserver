@@ -35,7 +35,8 @@ resource "solidserver_ip_space" "myFirstSpace" {
 }
 
 data "solidserver_ip_space" "myFirstSpaceData" {
-  name = solidserver_ip_space.myFirstSpace.name
+  depends_on = [solidserver_ip_space.myFirstSpace]
+  name       = solidserver_ip_space.myFirstSpace.name
 }
 
 resource "solidserver_vlan_domain" "myFirstVxlanDomain" {
@@ -179,7 +180,8 @@ resource "solidserver_dns_smart" "myFirstDnsSMART" {
 }
 
 data "solidserver_dns_smart" "myFirstDnsSMARTData" {
-  name = solidserver_dns_smart.myFirstDnsSMART.name
+  depends_on = [solidserver_dns_smart.myFirstDnsSMART]
+  name       = solidserver_dns_smart.myFirstDnsSMART.name
 }
 
 resource "solidserver_dns_server" "myFirstDnsServer" {
@@ -193,6 +195,7 @@ resource "solidserver_dns_server" "myFirstDnsServer" {
 }
 
 data "solidserver_dns_server" "myFirstDnsServerData" {
+  depends_on = [solidserver_dns_server.myFirstDnsServer]
   name = solidserver_dns_server.myFirstDnsServer.name
 }
 
