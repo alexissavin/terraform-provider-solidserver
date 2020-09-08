@@ -1,13 +1,18 @@
 SHELL := /bin/bash
 GO_FILES?=$(find . -name '*.go' |grep -v vendor)
-PKG_NAME=solidserver
 
 # To provide the version use 'make release VERSION=1.1.1'
 ifdef VERSION
 	RELEASE := v$(VERSION)
 else
-	RELEASE := latest
+	VERSION := 99999.9
+	RELEASE := v99999.9
 endif
+
+# Terraform 13 local registry handler
+PKG_NAME := solidserver
+OS_ARCH := linux_amd64
+TERRAFORM_PLUGINS_DIRECTORY := ~/.terraform.d/plugins/terraform.efficientip.com/efficientip/${PKG_NAME}/${VERSION}/${OS_ARCH}
 
 default: build
 
@@ -15,8 +20,9 @@ build:
 	go get -v ./...
 	go mod tidy
 	go mod vendor
-	if ! [ -d './_test' ]; then mkdir './_test'; fi
-	go build -o ./_test/terraform-provider-solidserver
+	if ! [ -d ${TERRAFORM_PLUGINS_DIRECTORY} ]; then mkdir -p ${TERRAFORM_PLUGINS_DIRECTORY}; fi
+	go build -o ${TERRAFORM_PLUGINS_DIRECTORY}/terraform-provider-${PKG_NAME}
+	if ! [ -d ./_test ]; then	cd _test && rm -rf .terraform && cd ..; fi
 
 release:
 	go get -v ./...
