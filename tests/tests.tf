@@ -1,5 +1,15 @@
 # Call this sample with terraform plan -var 'solidserver_host=<IP|FQDN>' -var 'solidserver_user=<USER>' -var 'solidserver_password=<PASSWORD>'
 
+# Configure providers
+terraform {
+  required_providers {
+    solidserver = {
+      source  = "terraform.efficientip.com/efficientip/solidserver"
+      version = ">= 99999.9"
+    }
+  }
+}
+
 # Configure the SOLIDserver Provider
 provider "solidserver" {
   host      = var.solidserver_host
