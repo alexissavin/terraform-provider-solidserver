@@ -23,10 +23,9 @@ build:
 	go build -o ${TERRAFORM_PLUGINS_DIRECTORY}/terraform-provider-${PKG_NAME}
 	if [ -d ./_tests ]; then cd _tests && rm -rf .terraform* && cd ..; fi
 
-The binary name is terraform-provider-{NAME}_v{VERSION}
-The archive name is terraform-provider-{NAME}_{VERSION}_{OS}_{ARCH}.zip
-
 release:
+  #The binary name format is terraform-provider-{NAME}_v{VERSION}
+  #The archive name format is terraform-provider-{NAME}_{VERSION}_{OS}_{ARCH}.zip
 	go get -v ./...
 	go mod tidy
 	go mod vendor

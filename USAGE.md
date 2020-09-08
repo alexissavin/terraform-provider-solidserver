@@ -184,7 +184,7 @@ Note: The gateway_offset value can be positive (offset start at the first addres
 ## IP Pool
 IP Pool resource allows to create IP pools from the following arguments:
 
-* `space` - (Required) The name of the space into which creating the IPv6 subnet.
+* `space` - (Required) The name of the space into which creating the IP Pool.
 * `subnet` - (Required) The name of the parent IP subnet into which creating the IP pool.
 * `start` - (Required) The IP pool lower IP address.
 * `size` - (Required) The size of the IP pool to create.
