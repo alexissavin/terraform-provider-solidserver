@@ -1,7 +1,6 @@
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-blue.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build status](https://travis-ci.org/alexissavin/terraform-provider-solidserver.svg)](https://travis-ci.org/alexissavin/terraform-provider-solidserver) [![Go Report Card](https://goreportcard.com/badge/github.com/alexissavin/terraform-provider-solidserver)](https://goreportcard.com/report/github.com/alexissavin/terraform-provider-solidserver)
 
 # EfficientIP SOLIDserver Provider
-
 This provider allows to easily interact with EfficientIP's [SOLIDserver](https://www.efficientip.com/products/solidserver/) REST API.
 It allows to manage supported resources through CRUD operations for efficient DDI orchestration.
 
@@ -14,7 +13,6 @@ It allows to manage supported resources through CRUD operations for efficient DD
 This provider is compatible with EfficientIP [SOLIDserver](https://www.efficientip.com/products/solidserver/) version 6.0.2 and higher.
 
 # Build
-
 Download the latest revision of the master branch then use the go compiler to generate the binary.
 
 ```
@@ -26,16 +24,13 @@ go build -o terraform-provider-solidserver_vX.Y.Z
 ```
 
 # Install
-
 Download the appropriate build for your system from the [release page]: https://github.com/alexissavin/terraform-provider-solidserver/releases or build the master branch of this repository.
 
 ## Linux
-
 Move the binary file `terraform-provider-solidserver_vX.Y.Z` into the following directory: `$HOME/.terraform.d/plugins/`.
 
 
 ## Windows
-
 Move the binary file `terraform-provider-solidserver_vX.Y.Z` into the following directory: `%APPDATA%\terraform.d\plugins\windows_amd64\`.
 
 
@@ -71,6 +66,41 @@ provider "solidserver" {
 # Available Resources
 SOLIDServer provider allows to manage several resources listed below:
 
+* [Application](docs/resources/app_application.md)
+* [Application Pool](docs/resources/app_pool.md)
+* [Application Node](docs/resources/app_node.md)
+* [Custom DB](docs/resources/cdb.md)
+* [Custom DB Data](docs/resources/cdb_data.md)
 * [Device](docs/resources/device.md)
+* [DNS Forward Zone](docs/resources/dns_forward_zone.md)
+* [DNS Resource Record](docs/resources/dns_rr.md)
+* [DNS Server](docs/resources/dns_server.md)
+* [DNS Smart](docs/resources/dns_smart.md)
+* [DNS Zone](docs/resources/dns_zone.md)
+* [IPv6 Address](docs/resources/ip6_address.md)
+* [IPv6 Alias](docs/resources/ip6_alias.md)
+* [IPv6 MAC](docs/resources/ip6_mac.md)
+* [IPv6 Pool](docs/resources/ip6_pool.md)
+* [IPv6 Subnet](docs/resources/ip6_subnet.md)
+* [IP Address](docs/resources/ip_address.md)
+* [IP Alias](docs/resources/ip_alias.md)
+* [IP MAC](docs/resources/ip_mac.md)
+* [IP Pool](docs/resources/ip_pool.md)
+* [IP Space](docs/resources/ip_space.md)
+* [IP Subnet](docs/resources/ip_subnet.md)
+* [User Group](docs/resources/usergroup.md)
+* [User](docs/resources/user.md)
 * [VLAN Domain](docs/resources/vlan_domain.md)
 * [VLAN](docs/resources/vlan.md)
+
+# Available Data-Sources
+SOLIDServer provider allows to retrieve information from several resources listed below:
+
+* [Custom DB](docs/data-sources/cdb.md)
+* [Custom DB Data](docs/data-sources/cdb_data.md)
+* [DNS Server](docs/data-sources/dns_server.md)
+* [DNS Smart](docs/data-sources/dns_smart.md)
+* [IP Address](docs/data-sources/ip_address.md)
+* [IP Pool](docs/data-sources/ip_pool.md)
+* [IP Space](docs/data-sources/ip_space.md)
+* [IP Subnet](docs/data-sources/ip_subnet.md)
