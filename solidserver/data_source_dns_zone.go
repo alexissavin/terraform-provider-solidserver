@@ -61,7 +61,7 @@ func dataSourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("type",d.Get("type").(string))
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/dns_rr_list", &parameters)
+	resp, body, err := s.Request("get", "rest/dns_zone_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
