@@ -23,20 +23,20 @@ func resourcednszone() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"dnsserver": {
 				Type:        schema.TypeString,
-				Description: "The managed SMART DNS server name, or DNS server name hosting the zone.",
+				Description: "The name of DNS server or DNS SMART hosting the DNS zone to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"view": {
 				Type:        schema.TypeString,
-				Description: "The DNS view name hosting the zone.",
+				Description: "The name of DNS view hosting the DNS zone to create.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     "#",
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The Domain Name served by the zone.",
+				Description: "The Domain Name to be hosted by the zone.",
 				Required:    true,
 				ForceNew:    true,
 			},

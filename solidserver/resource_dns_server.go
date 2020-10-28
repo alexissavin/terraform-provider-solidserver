@@ -69,11 +69,32 @@ func resourcednsserver() *schema.Resource {
 				Description: "The type of DNS server (Supported: ipm (SOLIDserver or Linux Package); Default: ipm).",
 				Computed:    true,
 			},
+
 			"comment": {
 				Type:        schema.TypeString,
 				Description: "Custom information about the DNS server.",
 				Optional:    true,
 				Default:     "",
+			},
+			"recursion": {
+				Type:        schema.TypeBool,
+				Description: "The recursion mode of the DNS SMART (Default: true).",
+				Optional:    true,
+				Default:     true,
+			},
+			"forward": {
+				Type:        schema.TypeString,
+				Description: "The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).",
+				Optional:    true,
+				Default:     "",
+			},
+			"forwarders": {
+				Type:        schema.TypeList,
+				Description: "The IP address list of the forwarder(s) configured to configure on the DNS SMART.",
+				Optional:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 			"smart": {
 				Type:        schema.TypeString,
@@ -162,6 +183,27 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("hostaddr", d.Get("address").(string))
 	parameters.Add("dns_comment", d.Get("comment").(string))
 
+	// Configure recursion
+	if d.Get("recursion").(bool) {
+		parameters.Add("dns_recursion", "yes")
+	} else {
+		parameters.Add("dns_recursion", "no")
+	}
+
+	// Building forward mode
+	if d.Get("forward").(string) == "none" {
+		parameters.Add("dns_forward", "")
+	} else {
+		parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+	}
+
+	// Building forwarder list
+	fwdList := ""
+	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
+		fwdList += fwd + ";"
+	}
+	parameters.Add("dns_forwarders", fwdList)
+
 	parameters.Add("dns_class_name", d.Get("class").(string))
 	parameters.Add("dns_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
@@ -220,6 +262,27 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	parameters.Add("hostaddr", d.Get("address").(string))
 	parameters.Add("dns_comment", d.Get("comment").(string))
+
+	// Configure recursion
+	if d.Get("recursion").(bool) {
+		parameters.Add("dns_recursion", "yes")
+	} else {
+		parameters.Add("dns_recursion", "no")
+	}
+
+	// Building forward mode
+	if d.Get("forward").(string) == "none" {
+		parameters.Add("dns_forward", "")
+	} else {
+		parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+	}
+
+	// Building forwarder list
+	fwdList := ""
+	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
+		fwdList += fwd + ";"
+	}
+	parameters.Add("dns_forwarders", fwdList)
 
 	parameters.Add("dns_class_name", d.Get("class").(string))
 	parameters.Add("dns_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
@@ -323,8 +386,27 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", strings.ToLower(buf[0]["dns_name"].(string)))
 			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
-			d.Set("comment", buf[0]["dns_comment"].(string))
 			d.Set("type", buf[0]["dns_type"].(string))
+			d.Set("comment", buf[0]["dns_comment"].(string))
+
+			// Updating recursion mode
+			if buf[0]["dns_recursion"].(string) == "yes" {
+				d.Set("recursion", true)
+			} else {
+				d.Set("recursion", false)
+			}
+
+			// Updating forward mode
+			if buf[0]["dns_forward"].(string) == "" {
+				d.Set("forward", "none")
+			} else {
+				d.Set("forward", strings.ToLower(buf[0]["dns_forward"].(string)))
+			}
+
+			// Updating forwarder information
+			if buf[0]["dns_forwarders"].(string) != "" {
+				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_forwarders"].(string), ";"), ";")))
+			}
 
 			d.Set("class", buf[0]["dns_class_name"].(string))
 
@@ -384,8 +466,27 @@ func resourcednsserverImportState(d *schema.ResourceData, meta interface{}) ([]*
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("name", strings.ToLower(buf[0]["dns_name"].(string)))
 			d.Set("address", hexiptoip(buf[0]["ip_addr"].(string)))
-			d.Set("comment", buf[0]["dns_comment"].(string))
 			d.Set("type", buf[0]["dns_type"].(string))
+			d.Set("comment", buf[0]["dns_comment"].(string))
+
+			// Updating recursion mode
+			if buf[0]["dns_recursion"].(string) == "yes" {
+				d.Set("recursion", true)
+			} else {
+				d.Set("recursion", false)
+			}
+
+			// Updating forward mode
+			if buf[0]["dns_forward"].(string) == "" {
+				d.Set("forward", "none")
+			} else {
+				d.Set("forward", strings.ToLower(buf[0]["dns_forward"].(string)))
+			}
+
+			// Updating forwarder information
+			if buf[0]["dns_forwarders"].(string) != "" {
+				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_forwarders"].(string), ";"), ";")))
+			}
 
 			d.Set("class", buf[0]["dns_class_name"].(string))
 
