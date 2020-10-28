@@ -46,7 +46,9 @@ func resourcevlandomain() *schema.Resource {
 				Description: "The class parameters associated to VLAN Domain.",
 				Optional:    true,
 				ForceNew:    false,
-				Default:     map[string]string{},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

@@ -67,7 +67,9 @@ func resourcednsforwardzone() *schema.Resource {
 				Description: "The class parameters associated to the forward zone.",
 				Optional:    true,
 				ForceNew:    false,
-				Default:     map[string]string{},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

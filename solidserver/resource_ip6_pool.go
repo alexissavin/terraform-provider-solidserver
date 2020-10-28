@@ -83,7 +83,9 @@ func resourceip6pool() *schema.Resource {
 				Description: "The class parameters associated to the IP v6 pool.",
 				Optional:    true,
 				ForceNew:    false,
-				Default:     map[string]string{},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

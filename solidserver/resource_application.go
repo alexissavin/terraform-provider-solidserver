@@ -53,7 +53,9 @@ func resourceapplication() *schema.Resource {
 				Description: "The class parameters associated to application.",
 				Optional:    true,
 				ForceNew:    false,
-				Default:     map[string]string{},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

@@ -74,7 +74,9 @@ func resourcednszone() *schema.Resource {
 				Description: "The class parameters associated to the zone.",
 				Optional:    true,
 				ForceNew:    false,
-				Default:     map[string]string{},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

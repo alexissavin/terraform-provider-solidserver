@@ -86,7 +86,7 @@ func resourcednsserver() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).",
 				Optional:    true,
-				Default:     "",
+				Default:     "none",
 			},
 			"forwarders": {
 				Type:        schema.TypeList,
@@ -123,7 +123,9 @@ func resourcednsserver() *schema.Resource {
 				Description: "The class parameters associated to the DNS server.",
 				Optional:    true,
 				ForceNew:    false,
-				Default:     map[string]string{},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
