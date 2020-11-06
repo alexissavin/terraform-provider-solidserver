@@ -551,7 +551,6 @@ func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*s
 			}
 
 			for ck := range currentClassParameters {
-				//need to pull in parameters set in config, not in state (which is I htink what this is doing)
 				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
 					computedClassParameters[ck] = rv[0]
 				} else {
