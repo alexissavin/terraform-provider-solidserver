@@ -3,13 +3,15 @@ package solidserver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"log"
+	"math"
 	"math/rand"
 	"net/url"
 	"strconv"
 	"time"
+
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceipsubnet() *schema.Resource {
@@ -524,6 +526,21 @@ func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*s
 			d.Set("name", buf[0]["subnet_name"].(string))
 			d.Set("class", buf[0]["subnet_class_name"].(string))
 
+			if size, ok := buf[0]["subnet_size"]; ok {
+				//Calculate Prefix Size from Subnet Size
+				if sizeFl, ok := strconv.ParseFloat(size.(string), 64); ok == nil {
+					prefixSize := math.Log2(math.Exp2(32) / sizeFl)
+					d.Set("prefix_size", int(prefixSize))
+				}
+			}
+
+			if requestIP, ok := buf[0]["start_hostaddr"]; ok {
+				d.Set("request_ip", requestIP.(string))
+			}
+
+			//gateway_offset - defaults to zero in this provider and has ForceNew set so we need a value to prevent recreation
+			d.Set("gateway_offset", 0)
+
 			// Setting local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
@@ -534,6 +551,7 @@ func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*s
 			}
 
 			for ck := range currentClassParameters {
+				//need to pull in parameters set in config, not in state (which is I htink what this is doing)
 				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
 					computedClassParameters[ck] = rv[0]
 				} else {
