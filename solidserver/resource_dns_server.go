@@ -189,6 +189,8 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 					dnsaddtosmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), strings.ToLower(d.Get("smart_role").(string)), meta)
 				}
 
+				time.Sleep(time.Duration(8 * time.Second))
+
 				return nil
 			}
 		}
