@@ -8,31 +8,39 @@ import (
 	"net/url"
 )
 
-
 func dataSourcednszone() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourcednszoneRead,
 
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"dnsserver": {
 				Type:        schema.TypeString,
-				Description: "The Domain Name served by the zone.",
-				Required:    true,
-			},
-			"type": {
-				Type:		schema.TypeString,
-				Description: "The Type of the DNS zone.",
-				Optional:    true,
-				Default:      "master",
-			},
-			"dns_name": {
-				Type:		schema.TypeString,
-				Description: "The DNS name",
+				Description: "The name of DNS server or DNS SMART hosting the DNS zone.",
 				Computed:    true,
 			},
-			"view": {
-				Type:		schema.TypeString,
-				Description: "The DNS view name hosting the zone",
+			"dnsview": {
+				Type:        schema.TypeString,
+				Description: "The name of DNS view hosting the DNS zone.",
+				Computed:    true,
+			},
+			"name": {
+				Type:        schema.TypeString,
+				Description: "The Domain Name served by the DNS zone.",
+				Required:    true,
+			},
+			"space": {
+				Type:        schema.TypeString,
+				Description: "The name of a space associated to the DNS zone.",
+				Computed:    true,
+			},
+			"type": {
+				Type:        schema.TypeString,
+				Description: "The Type of the DNS zone.",
+				Computed:    true,
+			},
+			"createptr": {
+				Type:        schema.TypeBool,
+				Description: "Automaticaly create PTR records for the DNS zone.",
 				Computed:    true,
 			},
 			"class": {
@@ -56,9 +64,9 @@ func dataSourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 
-	parameters.Add("WHERE","dnszone_name='"+d.Get("name").(string)+"'" )
-	parameters.Add("limit","1")
-	parameters.Add("type",d.Get("type").(string))
+	parameters.Add("WHERE", "dnszone_name='"+d.Get("name").(string)+"'")
+	parameters.Add("limit", "1")
+	parameters.Add("type", d.Get("type").(string))
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/dns_zone_list", &parameters)
@@ -71,18 +79,26 @@ func dataSourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.SetId(buf[0]["dnszone_id"].(string))
 
-			d.Set("view", buf[0]["dnszone_name"].(string))
+			d.Set("dnsserver", buf[0]["dns_name"].(string))
+			d.Set("view", buf[0]["dnsview_name"].(string))
+			d.Set("name", buf[0]["dnszone_name"].(string))
+			d.Set("type", buf[0]["dnszone_type"].(string))
+
 			d.Set("class", buf[0]["dnszone_class_name"].(string))
-			d.Set("dns_name", buf[0]["dns_name"].(string))
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
-			log.Printf(body)
-			//dnszone_class_parameters seems missing, only dnsview_class_parameters was found
-			//retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
-			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnsview_class_parameters"].(string))
-			
+			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
+
+			if createptr, createptrExist := retrievedClassParameters["dnsptr"]; createptrExist {
+				if createptr[0] == "1" {
+					d.Set("createptr", true)
+				} else {
+					d.Set("createptr", false)
+				}
+				delete(retrievedClassParameters, "dnsptr")
+			}
 
 			for ck := range currentClassParameters {
 				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
@@ -107,7 +123,7 @@ func dataSourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find Dns Zone: %s\n", resp.StatusCode)
+		return fmt.Errorf("SOLIDServer - Unable to find DNS Zone: %s\n", resp.StatusCode)
 	}
 
 	// Reporting a failure
