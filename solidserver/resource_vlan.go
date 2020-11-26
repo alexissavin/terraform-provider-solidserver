@@ -46,22 +46,20 @@ func resourcevlan() *schema.Resource {
 				Required:    true,
 				ForceNew:    false,
 			},
-			// "class": &schema.Schema{
-			//   Type:     schema.TypeString,
-			//   Description: "The class associated to the vlan.",
-			//   Optional: true,
-			//   ForceNew: false,
-			//   Default:  "",
-			// },
-			// "class_parameters": &schema.Schema{
-			//   Type:     schema.TypeMap,
-			//   Description: "The class parameters associated to vlan.",
-			//   Optional: true,
-			//   ForceNew: false,
-			//   Elem: &schema.Schema{
-			//		Type: schema.TypeString,
-			//	},
-			// },
+			"class": {
+				Type:        schema.TypeString,
+				Description: "The class associated to the vlan.",
+				Optional:    true,
+				ForceNew:    false,
+				Default:     "",
+			},
+			"class_parameters": {
+				Type:        schema.TypeMap,
+				Description: "The class parameters associated to vlan.",
+				Optional:    true,
+				ForceNew:    false,
+				Default:     map[string]string{},
+			},
 		},
 	}
 }
@@ -129,8 +127,13 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("vlmdomain_name", d.Get("vlan_domain").(string))
 		parameters.Add("vlmvlan_vlan_id", vlanIDs[i])
 		parameters.Add("vlmvlan_name", d.Get("name").(string))
-		//parameters.Add("hostdev_class_name", d.Get("class").(string))
-		//parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
+
+		if s.Version < 730 {
+			log.Printf("[INFO] SOLIDServer - Ignoring class_parameters for vlan: %s as not supported by your SOLIDserver version\n", d.Get("name").(string))
+		} else {
+			parameters.Add("vlmvlan_class_name", d.Get("class").(string))
+			parameters.Add("vlmvlan_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
+		}
 
 		// Sending creation request
 		resp, body, err := s.Request("post", "rest/vlm_vlan_add", &parameters)
@@ -180,8 +183,13 @@ func resourcevlanUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("add_flag", "edit_only")
 	parameters.Add("vlmvlan_vlan_id", d.Get("vlan_id").(string))
 	parameters.Add("vlmvlan_name", d.Get("name").(string))
-	//parameters.Add("hostdev_class_name", d.Get("class").(string))
-	//parameters.Add("hostdev_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
+
+	if s.Version < 730 {
+		log.Printf("[INFO] SOLIDServer - Ignoring class_parameters for vlan: %s as not supported by your SOLIDserver version\n", d.Get("name").(string))
+	} else {
+		parameters.Add("vlmvlan_class_name", d.Get("class").(string))
+		parameters.Add("vlmvlan_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
+	}
 
 	// Sending the update request
 	resp, body, err := s.Request("put", "rest/vlm_vlan_add", &parameters)
@@ -273,22 +281,27 @@ func resourcevlanRead(d *schema.ResourceData, meta interface{}) error {
 
 			d.Set("name", buf[0]["vlmvlan_name"].(string))
 			d.Set("vlan_id", vnid)
-			//d.Set("class",buf[0]["hostdev_class_name"].(string))
 
-			// Updating local class_parameters
-			//currentClassParameters := d.Get("class_parameters").(map[string]interface{})
-			//retrievedClassParameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
-			//computedClassParameters := map[string]string{}
+			if s.Version < 730 {
+				log.Printf("[INFO] SOLIDServer - Ignoring class_parameters for vlan: %s as not supported by your SOLIDserver version\n", d.Get("name").(string))
+			} else {
+				d.Set("class", buf[0]["vlmvlan_class_name"].(string))
 
-			//for ck, _ := range currentClassParameters {
-			//  if rv, rvExist := retrievedClassParameters[ck]; (rvExist) {
-			//    computedClassParameters[ck] = rv[0]
-			//  } else {
-			//    computedClassParameters[ck] = ""
-			//  }
-			//}
+				// Updating local class_parameters
+				currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+				retrievedClassParameters, _ := url.ParseQuery(buf[0]["vlmvlan_class_parameters"].(string))
+				computedClassParameters := map[string]string{}
 
-			//d.Set("class_parameters", computedClassParameters)
+				for ck := range currentClassParameters {
+					if rv, rvExist := retrievedClassParameters[ck]; rvExist {
+						computedClassParameters[ck] = rv[0]
+					} else {
+						computedClassParameters[ck] = ""
+					}
+				}
+
+				d.Set("class_parameters", computedClassParameters)
+			}
 
 			return nil
 		}
@@ -334,22 +347,26 @@ func resourcevlanImportState(d *schema.ResourceData, meta interface{}) ([]*schem
 			d.Set("name", buf[0]["vlmvlan_name"].(string))
 			d.Set("vlan_id", vnid)
 
-			//d.Set("class",buf[0]["hostdev_class_name"].(string))
+			if s.Version < 730 {
+				log.Printf("[INFO] SOLIDServer - Ignoring class_parameters for vlan: %s as not supported by your SOLIDserver version\n", d.Get("name").(string))
+			} else {
+				d.Set("class", buf[0]["vlmvlan_class_name"].(string))
 
-			// Updating local class_parameters
-			//currentClassParameters := d.Get("class_parameters").(map[string]interface{})
-			//retrievedClassParameters, _ := url.ParseQuery(buf[0]["hostdev_class_parameters"].(string))
-			//computedClassParameters := map[string]string{}
+				// Updating local class_parameters
+				currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+				retrievedClassParameters, _ := url.ParseQuery(buf[0]["vlmvlan_class_parameters"].(string))
+				computedClassParameters := map[string]string{}
 
-			//for ck, _ := range currentClassParameters {
-			//  if rv, rvExist := retrievedClassParameters[ck]; (rvExist) {
-			//    computedClassParameters[ck] = rv[0]
-			//  } else {
-			//    computedClassParameters[ck] = ""
-			//  }
-			//}
+				for ck := range currentClassParameters {
+					if rv, rvExist := retrievedClassParameters[ck]; rvExist {
+						computedClassParameters[ck] = rv[0]
+					} else {
+						computedClassParameters[ck] = ""
+					}
+				}
 
-			//d.Set("class_parameters", computedClassParameters)
+				d.Set("class_parameters", computedClassParameters)
+			}
 
 			return []*schema.ResourceData{d}, nil
 		}

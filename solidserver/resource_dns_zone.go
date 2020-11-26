@@ -27,7 +27,7 @@ func resourcednszone() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 			},
-			"view": {
+			"dnsview": {
 				Type:        schema.TypeString,
 				Description: "The name of DNS view hosting the DNS zone to create.",
 				Optional:    true,
@@ -142,8 +142,8 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
 	parameters.Add("dns_name", d.Get("dnsserver").(string))
-	if strings.Compare(d.Get("view").(string), "#") != 0 {
-		parameters.Add("dnsview_name", d.Get("view").(string))
+	if strings.Compare(d.Get("dnsview").(string), "#") != 0 {
+		parameters.Add("dnsview_name", d.Get("dnsview").(string))
 	}
 	parameters.Add("dnszone_name", d.Get("name").(string))
 	parameters.Add("dnszone_type", strings.ToLower(d.Get("type").(string)))
@@ -304,7 +304,7 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("dnsserver", buf[0]["dns_name"].(string))
-			d.Set("view", buf[0]["dnsview_name"].(string))
+			d.Set("dnsview", buf[0]["dnsview_name"].(string))
 			d.Set("name", buf[0]["dnszone_name"].(string))
 			d.Set("type", buf[0]["dnszone_type"].(string))
 
@@ -378,7 +378,7 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			d.Set("dnsserver", buf[0]["dns_name"].(string))
-			d.Set("view", buf[0]["dnsview_name"].(string))
+			d.Set("dnsview", buf[0]["dnsview_name"].(string))
 			d.Set("name", buf[0]["dnszone_name"].(string))
 			d.Set("type", buf[0]["dnszone_type"].(string))
 
