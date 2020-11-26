@@ -54,6 +54,7 @@ func Provider() terraform.ResourceProvider {
 			"solidserver_usergroup":  dataSourceusergroup(),
 			"solidserver_cdb":        dataSourcecdb(),
 			"solidserver_cdb_data":   dataSourcecdbdata(),
+			"solidserver_dns_zone":   dataSourcednszone(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
