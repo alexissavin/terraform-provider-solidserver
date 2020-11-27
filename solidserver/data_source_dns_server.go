@@ -115,17 +115,12 @@ func dataSourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_forwarders"].(string), ";"), ";")))
 			}
 
-			// Updating local class_parameters
-			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+			// Setting local class_parameters
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dns_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			for ck := range currentClassParameters {
-				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
-					computedClassParameters[ck] = rv[0]
-				} else {
-					computedClassParameters[ck] = ""
-				}
+			for ck := range retrievedClassParameters {
+				computedClassParameters[ck] = retrievedClassParameters[ck][0]
 			}
 
 			d.Set("class_parameters", computedClassParameters)

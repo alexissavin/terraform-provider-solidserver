@@ -62,6 +62,12 @@ resource "solidserver_ip_subnet" "myFirstIPBlock" {
   terminal         = false
 }
 
+data "solidserver_ip_subnet" "myFirstIPBlockData" {
+  depends_on       = [solidserver_ip_subnet.myFirstIPBlock]
+  space            = solidserver_ip_subnet.myFirstIPBlock.space
+  name             = solidserver_ip_subnet.myFirstIPBlock.name
+}
+
 resource "solidserver_ip_subnet" "myFirstIPSubnet" {
   space            = solidserver_ip_space.myFirstSpace.name
   block            = solidserver_ip_subnet.myFirstIPBlock.name
@@ -80,6 +86,12 @@ resource "solidserver_ip_subnet" "mySecondIPSubnet" {
   class_parameters = {
     vnid = "12666"
   }
+}
+
+data "solidserver_ip_subnet" "mySecondIPSubnetData" {
+  depends_on       = [solidserver_ip_subnet.mySecondIPSubnet]
+  space            = solidserver_ip_subnet.mySecondIPSubnet.space
+  name             = solidserver_ip_subnet.mySecondIPSubnet.name
 }
 
 resource "solidserver_ip_pool" "myFirstIPPool" {
@@ -204,6 +216,11 @@ resource "solidserver_dns_zone" "myFirstZone" {
   name      = "mycompany.priv"
   type      = "master"
   createptr = false
+}
+
+data "solidserver_dns_zone" "myFirstDnsZoneData" {
+  depends_on = [solidserver_dns_zone.myFirstZone]
+  name = solidserver_dns_zone.myFirstZone.name
 }
 
 resource "solidserver_dns_forward_zone" "myFirstForwardZone" {

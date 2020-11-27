@@ -44,6 +44,12 @@ func dataSourceipsubnet() *schema.Resource {
 				Description: "The IP subnet netmask.",
 				Computed:    true,
 			},
+			"gateway": {
+				Type:        schema.TypeString,
+				Description: "The subnet's computed gateway.",
+				Computed:    true,
+				ForceNew:    true,
+			},
 			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the IP subnet.",
@@ -53,6 +59,9 @@ func dataSourceipsubnet() *schema.Resource {
 				Type:        schema.TypeMap,
 				Description: "The class parameters associated to IP subnet.",
 				Computed:    true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
@@ -64,8 +73,7 @@ func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Building parameters
 	parameters := url.Values{}
-	whereClause := "subnet_level>0 and vlsm_subnet_id=0" +
-		" and subnet_name LIKE '" + d.Get("name").(string) + "'" +
+	whereClause := "subnet_name LIKE '" + d.Get("name").(string) + "'" +
 		" and site_name LIKE '" + d.Get("space").(string) + "'"
 
 	parameters.Add("WHERE", whereClause)
@@ -92,15 +100,17 @@ func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("prefix_size", prefix_length)
 			d.Set("netmask", prefixlengthtohexip(prefix_length))
 
-			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
+			// Setting local class_parameters
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			for ck := range currentClassParameters {
-				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
-					computedClassParameters[ck] = rv[0]
-				} else {
-					computedClassParameters[ck] = ""
+			if gateway, gatewayExist := retrievedClassParameters["gateway"]; gatewayExist {
+				d.Set("gateway", gateway[0])
+			}
+
+			for ck := range retrievedClassParameters {
+				if ck != "gateway" {
+					computedClassParameters[ck] = retrievedClassParameters[ck][0]
 				}
 			}
 

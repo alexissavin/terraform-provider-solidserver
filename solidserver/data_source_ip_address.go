@@ -118,15 +118,12 @@ func dataSourceipaddressRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("class", buf[0]["ip_class_name"].(string))
 
 			// Updating local class_parameters
-			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["ip_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
-			for ck := range currentClassParameters {
-				if rv, rvExist := retrievedClassParameters[ck]; rvExist {
-					computedClassParameters[ck] = rv[0]
-				} else {
-					computedClassParameters[ck] = ""
+			for ck := range retrievedClassParameters {
+				if ck != "gateway" {
+					computedClassParameters[ck] = retrievedClassParameters[ck][0]
 				}
 			}
 
