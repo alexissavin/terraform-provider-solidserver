@@ -143,7 +143,7 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("add_flag", "new_only")
 	parameters.Add("dns_name", d.Get("dnsserver").(string))
 	if strings.Compare(d.Get("dnsview").(string), "#") != 0 {
-		parameters.Add("dnsview_name", d.Get("dnsview").(string))
+		parameters.Add("dnsview_name", strings.ToLower(d.Get("dnsview").(string)))
 	}
 	parameters.Add("dnszone_name", d.Get("name").(string))
 	parameters.Add("dnszone_type", strings.ToLower(d.Get("type").(string)))
@@ -179,6 +179,9 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				if errParam, errParamExist := buf[0]["parameters"].(string); errParamExist {
+					return fmt.Errorf("SOLIDServer - Unable to create DNS zone: %s (%s - %s)", d.Get("name").(string), errMsg, errParam)
+				}
 				return fmt.Errorf("SOLIDServer - Unable to create DNS zone: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
@@ -204,6 +207,9 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("dnszone_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
+	if strings.Compare(d.Get("dnsview").(string), "#") != 0 {
+		parameters.Add("dnsview_name", strings.ToLower(d.Get("dnsview").(string)))
+	}
 	parameters.Add("dnszone_site_id", siteID)
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
 
@@ -236,6 +242,9 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				if errParam, errParamExist := buf[0]["parameters"].(string); errParamExist {
+					return fmt.Errorf("SOLIDServer - Unable to update DNS zone: %s (%s - %s)", d.Get("name").(string), errMsg, errParam)
+				}
 				return fmt.Errorf("SOLIDServer - Unable to update DNS zone: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
@@ -253,6 +262,10 @@ func resourcednszoneDelete(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("dnszone_id", d.Id())
+
+	if strings.Compare(d.Get("dnsview").(string), "#") != 0 {
+		parameters.Add("dnsview_name", strings.ToLower(d.Get("dnsview").(string)))
+	}
 
 	// Sending the deletion request
 	resp, body, err := s.Request("delete", "rest/dns_zone_delete", &parameters)

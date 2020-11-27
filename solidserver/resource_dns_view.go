@@ -26,16 +26,18 @@ func resourcednsview() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:        schema.TypeString,
-				Description: "The name of the DNS view to create.",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "The name of the DNS view to create.",
+				DiffSuppressFunc: resourcediffsuppresscase,
+				Required:         true,
+				ForceNew:         true,
 			},
 			"dnsserver": {
-				Type:        schema.TypeString,
-				Description: "The name of DNS server or DNS SMART hosting the DNS view to create.",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "The name of DNS server or DNS SMART hosting the DNS view to create.",
+				DiffSuppressFunc: resourcediffsuppresscase,
+				Required:         true,
+				ForceNew:         true,
 			},
 			"order": {
 				Type:        schema.TypeInt,
@@ -150,6 +152,8 @@ func resourcednsviewExists(d *schema.ResourceData, meta interface{}) (bool, erro
 func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
+	//FIXME test dns_server_info's dns_state value, wait until == 'Y'
+
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
@@ -178,6 +182,7 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 				log.Printf("[DEBUG] SOLIDServer - Created DNS view (oid): %s\n", oid)
 				d.SetId(oid)
+
 				return nil
 			}
 		}
@@ -185,6 +190,9 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				if errParam, errParamExist := buf[0]["parameters"].(string); errParamExist {
+					return fmt.Errorf("SOLIDServer - Unable to create DNS view: %s (%s - %s)", strings.ToLower(d.Get("name").(string)), errMsg, errParam)
+				}
 				return fmt.Errorf("SOLIDServer - Unable to create DNS view: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
 			}
 		}
@@ -195,8 +203,6 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 	// Reporting a failure
 	return err
 }
-
-//<FIXME OFFSET>
 
 func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
@@ -235,6 +241,9 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				if errParam, errParamExist := buf[0]["parameters"].(string); errParamExist {
+					return fmt.Errorf("SOLIDServer - Unable to update DNS view: %s (%s - %s)", strings.ToLower(d.Get("name").(string)), errMsg, errParam)
+				}
 				return fmt.Errorf("SOLIDServer - Unable to update DNS view: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
 			}
 		}

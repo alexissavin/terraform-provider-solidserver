@@ -138,7 +138,7 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Add dnsview parameter if it is supplied
 	if len(d.Get("dnsview").(string)) != 0 {
-		parameters.Add("dnsview_name", d.Get("dnsview").(string))
+		parameters.Add("dnsview_name", strings.ToLower(d.Get("dnsview").(string)))
 	}
 
 	// Sending the creation request
@@ -186,7 +186,7 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	// Add dnsview parameter if it is supplied
 	if len(d.Get("dnsview").(string)) != 0 {
-		parameters.Add("dnsview_name", d.Get("dnsview").(string))
+		parameters.Add("dnsview_name", strings.ToLower(d.Get("dnsview").(string)))
 	}
 
 	// Sending the update request
@@ -228,7 +228,7 @@ func resourcednsrrDelete(d *schema.ResourceData, meta interface{}) error {
 
 	// Add dnsview parameter if it is supplied
 	if len(d.Get("dnsview").(string)) != 0 {
-		parameters.Add("dnsview_name", d.Get("dnsview").(string))
+		parameters.Add("dnsview_name", strings.ToLower(d.Get("dnsview").(string)))
 	}
 
 	// Sending the deletion request

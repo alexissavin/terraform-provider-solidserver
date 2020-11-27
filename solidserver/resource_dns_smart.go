@@ -23,10 +23,11 @@ func resourcednssmart() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:        schema.TypeString,
-				Description: "The name of the DNS SMART to create.",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "The name of the DNS SMART to create.",
+				DiffSuppressFunc: resourcediffsuppresscase,
+				Required:         true,
+				ForceNew:         true,
 			},
 			"arch": {
 				Type:        schema.TypeString,

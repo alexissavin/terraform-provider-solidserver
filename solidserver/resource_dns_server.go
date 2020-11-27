@@ -26,10 +26,11 @@ func resourcednsserver() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:        schema.TypeString,
-				Description: "The name of the DNS server to create.",
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "The name of the DNS server to create.",
+				DiffSuppressFunc: resourcediffsuppresscase,
+				Required:         true,
+				ForceNew:         true,
 			},
 			"address": {
 				Type:         schema.TypeString,
@@ -233,7 +234,7 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 					dnsaddtosmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), strings.ToLower(d.Get("smart_role").(string)), meta)
 				}
 
-				time.Sleep(time.Duration(8 * time.Second))
+				time.Sleep(time.Duration(32 * time.Second))
 
 				return nil
 			}
