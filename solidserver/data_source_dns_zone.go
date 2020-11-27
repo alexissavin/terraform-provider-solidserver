@@ -123,7 +123,7 @@ func dataSourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find DNS Zone: %s\n", resp.StatusCode)
+		return fmt.Errorf("SOLIDServer - Unable to find DNS Zone: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
