@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"regexp"
 	"time"
 )
 
@@ -152,7 +153,7 @@ func resourcednsviewExists(d *schema.ResourceData, meta interface{}) (bool, erro
 func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
-	//FIXME test dns_server_info's dns_state value, wait until == 'Y'
+	//FIXME check dns_server_info, more precisely dns_state value, wait until == 'Y'
 
 	// Building parameters
 	parameters := url.Values{}
@@ -166,6 +167,27 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		parameters.Add("dnsview_recursion", "no")
 	}
+
+  // Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
+	// Building match_clients ACL
+	matchClients := ""
+	for _, matchClient := range toStringArray(d.Get("match_clients").([]interface{})) {
+	  if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchClient); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's match_clients parameter")
+		}
+		matchClients += matchClient + ";"
+	}
+	parameters.Add("dnsview_match_clients", matchClients)
+
+	// Building match_to ACL
+	matchTos := ""
+	for _, matchTo := range toStringArray(d.Get("match_to").([]interface{})) {
+	  if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchTo); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view match_to parameter")
+		}
+		matchTos += matchTo + ";"
+	}
+	parameters.Add("dnsview_match_to", matchTos)
 
 	parameters.Add("dnsview_class_name", d.Get("class").(string))
 	parameters.Add("dnsview_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
@@ -218,6 +240,27 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		parameters.Add("dnsview_recursion", "no")
 	}
+
+  // Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
+	// Building match_clients ACL
+	matchClients := ""
+	for _, matchClient := range toStringArray(d.Get("match_clients").([]interface{})) {
+	  if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchClient); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's match_clients parameter")
+		}
+		matchClients += matchClient + ";"
+	}
+	parameters.Add("dnsview_match_clients", matchClients)
+
+	// Building match_to ACL
+	matchTos := ""
+	for _, matchTo := range toStringArray(d.Get("match_to").([]interface{})) {
+	  if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchTo); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view match_to parameter")
+		}
+		matchTos += matchTo + ";"
+	}
+	parameters.Add("dnsview_match_to", matchTos)
 
 	parameters.Add("dnsview_class_name", d.Get("class").(string))
 	parameters.Add("dnsview_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
@@ -329,6 +372,10 @@ func resourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 			} else {
 				d.Set("recursion", false)
 			}
+
+      // Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
+      //FIXME Handling match_clients ACL
+      //FIXME Handling match_to ACL
 
 			d.Set("class", buf[0]["dnsview_class_name"].(string))
 
