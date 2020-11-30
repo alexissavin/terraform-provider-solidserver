@@ -781,8 +781,7 @@ func ipaliasidbyinfo(addressID string, aliasName string, ipNameType string, meta
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("ip_id", addressID)
-	// Bug - Ticket 18653
-	// parameters.Add("WHERE", "ip_name_type='" + ipNameType + "' AND " + "alias_name='" + alias_name + "'")
+	parameters.Add("WHERE", "ip_name_type='"+ipNameType+"' AND "+"alias_name='"+aliasName+"'")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip_alias_list", &parameters)
@@ -791,33 +790,13 @@ func ipaliasidbyinfo(addressID string, aliasName string, ipNameType string, meta
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
-		// Shall be removed once Ticket 18653 is closed
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			for i := 0; i < len(buf); i++ {
-				r_ip_name_id, r_ip_name_id_exist := buf[i]["ip_name_id"].(string)
-				r_ip_name_type, r_ip_name_type_exist := buf[i]["ip_name_type"].(string)
-				r_alias_name, r_alias_name_exist := buf[i]["alias_name"].(string)
-
-				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s\n", aliasName, r_alias_name, addressID)
-				log.Printf("[DEBUG] SOLIDServer - Comparing '%s' with '%s' looking for IP alias associated with IP address ID %s\n", ipNameType, r_ip_name_type, addressID)
-
-				if r_ip_name_type_exist && strings.Compare(ipNameType, r_ip_name_type) == 0 &&
-					r_alias_name_exist && strings.Compare(aliasName, r_alias_name) == 0 &&
-					r_ip_name_id_exist {
-					return r_ip_name_id, nil
-				}
+			if ip_name_id, ip_name_id_exist := buf[0]["ip_name_id"].(string); ip_name_id_exist {
+				return ip_name_id, nil
 			}
 		}
 	}
-
-	// Shall be restored once Ticket 18653 is closed
-	// Checking the answer
-	//if (resp.StatusCode == 200 && len(buf) > 0) {
-	//  if ip_name_id, ip_name_id_exist := buf[0]["ip_name_id"].(string); (ip_name_id_exist) {
-	//    return ip_name_id
-	//  }
-	//}
 
 	log.Printf("[DEBUG] SOLIDServer - Unable to find IP alias: %s - %s associated with IP address ID %s\n", aliasName, ipNameType, addressID)
 
@@ -981,6 +960,52 @@ func dnssmartmembersupdate(smartName string, smartMembersRole string, meta inter
 	}
 
 	return false
+}
+
+// Set a DNSserver or DNSview param value
+// Return false in case of failure
+func dnsparamset(serverName string, viewName string, paramKey string, paramValue string, meta interface{}) bool {
+	//FIXME
+	return false
+}
+
+// Get a DNSserver or DNSview param's value
+// Return an empty string and an error in case of failure
+func dnsparamget(serverName string, viewName string, paramKey string, meta interface{}) (string, error) {
+	s := meta.(*SOLIDserver)
+
+	service := "dns_server_param_list"
+	if viewName != "" {
+		service = "dns_view_param_list"
+	}
+
+	// Building parameters for retrieving SMART vdns_dns_group_role information
+	parameters := url.Values{}
+
+	if viewName == "" {
+		parameters.Add("WHERE", "dns_name='"+serverName+"' AND param_key='"+paramKey+"'")
+	} else {
+		parameters.Add("WHERE", "dns_name='"+serverName+"' AND dnsview_name='"+viewName+"' AND param_key='"+paramKey+"'")
+	}
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/"+service, &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if paramValue, paramValueExist := buf[0]["param_value"].(string); paramValueExist {
+				return paramValue, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find DNS Param Key: %s\n", paramKey)
+
+	return "", err
 }
 
 // Add a DNS server to a SMART with the required role, return the
