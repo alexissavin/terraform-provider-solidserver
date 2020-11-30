@@ -8,9 +8,9 @@ import (
 	//	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
-	"regexp"
 	"time"
 )
 
@@ -67,17 +67,39 @@ func resourcednsview() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			*/
-
 			// ACL(s)
 			// Views and Servers/SMARTs
-			// allow_query
-			// allow_recursion
-			// allow_transfer
-
+			"allow_transfer": {
+				Type:        schema.TypeList,
+				Description: "A list of netork prefixes allowed to query the view for zone transfert (named ACL(s) are not supported using this provider).",
+				Optional:    true,
+				ForceNew:    false,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"allow_query": {
+				Type:        schema.TypeList,
+				Description: "A list of netork prefixes allowed to query the view (named ACL(s) are not supported using this provider).",
+				Optional:    true,
+				ForceNew:    false,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			"allow_recursion": {
+				Type:        schema.TypeList,
+				Description: "A list of netork prefixes allowed to query the view for recursion (named ACL(s) are not supported using this provider).",
+				Optional:    true,
+				ForceNew:    false,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			// Views Only
 			"match_clients": {
 				Type:        schema.TypeList,
-				Description: "A list of ACL name(s) or netork prefixes used to match the clients of the view.",
+				Description: "A list of netork prefixes used to match the clients of the view (named ACL(s) are not supported using this provider).",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -86,7 +108,7 @@ func resourcednsview() *schema.Resource {
 			},
 			"match_to": {
 				Type:        schema.TypeList,
-				Description: "A list of ACL name(s) or netork prefixes used to match the traffic to the view.",
+				Description: "A list of netork prefixes used to match the traffic to the view (named ACL(s) are not supported using this provider).",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -168,11 +190,41 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("dnsview_recursion", "no")
 	}
 
-  // Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
+	// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
+	// Building allow_transfer ACL
+	allowTransfers := ""
+	for _, allowTransfer := range toStringArray(d.Get("allow_transfer").([]interface{})) {
+		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowTransfer); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_transfer parameter")
+		}
+		allowTransfers += allowTransfer + ";"
+	}
+	parameters.Add("dnsview_allow_transfer", allowTransfers)
+
+	// Building allow_query ACL
+	allowQueries := ""
+	for _, allowQuery := range toStringArray(d.Get("allow_query").([]interface{})) {
+		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowQuery); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_query parameter")
+		}
+		allowQueries += allowQuery + ";"
+	}
+	parameters.Add("dnsview_allow_query", allowQueries)
+
+	// Building allow_recursion ACL
+	allowRecursions := ""
+	for _, allowRecursion := range toStringArray(d.Get("allow_recursion").([]interface{})) {
+		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowRecursion); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_recursion parameter")
+		}
+		allowRecursions += allowRecursion + ";"
+	}
+	parameters.Add("dnsview_allow_recursion", allowRecursions)
+
 	// Building match_clients ACL
 	matchClients := ""
 	for _, matchClient := range toStringArray(d.Get("match_clients").([]interface{})) {
-	  if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchClient); match == false {
+		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchClient); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's match_clients parameter")
 		}
 		matchClients += matchClient + ";"
@@ -182,7 +234,7 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building match_to ACL
 	matchTos := ""
 	for _, matchTo := range toStringArray(d.Get("match_to").([]interface{})) {
-	  if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchTo); match == false {
+		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchTo); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view match_to parameter")
 		}
 		matchTos += matchTo + ";"
@@ -232,6 +284,8 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building parameters
 	parameters := url.Values{}
 	parameters.Add("dnsview_id", d.Id())
+	parameters.Add("dns_name", strings.ToLower(d.Get("dnsserver").(string)))
+	parameters.Add("dnsview_name", strings.ToLower(d.Get("name").(string)))
 	parameters.Add("add_flag", "edit_only")
 
 	// Configure recursion
@@ -241,11 +295,41 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("dnsview_recursion", "no")
 	}
 
-  // Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
+	// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
+	// Building allow_transfer ACL
+	allowTransfers := ""
+	for _, allowTransfer := range toStringArray(d.Get("allow_transfer").([]interface{})) {
+		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowTransfer); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_transfer parameter")
+		}
+		allowTransfers += allowTransfer + ";"
+	}
+	parameters.Add("dnsview_allow_transfer", allowTransfers)
+
+	// Building allow_query ACL
+	allowQueries := ""
+	for _, allowQuery := range toStringArray(d.Get("allow_query").([]interface{})) {
+		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowQuery); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_query parameter")
+		}
+		allowQueries += allowQuery + ";"
+	}
+	parameters.Add("dnsview_allow_query", allowQueries)
+
+	// Building allow_recursion ACL
+	allowRecursions := ""
+	for _, allowRecursion := range toStringArray(d.Get("allow_recursion").([]interface{})) {
+		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowRecursion); match == false {
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_recursion parameter")
+		}
+		allowRecursions += allowRecursion + ";"
+	}
+	parameters.Add("dnsview_allow_recursion", allowRecursions)
+
 	// Building match_clients ACL
 	matchClients := ""
 	for _, matchClient := range toStringArray(d.Get("match_clients").([]interface{})) {
-	  if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchClient); match == false {
+		if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchClient); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's match_clients parameter")
 		}
 		matchClients += matchClient + ";"
@@ -255,7 +339,7 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building match_to ACL
 	matchTos := ""
 	for _, matchTo := range toStringArray(d.Get("match_to").([]interface{})) {
-	  if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchTo); match == false {
+		if match, _ := regexp.MatchString(`^(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchTo); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view match_to parameter")
 		}
 		matchTos += matchTo + ";"
@@ -266,7 +350,7 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("dnsview_class_parameters", urlfromclassparams(d.Get("class_parameters")).Encode())
 
 	// Sending the update request
-	resp, body, err := s.Request("put", "rest/dns_add", &parameters)
+	resp, body, err := s.Request("put", "rest/dns_view_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -373,10 +457,60 @@ func resourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("recursion", false)
 			}
 
-      // Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
-      //FIXME Handling match_clients ACL
-      //FIXME Handling match_to ACL
+			// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
+			// Building allow_transfer ACL
+			if buf[0]["dnsview_allow_transfer"].(string) != "" {
+				allowTransfers := []string{}
+				for _, allowTransfer := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_allow_transfer"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowTransfer.(string)); match == true {
+						allowTransfers = append(allowTransfers, allowTransfer.(string))
+					}
+				}
+				d.Set("allow_transfer", allowTransfers)
+			}
 
+			// Building allow_query ACL
+			if buf[0]["dnsview_allow_query"].(string) != "" {
+				allowQueries := []string{}
+				for _, allowQuery := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_allow_query"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowQuery.(string)); match == true {
+						allowQueries = append(allowQueries, allowQuery.(string))
+					}
+				}
+				d.Set("allow_query", allowQueries)
+			}
+
+			// Building allow_recursion ACL
+			if buf[0]["dnsview_allow_recursion"].(string) != "" {
+				allowRecursions := []string{}
+				for _, allowRecursion := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_allow_recursion"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowRecursion.(string)); match == true {
+						allowRecursions = append(allowRecursions, allowRecursion.(string))
+					}
+				}
+				d.Set("allow_recursion", allowRecursions)
+			}
+
+			// Updating ACL information
+			if buf[0]["dnsview_match_clients"].(string) != "" {
+				matchClients := []string{}
+				for _, matchClient := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_match_clients"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchClient.(string)); match == true {
+						matchClients = append(matchClients, matchClient.(string))
+					}
+				}
+				d.Set("match_clients", matchClients)
+			}
+
+			if buf[0]["dnsview_match_to"].(string) != "" {
+				matchTos := []string{}
+				for _, matchTo := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_match_to"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchTo.(string)); match == true {
+						matchTos = append(matchTos, matchTo.(string))
+					}
+				}
+				d.Set("match_to", matchTos)
+			}
 			d.Set("class", buf[0]["dnsview_class_name"].(string))
 
 			// Updating local class_parameters
@@ -422,10 +556,10 @@ func resourcednsviewImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("dns_id", d.Id())
+	parameters.Add("dnsview_id", d.Id())
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/dns_server_info", &parameters)
+	resp, body, err := s.Request("get", "rest/dns_view_info", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -445,6 +579,62 @@ func resourcednsviewImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			} else {
 				d.Set("recursion", false)
 			}
+
+			// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
+			// Building allow_transfer ACL
+			if buf[0]["dnsview_allow_transfer"].(string) != "" {
+				allowTransfers := []string{}
+				for _, allowTransfer := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_allow_transfer"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowTransfer.(string)); match == true {
+						allowTransfers = append(allowTransfers, allowTransfer.(string))
+					}
+				}
+				d.Set("allow_transfer", allowTransfers)
+			}
+
+			// Building allow_query ACL
+			if buf[0]["dnsview_allow_query"].(string) != "" {
+				allowQueries := []string{}
+				for _, allowQuery := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_allow_query"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowQuery.(string)); match == true {
+						allowQueries = append(allowQueries, allowQuery.(string))
+					}
+				}
+				d.Set("allow_query", allowQueries)
+			}
+
+			// Building allow_recursion ACL
+			if buf[0]["dnsview_allow_recursion"].(string) != "" {
+				allowRecursions := []string{}
+				for _, allowRecursion := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_allow_recursion"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowRecursion.(string)); match == true {
+						allowRecursions = append(allowRecursions, allowRecursion.(string))
+					}
+				}
+				d.Set("allow_recursion", allowRecursions)
+			}
+
+			// Updating ACL information
+			if buf[0]["dnsview_match_clients"].(string) != "" {
+				matchClients := []string{}
+				for _, matchClient := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_match_clients"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchClient.(string)); match == true {
+						matchClients = append(matchClients, matchClient.(string))
+					}
+				}
+				d.Set("match_clients", matchClients)
+			}
+
+			if buf[0]["dnsview_match_to"].(string) != "" {
+				matchTos := []string{}
+				for _, matchTo := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnsview_match_to"].(string), ";"), ";")) {
+					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, matchTo.(string)); match == true {
+						matchTos = append(matchTos, matchTo.(string))
+					}
+				}
+				d.Set("match_to", matchTos)
+			}
+			d.Set("class", buf[0]["dnsview_class_name"].(string))
 
 			d.Set("class", buf[0]["dnsview_class_name"].(string))
 
