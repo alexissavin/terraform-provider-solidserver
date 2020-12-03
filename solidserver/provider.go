@@ -42,12 +42,12 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("SOLIDServer_ADDITIONALTRUSTCERTSFILE", nil),
 				Description: "PEM formatted file with additional certificates to trust for TLS connection",
 			},
-			"version": {
+			"solidserverversion": {
 				Type:         schema.TypeString,
 				Required:     false,
 				Optional:     true,
 				DefaultFunc:  schema.EnvDefaultFunc("SOLIDServer_VERSION", ""),
-				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[0-9]\.[0-9]\.[0-9]\.([pP][0-9]+[a-z]?)?$`), "Invalid Version number pattern"),
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^([0-9]\.[0-9]\.[0-9]\.([pP][0-9]+[a-z]?)?)?$`), "Invalid Version Number"),
 				Description:  "SOLIDServer Version in case API user does not have admin permissions",
 			},
 		},
@@ -108,7 +108,7 @@ func ProviderConfigure(d *schema.ResourceData) (interface{}, error) {
 		d.Get("password").(string),
 		d.Get("sslverify").(bool),
 		d.Get("additional_trust_certs_file").(string),
-		d.Get("version").(string),
+		d.Get("solidserverversion").(string),
 	)
 
 	return s, err
