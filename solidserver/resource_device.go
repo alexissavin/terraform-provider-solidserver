@@ -52,7 +52,7 @@ func resourcedevice() *schema.Resource {
 
 // Validate device name format against the hostname regexp
 func resourcedevicenamevalidateformat(v interface{}, _ string) ([]string, []error) {
-	if match, _ := regexp.MatchString(`^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$`, v.(string)); match == true {
+	if match, _ := regexp.MatchString(regexp_hostname, v.(string)); match == true {
 		return nil, nil
 	}
 

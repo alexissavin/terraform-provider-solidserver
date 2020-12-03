@@ -17,6 +17,9 @@ import (
 	"time"
 )
 
+const regexp_hostname = `^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$`
+const regexp_network_acl = `^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`
+
 type SOLIDserver struct {
 	Host                     string
 	Username                 string
@@ -27,7 +30,7 @@ type SOLIDserver struct {
 	Version                  int
 }
 
-func NewSOLIDserver(host string, username string, password string, sslverify bool, certsfile string) (*SOLIDserver, error) {
+func NewSOLIDserver(host string, username string, password string, sslverify bool, certsfile string, version string) (*SOLIDserver, error) {
 	s := &SOLIDserver{
 		Host:                     host,
 		Username:                 username,
@@ -38,14 +41,14 @@ func NewSOLIDserver(host string, username string, password string, sslverify boo
 		Version:                  0,
 	}
 
-	if err := s.GetVersion(); err != nil {
+	if err := s.GetVersion(version); err != nil {
 		return nil, err
 	}
 
 	return s, nil
 }
 
-func (s *SOLIDserver) GetVersion() error {
+func (s *SOLIDserver) GetVersion(version string) error {
 	// Get the SystemCertPool, continue with an empty pool on error
 	rootCAs, x509err := x509.SystemCertPool()
 
@@ -84,10 +87,10 @@ func (s *SOLIDserver) GetVersion() error {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
-		if version, versionExist := buf[0]["member_version"].(string); versionExist {
-			log.Printf("[DEBUG] SOLIDServer - Version: %s\n", version)
+		if rversion, rversionExist := buf[0]["member_version"].(string); rversionExist {
+			log.Printf("[DEBUG] SOLIDServer - Version: %s\n", rversion)
 
-			StrVersion := strings.Split(version, ".")
+			StrVersion := strings.Split(rversion, ".")
 
 			for i := 0; i < len(StrVersion) && i < 3; i++ {
 				num, numErr := strconv.Atoi(StrVersion[i])
@@ -98,10 +101,27 @@ func (s *SOLIDserver) GetVersion() error {
 				}
 			}
 
-			log.Printf("[DEBUG] SOLIDServer - server version: %d\n", s.Version)
+			log.Printf("[DEBUG] SOLIDServer - server version retrieved from remote SOLIDserver: %d\n", s.Version)
 
 			return nil
 		}
+	}
+
+	if err == nil && resp.StatusCode == 401 && version != "" {
+		StrVersion := strings.Split(version, ".")
+
+		for i := 0; i < len(StrVersion) && i < 3; i++ {
+			num, numErr := strconv.Atoi(StrVersion[i])
+			if numErr == nil {
+				s.Version = s.Version*10 + num
+			} else {
+				s.Version = s.Version*10 + 0
+			}
+		}
+
+		log.Printf("[DEBUG] SOLIDServer - server version retrived from local provider parameter: %d\n", s.Version)
+
+		return nil
 	}
 
 	return fmt.Errorf("SOLIDServer - Error retrieving SOLIDserver Version (No Answer)\n")

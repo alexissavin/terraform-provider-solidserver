@@ -242,7 +242,7 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_transfer ACL
 	allowTransfers := ""
 	for _, allowTransfer := range toStringArray(d.Get("allow_transfer").([]interface{})) {
-		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowTransfer); match == false {
+		if match, _ := regexp.MatchString(regexp_network_acl, allowTransfer); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_transfer parameter")
 		}
 		allowTransfers += allowTransfer + ";"
@@ -252,7 +252,7 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_query ACL
 	allowQueries := ""
 	for _, allowQuery := range toStringArray(d.Get("allow_query").([]interface{})) {
-		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowQuery); match == false {
+		if match, _ := regexp.MatchString(regexp_network_acl, allowQuery); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_query parameter")
 		}
 		allowQueries += allowQuery + ";"
@@ -262,7 +262,7 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_recursion ACL
 	allowRecursions := ""
 	for _, allowRecursion := range toStringArray(d.Get("allow_recursion").([]interface{})) {
-		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowRecursion); match == false {
+		if match, _ := regexp.MatchString(regexp_network_acl, allowRecursion); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_recursion parameter")
 		}
 		allowRecursions += allowRecursion + ";"
@@ -293,7 +293,13 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 					dnsaddtosmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), strings.ToLower(d.Get("smart_role").(string)), meta)
 				}
 
-				time.Sleep(time.Duration(32 * time.Second))
+				// Wait as much as possible for for the DNS server to be ready
+				for attempts := 0; attempts < 12; attempts++ {
+					if dnsserverstatus(d.Id(), meta) == "Y" {
+						break
+					}
+					time.Sleep(time.Duration(8 * time.Second))
+				}
 
 				return nil
 			}
@@ -355,7 +361,7 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_transfer ACL
 	allowTransfers := ""
 	for _, allowTransfer := range toStringArray(d.Get("allow_transfer").([]interface{})) {
-		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowTransfer); match == false {
+		if match, _ := regexp.MatchString(regexp_network_acl, allowTransfer); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_transfer parameter")
 		}
 		allowTransfers += allowTransfer + ";"
@@ -365,7 +371,7 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_query ACL
 	allowQueries := ""
 	for _, allowQuery := range toStringArray(d.Get("allow_query").([]interface{})) {
-		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowQuery); match == false {
+		if match, _ := regexp.MatchString(regexp_network_acl, allowQuery); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_query parameter")
 		}
 		allowQueries += allowQuery + ";"
@@ -375,7 +381,7 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_recursion ACL
 	allowRecursions := ""
 	for _, allowRecursion := range toStringArray(d.Get("allow_recursion").([]interface{})) {
-		if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowRecursion); match == false {
+		if match, _ := regexp.MatchString(regexp_network_acl, allowRecursion); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_recursion parameter")
 		}
 		allowRecursions += allowRecursion + ";"
@@ -423,6 +429,20 @@ func resourcednsserverDelete(d *schema.ResourceData, meta interface{}) error {
 		if strings.ToLower(d.Get("smart").(string)) != "" {
 			//FIXME - Handle Errors
 			dnsdeletefromsmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), meta)
+		}
+
+		// Wait for all views and zones to be deleted, fail after 3 attempts
+		attempts := 0
+		for attempts = 0; attempts < 3; attempts++ {
+			if dnsserverpendingdeletions(d.Id(), meta) == 0 {
+				break
+			}
+			time.Sleep(time.Duration(8 * time.Second))
+		}
+
+		// Reporting a failure
+		if attempts >= 3 {
+			return fmt.Errorf("SOLIDServer - Unable to delete DNS server: Too many unsuccessful deletion attempts (Pending operations)")
 		}
 
 		// Sending the deletion request
@@ -508,7 +528,7 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 			if buf[0]["dns_allow_transfer"].(string) != "" {
 				allowTransfers := []string{}
 				for _, allowTransfer := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_allow_transfer"].(string), ";"), ";")) {
-					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowTransfer.(string)); match == true {
+					if match, _ := regexp.MatchString(regexp_network_acl, allowTransfer.(string)); match == true {
 						allowTransfers = append(allowTransfers, allowTransfer.(string))
 					}
 				}
@@ -519,7 +539,7 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 			if buf[0]["dns_allow_query"].(string) != "" {
 				allowQueries := []string{}
 				for _, allowQuery := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_allow_query"].(string), ";"), ";")) {
-					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowQuery.(string)); match == true {
+					if match, _ := regexp.MatchString(regexp_network_acl, allowQuery.(string)); match == true {
 						allowQueries = append(allowQueries, allowQuery.(string))
 					}
 				}
@@ -530,7 +550,7 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 			if buf[0]["dns_allow_recursion"].(string) != "" {
 				allowRecursions := []string{}
 				for _, allowRecursion := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_allow_recursion"].(string), ";"), ";")) {
-					if match, _ := regexp.MatchString(`^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`, allowRecursion.(string)); match == true {
+					if match, _ := regexp.MatchString(regexp_network_acl, allowRecursion.(string)); match == true {
 						allowRecursions = append(allowRecursions, allowRecursion.(string))
 					}
 				}
