@@ -1088,7 +1088,7 @@ func dnsparamset(serverName string, viewID string, paramKey string, paramValue s
 	parameters.Add("param_key", paramKey)
 
 	if paramValue != "" {
-		parameters.Add("param_value", paramKey)
+		parameters.Add("param_value", paramValue)
 	}
 
 	// Sending the read request
