@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/url"
 	"regexp"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 func dataSourcednsview() *schema.Resource {
