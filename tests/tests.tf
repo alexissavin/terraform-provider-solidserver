@@ -211,11 +211,50 @@ data "solidserver_dns_server" "myFirstDnsServerData" {
   name = solidserver_dns_server.myFirstDnsServer.name
 }
 
+resource "solidserver_dns_view" "myFirstDnsView" {
+  depends_on      = [solidserver_dns_smart.myFirstDnsSMART]
+  name            = "myfirstdnsview"
+  dnsserver       = solidserver_dns_smart.myFirstDnsSMART.name
+  recursion       = true
+  forward         = "first"
+  forwarders      = ["172.16.0.42", "172.16.0.43"]
+  allow_transfer  = ["172.16.0.0/12", "192.168.0.0/24"]
+  allow_query     = ["172.16.0.0/12", "192.168.0.0/24"]
+  allow_recursion = ["172.16.0.0/12", "192.168.0.0/24"]
+  match_clients   = ["172.16.0.0/12", "192.168.0.0/24"]
+  match_to        = ["192.168.1.1/32"]
+}
+
+resource "solidserver_dns_view" "mySecondDnsView" {
+  depends_on      = [solidserver_dns_server.myFirstDnsServer]
+  name            = "mySecondDnsView"
+  dnsserver       = solidserver_dns_smart.myFirstDnsSMART.name
+  recursion       = true
+  forward         = "first"
+  forwarders      = ["10.0.0.42", "10.0.0.43"]
+  allow_transfer  = ["10.0.0.0/8"]
+  allow_query     = ["10.0.0.0/8"]
+  allow_recursion = ["10.0.0.0/8"]
+  match_clients   = ["10.0.0.0/8"]
+}
+
+
 resource "solidserver_dns_zone" "myFirstZone" {
-  dnsserver = solidserver_dns_smart.myFirstDnsSMART.name
-  name      = "mycompany.priv"
-  type      = "master"
-  createptr = false
+  depends_on      = [solidserver_dns_view.myFirstDnsView]
+  dnsserver       = solidserver_dns_smart.myFirstDnsSMART.name
+  dnsview         = solidserver_dns_view.myFirstDnsView.name
+  name            = "mycompany.priv"
+  type            = "master"
+  createptr       = false
+}
+
+resource "solidserver_dns_zone" "mySecondZone" {
+  depends_on      = [solidserver_dns_view.mySecondDnsView]
+  dnsserver       = solidserver_dns_smart.myFirstDnsSMART.name
+  dnsview         = solidserver_dns_view.mySecondDnsView.name
+  name            = "mysubcompany.priv"
+  type            = "master"
+  createptr       = false
 }
 
 data "solidserver_dns_zone" "myFirstDnsZoneData" {
@@ -224,28 +263,52 @@ data "solidserver_dns_zone" "myFirstDnsZoneData" {
 }
 
 resource "solidserver_dns_forward_zone" "myFirstForwardZone" {
-  dnsserver = solidserver_dns_smart.myFirstDnsSMART.name
-  name       = "fwd.mycompany.priv"
-  forward    = "first"
-  forwarders = ["10.10.8.8", "10.10.4.4"]
+  depends_on  = [solidserver_dns_view.myFirstDnsView]
+  dnsserver   = solidserver_dns_smart.myFirstDnsSMART.name
+  dnsview     = solidserver_dns_view.myFirstDnsView.name
+  name        = "fwd.mycompany.priv"
+  forward     = "first"
+  forwarders  = ["10.10.8.8", "10.10.4.4"]
 }
 
-resource "solidserver_dns_rr" "ARecords" {
+resource "solidserver_dns_rr" "AFirstRecords" {
   depends_on   = [solidserver_dns_zone.myFirstZone]
   dnsserver    = solidserver_dns_smart.myFirstDnsSMART.name
+  dnsview      = solidserver_dns_view.myFirstDnsView.name
   name         = "aarecord-${count.index}.mycompany.priv"
   type         = "A"
   value        = "127.0.0.1"
-  count        = 64
+  count        = 16
 }
 
-resource "solidserver_dns_rr" "CnameRecords" {
-  depends_on   = [solidserver_dns_rr.ARecords]
+resource "solidserver_dns_rr" "CnameFirstRecords" {
+  depends_on   = [solidserver_dns_rr.AFirstRecords]
   dnsserver    = solidserver_dns_smart.myFirstDnsSMART.name
+  dnsview      = solidserver_dns_view.myFirstDnsView.name
   name         = "cnamerecord-${count.index}.mycompany.priv"
   type         = "CNAME"
   value        = "aarecord-${count.index}.mycompany.priv"
-  count        = 64
+  count        = 16
+}
+
+resource "solidserver_dns_rr" "ASecondRecords" {
+  depends_on   = [solidserver_dns_zone.mySecondZone]
+  dnsserver    = solidserver_dns_smart.myFirstDnsSMART.name
+  dnsview      = solidserver_dns_view.mySecondDnsView.name
+  name         = "aarecord-${count.index}.mysubcompany.priv"
+  type         = "A"
+  value        = "127.0.0.1"
+  count        = 16
+}
+
+resource "solidserver_dns_rr" "CnameSecondRecords" {
+  depends_on   = [solidserver_dns_rr.ASecondRecords]
+  dnsserver    = solidserver_dns_smart.myFirstDnsSMART.name
+  dnsview      = solidserver_dns_view.mySecondDnsView.name
+  name         = "cnamerecord-${count.index}.mysubcompany.priv"
+  type         = "CNAME"
+  value        = "aarecord-${count.index}.mysubcompany.priv"
+  count        = 16
 }
 
 resource "solidserver_app_application" "myFirstApplicaton" {
