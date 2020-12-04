@@ -24,5 +24,8 @@ data "solidserver_dns_server" "test" {
 * `recursion` - The recursion mode of the DNS server.
 * `forward` - The forwarding mode of the DNS server.
 * `forwarders` - The IP address list of the forwarder(s) configured on the DNS server.
+* `allow_transfer` - The list of network prefixes allowed to query the DNS SMART for zone transfert (named ACL(s) are not supported using this provider).
+* `allow_query` - The list of network prefixes allowed to query the DNS SMART (named ACL(s) are not supported using this provider).
+* `allow_recursion` - The list of network prefixes allowed to query the DNS SMART for recursion (named ACL(s) are not supported using this provider).
 * `class` - The name of the class associated with the DNS server.
 * `class_parameters` - The class parameters associated with the DNS server class, as key/value.

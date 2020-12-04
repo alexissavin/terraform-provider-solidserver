@@ -24,6 +24,9 @@ go build -o terraform-provider-solidserver_vX.Y.Z
 ```
 
 # Install
+
+If using terraform 0.13 or higher, you can leverage the terraform registry to install the provider [see here]:https://registry.terraform.io/providers/alexissavin/solidserver/latest/docs.
+
 Download the appropriate build for your system from the [release page]: https://github.com/alexissavin/terraform-provider-solidserver/releases or build the master branch of this repository.
 
 ## Linux
@@ -53,6 +56,7 @@ SOLIDServer provider supports the following arguments:
 * `host` - (Required) IP Address of the SOLIDServer REST API endpoint. Can be stored in `SOLIDServer_HOST` environment variable.
 * `sslverify` - (Optional) Enable/Disable ssl certificate check. Can be stored in `SOLIDServer_SSLVERIFY` environment variable.
 * `additional_trust_certs_file` - (Optional) Path to a file containing concatenated PEM-formatted certificates that will be trusted in addition to system defaults.
+* `solidserverversion` - (Optional) The version of the SOLIDserver to interact with. This field is only for API users not able to retrieve this information dynamically.
 
 ```
 provider "solidserver" {
@@ -72,11 +76,12 @@ SOLIDServer provider allows to manage several resources listed below:
 * [Custom DB](docs/resources/cdb.md)
 * [Custom DB Data](docs/resources/cdb_data.md)
 * [Device](docs/resources/device.md)
+* [DNS Smart](docs/resources/dns_smart.md)
+* [DNS Server](docs/resources/dns_server.md)
+* [DNS View](docs/resources/dns_view.md)
+* [DNS Zone](docs/resources/dns_zone.md)
 * [DNS Forward Zone](docs/resources/dns_forward_zone.md)
 * [DNS Resource Record](docs/resources/dns_rr.md)
-* [DNS Server](docs/resources/dns_server.md)
-* [DNS Smart](docs/resources/dns_smart.md)
-* [DNS Zone](docs/resources/dns_zone.md)
 * [IPv6 Address](docs/resources/ip6_address.md)
 * [IPv6 Alias](docs/resources/ip6_alias.md)
 * [IPv6 MAC](docs/resources/ip6_mac.md)
@@ -98,8 +103,9 @@ SOLIDServer provider allows to retrieve information from several resources liste
 
 * [Custom DB](docs/data-sources/cdb.md)
 * [Custom DB Data](docs/data-sources/cdb_data.md)
-* [DNS Server](docs/data-sources/dns_server.md)
 * [DNS Smart](docs/data-sources/dns_smart.md)
+* [DNS Server](docs/data-sources/dns_server.md)
+* [DNS View](docs/data-sources/dns_view.md)
 * [IP Address](docs/data-sources/ip_address.md)
 * [IP Pool](docs/data-sources/ip_pool.md)
 * [IP Space](docs/data-sources/ip_space.md)
