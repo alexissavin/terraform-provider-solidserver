@@ -489,7 +489,7 @@ func resourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 
 			// Updating forward mode
 			forward, forwardErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "forward", meta)
-			if forwardErr != nil {
+			if forwardErr == nil {
 				if forward == "" {
 					d.Set("forward", "none")
 				} else {
@@ -502,7 +502,7 @@ func resourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 
 			// Updating forwarder information
 			forwarders, forwardersErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "forwarders", meta)
-			if forwardersErr != nil {
+			if forwardersErr == nil {
 				if forwarders != "" {
 					d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(forwarders, ";"), ";")))
 				}
@@ -635,8 +635,8 @@ func resourcednsviewImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			}
 
 			// Updating forward mode
-			forward, forwardErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "dns_forward", meta)
-			if forwardErr != nil {
+			forward, forwardErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "forward", meta)
+			if forwardErr == nil {
 				if forward == "" {
 					d.Set("forward", "none")
 				} else {
@@ -648,8 +648,8 @@ func resourcednsviewImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			}
 
 			// Updating forwarder information
-			forwarders, forwardersErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "dns_forward", meta)
-			if forwardersErr != nil {
+			forwarders, forwardersErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "forwarders", meta)
+			if forwardersErr == nil {
 				if forwarders != "" {
 					d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(forwarders, ";"), ";")))
 				}

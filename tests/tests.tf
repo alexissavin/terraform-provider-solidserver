@@ -229,6 +229,12 @@ resource "solidserver_dns_view" "myFirstDnsView" {
   match_to        = ["192.168.1.1/32"]
 }
 
+data "solidserver_dns_view" "myFirstDnsViewData" {
+  depends_on = [solidserver_dns_view.myFirstDnsView]
+  name       = solidserver_dns_view.myFirstDnsView.name
+  dnsserver  = solidserver_dns_server.myFirstDnsServer.name
+}
+
 resource "solidserver_dns_view" "mySecondDnsView" {
   depends_on      = [solidserver_dns_server.myFirstDnsServer]
   name            = "mySecondDnsView"
