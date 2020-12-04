@@ -130,7 +130,7 @@ func resourcednsforwardzoneCreate(d *schema.ResourceData, meta interface{}) erro
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
 	parameters.Add("dns_name", d.Get("dnsserver").(string))
-	if strings.Compare(d.Get("view").(string), "#") != 0 {
+	if strings.Compare(d.Get("dnsview").(string), "#") != 0 {
 		parameters.Add("dnsview_name", d.Get("dnsview").(string))
 	}
 	parameters.Add("dnszone_name", d.Get("name").(string))
