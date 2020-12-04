@@ -46,3 +46,7 @@ resource "solidserver_app_node" "myFirstNode" {
 |http|http_lookup_string|A string the must be included in the answer payload.|
 |http|http_basic_auth|HTTP basic auth header (user:password).|
 |http|http_ssl_verify|Use 0 or 1 to activate ssl certificate checks.|
+
+## Attribute Reference
+
+* `id` - An internal id.

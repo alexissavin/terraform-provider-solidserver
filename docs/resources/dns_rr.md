@@ -39,3 +39,7 @@ resource "solidserver_dns_rr" "aaRecord" {
 * `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME, DNAME, TXT, NS, PTR).
 * `value` - (Required) The value od the RR to create.
 * `ttl` - (Optional) The DNS Time To Live of the RR to create.
+
+## Attribute Reference
+
+* `id` - An internal id.

@@ -11,7 +11,10 @@ resource "solidserver_dns_smart" "myFirstDnsSMART" {
   arch       = "multimaster"
   comment    = "My First DNS SMART Autmatically created"
   recursion  = true
-  forward    = "none"
+  forward    = "first"
+  forwarders = ["10.0.0.42", "10.0.0.43"]
+  allow_query     = ["172.16.0.0/12", "10.0.0.0/8", "192.168.0.0/24"]
+  allow_recursion = ["172.16.0.0/12", "10.0.0.0/8", "192.168.0.0/24"]
 }
 ```
 
@@ -23,5 +26,12 @@ resource "solidserver_dns_smart" "myFirstDnsSMART" {
 * `recursion` - (Optional) The recursion mode of the DNS SMART (Default: true).
 * `forward` - (Optional) The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).
 * `forwarders` - (Optional) The IP address list of the forwarder(s) configured on the DNS SMART.
+* `allow_transfer` - (Optional) A list of network prefixes allowed to query the DNS SMART for zone transfert (named ACL(s) are not supported using this provider).
+* `allow_query` - (Optional) A list of network prefixes allowed to query the DNS SMART (named ACL(s) are not supported using this provider).
+* `allow_recursion` - (Optional) A list of network prefixes allowed to query the DNS SMART for recursion (named ACL(s) are not supported using this provider).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+## Attribute Reference
+
+* `id` - An internal id.

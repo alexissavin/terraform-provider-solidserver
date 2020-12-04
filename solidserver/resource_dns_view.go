@@ -52,7 +52,6 @@ func resourcednsview() *schema.Resource {
 				Optional:    true,
 				Default:     false,
 			},
-			/* To Be Implemented Later (Requires the use of dns_view_param_add)
 			"forward": {
 				Type:        schema.TypeString,
 				Description: "The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).",
@@ -66,12 +65,12 @@ func resourcednsview() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-			*/
+			},
 			// ACL(s)
 			// Views and Servers/SMARTs
 			"allow_transfer": {
 				Type:        schema.TypeList,
-				Description: "A list of netork prefixes allowed to query the view for zone transfert (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes allowed to query the view for zone transfert (named ACL(s) are not supported using this provider).",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -80,7 +79,7 @@ func resourcednsview() *schema.Resource {
 			},
 			"allow_query": {
 				Type:        schema.TypeList,
-				Description: "A list of netork prefixes allowed to query the view (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes allowed to query the view (named ACL(s) are not supported using this provider).",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -89,7 +88,7 @@ func resourcednsview() *schema.Resource {
 			},
 			"allow_recursion": {
 				Type:        schema.TypeList,
-				Description: "A list of netork prefixes allowed to query the view for recursion (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes allowed to query the view for recursion (named ACL(s) are not supported using this provider).",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -99,7 +98,7 @@ func resourcednsview() *schema.Resource {
 			// Views Only
 			"match_clients": {
 				Type:        schema.TypeList,
-				Description: "A list of netork prefixes used to match the clients of the view (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes used to match the clients of the view (named ACL(s) are not supported using this provider).",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -108,7 +107,7 @@ func resourcednsview() *schema.Resource {
 			},
 			"match_to": {
 				Type:        schema.TypeList,
-				Description: "A list of netork prefixes used to match the traffic to the view (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes used to match the traffic to the view (named ACL(s) are not supported using this provider).",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -117,7 +116,7 @@ func resourcednsview() *schema.Resource {
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the DNS server.",
+				Description: "The class associated to the DNS view.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
@@ -255,6 +254,22 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 				log.Printf("[DEBUG] SOLIDServer - Created DNS view (oid): %s\n", oid)
 				d.SetId(oid)
 
+				// Building forward mode
+				if d.Get("forward").(string) == "none" {
+					dnsparamset(d.Get("dnsserver").(string), oid, "dns_forward", "", meta)
+				} else {
+					dnsparamset(d.Get("dnsserver").(string), oid, "dns_forward", strings.ToLower(d.Get("forward").(string)), meta)
+				}
+
+				// Building forwarder list
+				fwdList := ""
+				for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
+					fwdList += fwd + ";"
+				}
+				if fwdList != "" {
+					dnsparamset(d.Get("dnsserver").(string), oid, "dns_forwarders", fwdList, meta)
+				}
+
 				return nil
 			}
 		}
@@ -359,6 +374,23 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
 				log.Printf("[DEBUG] SOLIDServer - Updated DNS view (oid): %s\n", oid)
 				d.SetId(oid)
+
+				// Building forward mode
+				if d.Get("forward").(string) == "none" {
+					dnsparamset(d.Get("dnsserver").(string), oid, "dns_forward", "", meta)
+				} else {
+					dnsparamset(d.Get("dnsserver").(string), oid, "dns_forward", strings.ToLower(d.Get("forward").(string)), meta)
+				}
+
+				// Building forwarder list
+				fwdList := ""
+				for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
+					fwdList += fwd + ";"
+				}
+				if fwdList != "" {
+					dnsparamset(d.Get("dnsserver").(string), oid, "dns_forwarders", fwdList, meta)
+				}
+
 				return nil
 			}
 		}
@@ -455,6 +487,30 @@ func resourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("recursion", false)
 			}
 
+			// Updating forward mode
+			forward, forwardErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "dns_forward", meta)
+			if forwardErr != nil {
+				if forward == "" {
+					d.Set("forward", "none")
+				} else {
+					d.Set("forward", strings.ToLower(forward))
+				}
+			} else {
+				// Log the error
+				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forward mode (oid): %s\n", d.Id())
+			}
+
+			// Updating forwarder information
+			forwarders, forwardersErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "dns_forward", meta)
+			if forwardersErr != nil {
+				if forwarders != "" {
+					d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(forwarders, ";"), ";")))
+				}
+			} else {
+				// Log the error
+				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forwarders list (oid): %s\n", d.Id())
+			}
+
 			// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
 			// Building allow_transfer ACL
 			if buf[0]["dnsview_allow_transfer"].(string) != "" {
@@ -532,17 +588,17 @@ func resourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS server: %s (%s)\n", strings.ToLower(d.Get("name").(string)), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find DNS view: %s (%s)\n", strings.ToLower(d.Get("name").(string)), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS server (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find DNS view (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find DNS server: %s\n", strings.ToLower(d.Get("name").(string)))
+		return fmt.Errorf("SOLIDServer - Unable to find DNS view: %s\n", strings.ToLower(d.Get("name").(string)))
 	}
 
 	// Reporting a failure
@@ -576,6 +632,30 @@ func resourcednsviewImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 				d.Set("recursion", true)
 			} else {
 				d.Set("recursion", false)
+			}
+
+			// Updating forward mode
+			forward, forwardErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "dns_forward", meta)
+			if forwardErr != nil {
+				if forward == "" {
+					d.Set("forward", "none")
+				} else {
+					d.Set("forward", strings.ToLower(forward))
+				}
+			} else {
+				// Log the error
+				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forward mode (oid): %s\n", d.Id())
+			}
+
+			// Updating forwarder information
+			forwarders, forwardersErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "dns_forward", meta)
+			if forwardersErr != nil {
+				if forwarders != "" {
+					d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(forwarders, ";"), ";")))
+				}
+			} else {
+				// Log the error
+				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forwarders list (oid): %s\n", d.Id())
 			}
 
 			// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
@@ -632,7 +712,6 @@ func resourcednsviewImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 				}
 				d.Set("match_to", matchTos)
 			}
-			d.Set("class", buf[0]["dnsview_class_name"].(string))
 
 			d.Set("class", buf[0]["dnsview_class_name"].(string))
 

@@ -1146,6 +1146,8 @@ func dnsparamget(serverName string, viewID string, paramKey string, meta interfa
 		if resp.StatusCode == 200 && len(buf) > 0 {
 			if paramValue, paramValueExist := buf[0]["param_value"].(string); paramValueExist {
 				return paramValue, nil
+			} else {
+				return "", nil
 			}
 		}
 	}

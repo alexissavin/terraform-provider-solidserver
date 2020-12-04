@@ -23,3 +23,7 @@ resource "solidserver_dns_forward_zone" "myFirstForwardZone" {
 * `forwarders` - (Optional) The IP address list of the forwarders to use for the forward zone.
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+## Attribute Reference
+
+* `id` - An internal id.

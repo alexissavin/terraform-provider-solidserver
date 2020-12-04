@@ -25,3 +25,7 @@ resource "solidserver_dns_zone" "myFirstZone" {
 * `createptr` - (Optional) Automaticaly create PTR records for the Zone (Default: false).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+## Attribute Reference
+
+* `id` - An internal id.

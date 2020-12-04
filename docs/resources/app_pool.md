@@ -26,3 +26,7 @@ resource "solidserver_app_pool" "myFirstPool" {
 * `affinity` - (Optional) Enable session affinity for the application pool.
 * `affinity_session_duration` - (Optional) The time each session is maintained in sec (Default: 300).
 * `best_active_nodes` - (Optional) Number of best active nodes when lb_mode is set to latency.
+
+## Attribute Reference
+
+* `id` - An internal id.

@@ -22,3 +22,7 @@ resource "solidserver_device" "my_first_device" {
 * `name` - (Required) The name of the Device to create.
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
+
+## Attribute Reference
+
+* `id` - An internal id.
