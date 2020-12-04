@@ -1,6 +1,7 @@
 # TODO List
 
-- [ ] Implement support for VLAN class parameters for version >= 7.2
+- [X] Implement support for VLAN class parameters for version >= 7.2
+- [X] Implement support for DNS views
 - [ ] Implement support for RPZ Zone and RPZ rules
 - [ ] Implement support for DHCP resources
 - [ ] Implement support for Subnet/VLAN relationship
