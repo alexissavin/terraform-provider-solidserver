@@ -181,7 +181,6 @@ func resourcevlanUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("vlmvlan_id", d.Id())
 	parameters.Add("add_flag", "edit_only")
-	parameters.Add("vlmvlan_vlan_id", d.Get("vlan_id").(string))
 	parameters.Add("vlmvlan_name", d.Get("name").(string))
 
 	if s.Version < 730 {

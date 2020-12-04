@@ -52,6 +52,10 @@ resource "solidserver_vlan" "myFirstVxlan" {
   depends_on       = [solidserver_vlan_domain.myFirstVxlanDomain]
   vlan_domain      = solidserver_vlan_domain.myFirstVxlanDomain.name
   name             = "myFirstVxlan"
+  class            = "OpenStack VxLAN"
+  class_parameters = {
+    vnid = "12666"
+  }
 }
 
 resource "solidserver_ip_subnet" "myFirstIPBlock" {
