@@ -26,9 +26,9 @@ resource "solidserver_dns_smart" "myFirstDnsSMART" {
 * `recursion` - (Optional) The recursion mode of the DNS SMART (Default: true).
 * `forward` - (Optional) The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).
 * `forwarders` - (Optional) The IP address list of the forwarder(s) configured on the DNS SMART.
-* `allow_transfer` - (Optional) A list of network prefixes allowed to query the DNS SMART for zone transfert (named ACL(s) are not supported using this provider).
-* `allow_query` - (Optional) A list of network prefixes allowed to query the DNS SMART (named ACL(s) are not supported using this provider).
-* `allow_recursion` - (Optional) A list of network prefixes allowed to query the DNS SMART for recursion (named ACL(s) are not supported using this provider).
+* `allow_transfer` - (Optional) A list of network prefixes allowed to query the DNS SMART for zone transfert (named ACL(s) are not supported using this provider). Use '!' to negate an entry.
+* `allow_query` - (Optional) A list of network prefixes allowed to query the DNS SMART (named ACL(s) are not supported using this provider). Use '!' to negate an entry.
+* `allow_recursion` - (Optional) A list of network prefixes allowed to query the DNS SMART for recursion (named ACL(s) are not supported using this provider). Use '!' to negate an entry.
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
 * `class_parameters` - (Optional) An optional object class parameters allowing to store and display custom meta-data as key/value.
 

@@ -56,7 +56,7 @@ func resourcednsview() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).",
 				Optional:    true,
-				Default:     "",
+				Default:     "none",
 			},
 			"forwarders": {
 				Type:        schema.TypeList,
@@ -70,7 +70,7 @@ func resourcednsview() *schema.Resource {
 			// Views and Servers/SMARTs
 			"allow_transfer": {
 				Type:        schema.TypeList,
-				Description: "A list of network prefixes allowed to query the view for zone transfert (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes allowed to query the view for zone transfert (named ACL(s) are not supported using this provider).  Use '!' to negate an entry.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -79,7 +79,7 @@ func resourcednsview() *schema.Resource {
 			},
 			"allow_query": {
 				Type:        schema.TypeList,
-				Description: "A list of network prefixes allowed to query the view (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes allowed to query the view (named ACL(s) are not supported using this provider).  Use '!' to negate an entry.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -88,7 +88,7 @@ func resourcednsview() *schema.Resource {
 			},
 			"allow_recursion": {
 				Type:        schema.TypeList,
-				Description: "A list of network prefixes allowed to query the view for recursion (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes allowed to query the view for recursion (named ACL(s) are not supported using this provider).  Use '!' to negate an entry.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -98,7 +98,7 @@ func resourcednsview() *schema.Resource {
 			// Views Only
 			"match_clients": {
 				Type:        schema.TypeList,
-				Description: "A list of network prefixes used to match the clients of the view (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes used to match the clients of the view (named ACL(s) are not supported using this provider).  Use '!' to negate an entry.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -107,7 +107,7 @@ func resourcednsview() *schema.Resource {
 			},
 			"match_to": {
 				Type:        schema.TypeList,
-				Description: "A list of network prefixes used to match the traffic to the view (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes used to match the traffic to the view (named ACL(s) are not supported using this provider).  Use '!' to negate an entry.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -496,8 +496,8 @@ func resourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 					d.Set("forward", strings.ToLower(forward))
 				}
 			} else {
-				// Log the error
-				log.Printf("[ERROR] SOLIDServer - Unable to DNS view's forward mode (oid): %s\n", d.Id())
+				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forward mode (oid): %s\n", d.Id())
+				d.Set("forward", "none")
 			}
 
 			// Updating forwarder information
@@ -507,8 +507,8 @@ func resourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 					d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(forwarders, ";"), ";")))
 				}
 			} else {
-				// Log the error
-				log.Printf("[ERROR] SOLIDServer - Unable to DNS view's forwarders list (oid): %s\n", d.Id())
+				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forwarders list (oid): %s\n", d.Id())
+				d.Set("forwarders", make([]string, 0))
 			}
 
 			// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
@@ -643,8 +643,8 @@ func resourcednsviewImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 					d.Set("forward", strings.ToLower(forward))
 				}
 			} else {
-				// Log the error
 				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forward mode (oid): %s\n", d.Id())
+				d.Set("forward", "none")
 			}
 
 			// Updating forwarder information
@@ -654,8 +654,8 @@ func resourcednsviewImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 					d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(forwarders, ";"), ";")))
 				}
 			} else {
-				// Log the error
 				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forwarders list (oid): %s\n", d.Id())
+				d.Set("forwarders", make([]string, 0))
 			}
 
 			// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver

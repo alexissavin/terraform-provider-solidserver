@@ -137,7 +137,7 @@ func dataSourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			// Updating forward mode
-			forward, forwardErr := dnsparamget(buf[0]["dns_name"].(string), buf[0]["dnsview_id"].(string), "forward", meta)
+			forward, forwardErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "forward", meta)
 			if forwardErr == nil {
 				if forward == "" {
 					d.Set("forward", "none")
@@ -145,19 +145,19 @@ func dataSourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 					d.Set("forward", strings.ToLower(forward))
 				}
 			} else {
-				// Log the error
 				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forward mode (oid): %s\n", d.Id())
+				d.Set("forward", "none")
 			}
 
 			// Updating forwarder information
-			forwarders, forwardersErr := dnsparamget(buf[0]["dns_name"].(string), buf[0]["dnsview_id"].(string), "forwarders", meta)
+			forwarders, forwardersErr := dnsparamget(buf[0]["dns_name"].(string), d.Id(), "forwarders", meta)
 			if forwardersErr == nil {
 				if forwarders != "" {
 					d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(forwarders, ";"), ";")))
 				}
 			} else {
-				// Log the error
 				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forwarders list (oid): %s\n", d.Id())
+				d.Set("forwarders", make([]string, 0))
 			}
 
 			// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver

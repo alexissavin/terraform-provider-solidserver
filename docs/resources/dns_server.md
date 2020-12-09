@@ -32,9 +32,9 @@ resource "solidserver_dns_server" "myFirstDnsServer" {
 * `recursion` - (Optional) The recursion mode of the DNS server (Default: true).
 * `forward` - (Optional) The forwarding mode of the DNS server (Supported: none, first, only; Default: none)..
 * `forwarders` - (Optional) The list of forwarders' IP address to be used by the DNS server.
-* `allow_transfer` - (Optional) A list of network prefixes allowed to query the DNS server for zone transfert (named ACL(s) are not supported using this provider).
-* `allow_query` - (Optional) A list of network prefixes allowed to query the DNS server (named ACL(s) are not supported using this provider).
-* `allow_recursion` - (Optional) A list of network prefixes allowed to query the DNS server for recursion (named ACL(s) are not supported using this provider).
+* `allow_transfer` - (Optional) A list of network prefixes allowed to query the DNS server for zone transfert (named ACL(s) are not supported using this provider). Use '!' to negate an entry.
+* `allow_query` - (Optional) A list of network prefixes allowed to query the DNS server (named ACL(s) are not supported using this provider). Use '!' to negate an entry.
+* `allow_recursion` - (Optional) A list of network prefixes allowed to query the DNS server for recursion (named ACL(s) are not supported using this provider). Use '!' to negate an entry.
 * `smart` - (Optional) The DNS server the DNS server must join.
 * `smart_role` - (Optional) The role the DNS server will play within the server (Supported: master, slave; Default: slave).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.

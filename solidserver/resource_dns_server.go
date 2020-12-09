@@ -100,7 +100,7 @@ func resourcednsserver() *schema.Resource {
 			},
 			"allow_transfer": {
 				Type:        schema.TypeList,
-				Description: "A list of network prefixes allowed to query the DNS server for zone transfert (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes allowed to query the DNS server for zone transfert (named ACL(s) are not supported using this provider).  Use '!' to negate an entry.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -109,7 +109,7 @@ func resourcednsserver() *schema.Resource {
 			},
 			"allow_query": {
 				Type:        schema.TypeList,
-				Description: "A list of network prefixes allowed to query the DNS server (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes allowed to query the DNS server (named ACL(s) are not supported using this provider).  Use '!' to negate an entry.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -118,7 +118,7 @@ func resourcednsserver() *schema.Resource {
 			},
 			"allow_recursion": {
 				Type:        schema.TypeList,
-				Description: "A list of network prefixes allowed to query the DNS server for recursion (named ACL(s) are not supported using this provider).",
+				Description: "A list of network prefixes allowed to query the DNS server for recursion (named ACL(s) are not supported using this provider).  Use '!' to negate an entry.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
