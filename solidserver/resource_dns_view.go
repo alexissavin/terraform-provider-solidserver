@@ -255,11 +255,11 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 				d.SetId(oid)
 
 				// Building forward mode
-				if d.Get("forward").(string) == "none" {
-					dnsparamset(d.Get("dnsserver").(string), oid, "forward", "", meta)
-				} else {
-					dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
-				}
+				//if d.Get("forward").(string) == "none" {
+				//	dnsparamset(d.Get("dnsserver").(string), oid, "forward", "", meta)
+				//} else {
+				dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
+				//}
 
 				// Building forwarder list
 				fwdList := ""
@@ -376,11 +376,11 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 				d.SetId(oid)
 
 				// Building forward mode
-				if d.Get("forward").(string) == "none" {
-					dnsparamset(d.Get("dnsserver").(string), oid, "forward", "", meta)
-				} else {
-					dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
-				}
+				//if d.Get("forward").(string) == "none" {
+				//	dnsparamset(d.Get("dnsserver").(string), oid, "forward", "", meta)
+				//} else {
+				dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
+				//}
 
 				// Building forwarder list
 				fwdList := ""
