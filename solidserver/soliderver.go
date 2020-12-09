@@ -92,6 +92,7 @@ func (s *SOLIDserver) GetVersion(version string) error {
 
 			StrVersion := strings.Split(rversion, ".")
 
+			// Computing version number
 			for i := 0; i < len(StrVersion) && i < 3; i++ {
 				num, numErr := strconv.Atoi(StrVersion[i])
 				if numErr == nil {
@@ -99,6 +100,11 @@ func (s *SOLIDserver) GetVersion(version string) error {
 				} else {
 					s.Version = s.Version*10 + 0
 				}
+			}
+
+			// Handling new branch version
+			if s.Version < 100 {
+				s.Version = s.Version * 10
 			}
 
 			log.Printf("[DEBUG] SOLIDServer - server version retrieved from remote SOLIDserver: %d\n", s.Version)
