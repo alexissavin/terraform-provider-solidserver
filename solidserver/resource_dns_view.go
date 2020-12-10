@@ -261,12 +261,16 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 					fwdList += fwd + ";"
 				}
 
-				if d.Get("forward").(string) == "none" && fwdList != "" {
-					return fmt.Errorf("SOLIDServer - Error creating DNS view: %s (Forward mode set to 'none' but forwarders list is not empty).", strings.ToLower(d.Get("name").(string)))
+				if d.Get("forward").(string) == "none" {
+					if fwdList != "" {
+						return fmt.Errorf("SOLIDServer - Error creating DNS view: %s (Forward mode set to 'none' but forwarders list is not empty).", strings.ToLower(d.Get("name").(string)))
+					}
+					// NOT required at creation time - dnsparamunset(d.Get("dnsserver").(string), oid, "forward", meta)
+					dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", "", meta)
+				} else {
+					dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
+					dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", fwdList, meta)
 				}
-
-				dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
-				dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", fwdList, meta)
 
 				return nil
 			}
@@ -379,13 +383,16 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 					fwdList += fwd + ";"
 				}
 
-				if d.Get("forward").(string) == "none" && fwdList != "" {
-					return fmt.Errorf("SOLIDServer - Error updating DNS view: %s (Forward mode set to 'none' but forwarders list is not empty).", strings.ToLower(d.Get("name").(string)))
+				if d.Get("forward").(string) == "none" {
+					if fwdList != "" {
+						return fmt.Errorf("SOLIDServer - Error creating DNS view: %s (Forward mode set to 'none' but forwarders list is not empty).", strings.ToLower(d.Get("name").(string)))
+					}
+					dnsparamunset(d.Get("dnsserver").(string), oid, "forward", meta)
+					dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", "", meta)
+				} else {
+					dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
+					dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", fwdList, meta)
 				}
-
-				dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
-				dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", fwdList, meta)
-
 				return nil
 			}
 		}
