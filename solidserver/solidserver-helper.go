@@ -1086,12 +1086,9 @@ func dnsparamset(serverName string, viewID string, paramKey string, paramValue s
 	}
 
 	parameters.Add("param_key", paramKey)
+	parameters.Add("param_value", paramValue)
 
-	if paramValue != "" {
-		parameters.Add("param_value", paramValue)
-	}
-
-	// Sending the read request
+	// Sending the update request
 	resp, body, err := s.Request("put", "rest/"+service, &parameters)
 
 	if err == nil {
@@ -1110,6 +1107,50 @@ func dnsparamset(serverName string, viewID string, paramKey string, paramValue s
 			}
 		} else {
 			log.Printf("[DEBUG] SOLIDServer - Unable to set DNS server or view parameter: %s on %s\n", paramKey, serverName)
+		}
+	}
+
+	return false
+}
+
+// UnSet a DNSserver or DNSview param value
+// Return false in case of failure
+func dnsparamunset(serverName string, viewID string, paramKey string, meta interface{}) bool {
+	s := meta.(*SOLIDserver)
+
+	service := "dns_server_param_delete"
+
+	// Building parameters to push information
+	parameters := url.Values{}
+
+	if viewID != "" {
+		service = "dns_view_param_delete"
+		parameters.Add("dnsview_id", viewID)
+	} else {
+		parameters.Add("dns_name", serverName)
+	}
+
+	parameters.Add("param_key", paramKey)
+
+	// Sending the delete request
+	resp, body, err := s.Request("delete", "rest/"+service, &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			return true
+		}
+
+		// Log the error
+		if len(buf) > 0 {
+			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+				log.Printf("[DEBUG] SOLIDServer - Unable to unset DNS server or view parameter: %s on %s (%s)\n", paramKey, serverName, errMsg)
+			}
+		} else {
+			log.Printf("[DEBUG] SOLIDServer - Unable to unset DNS server or view parameter: %s on %s\n", paramKey, serverName)
 		}
 	}
 

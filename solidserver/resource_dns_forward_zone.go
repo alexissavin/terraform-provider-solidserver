@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"strings"
@@ -42,10 +43,10 @@ func resourcednsforwardzone() *schema.Resource {
 			},
 			"forward": {
 				Type:         schema.TypeString,
-				Description:  "The forwarding mode of the forward zone (Supported: Only, First; Default: Only).",
-				ValidateFunc: resourcednsforwardzonevalidateforward,
+				Description:  "The forwarding mode of the forward zone (Supported: only, first; Default: only).",
+				ValidateFunc: validation.StringInSlice([]string{"first", "only"}, true),
 				Optional:     true,
-				Default:      "Only",
+				Default:      "only",
 			},
 			"forwarders": {
 				Type:        schema.TypeList,
@@ -72,17 +73,6 @@ func resourcednsforwardzone() *schema.Resource {
 				},
 			},
 		},
-	}
-}
-
-func resourcednsforwardzonevalidateforward(v interface{}, _ string) ([]string, []error) {
-	switch strings.ToLower(v.(string)) {
-	case "only":
-		return nil, nil
-	case "first":
-		return nil, nil
-	default:
-		return nil, []error{fmt.Errorf("Zone forwarding mode.")}
 	}
 }
 

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
-	//	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"regexp"
@@ -53,10 +53,11 @@ func resourcednsview() *schema.Resource {
 				Default:     false,
 			},
 			"forward": {
-				Type:        schema.TypeString,
-				Description: "The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).",
-				Optional:    true,
-				Default:     "none",
+				Type:         schema.TypeString,
+				Description:  "The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).",
+				ValidateFunc: validation.StringInSlice([]string{"none", "first", "only"}, false),
+				Optional:     true,
+				Default:      "none",
 			},
 			"forwarders": {
 				Type:        schema.TypeList,
@@ -254,21 +255,18 @@ func resourcednsviewCreate(d *schema.ResourceData, meta interface{}) error {
 				log.Printf("[DEBUG] SOLIDServer - Created DNS view (oid): %s\n", oid)
 				d.SetId(oid)
 
-				// Building forward mode
-				//if d.Get("forward").(string) == "none" {
-				//	dnsparamset(d.Get("dnsserver").(string), oid, "forward", "", meta)
-				//} else {
-				dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
-				//}
-
-				// Building forwarder list
+				// Building forward mode and forward list
 				fwdList := ""
 				for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
 					fwdList += fwd + ";"
 				}
-				if fwdList != "" {
-					dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", fwdList, meta)
+
+				if d.Get("forward").(string) == "none" && fwdList != "" {
+					return fmt.Errorf("SOLIDServer - Error creating DNS view: %s (Forward mode set to 'none' but forwarders list is not empty).", strings.ToLower(d.Get("name").(string)))
 				}
+
+				dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
+				dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", fwdList, meta)
 
 				return nil
 			}
@@ -375,21 +373,18 @@ func resourcednsviewUpdate(d *schema.ResourceData, meta interface{}) error {
 				log.Printf("[DEBUG] SOLIDServer - Updated DNS view (oid): %s\n", oid)
 				d.SetId(oid)
 
-				// Building forward mode
-				//if d.Get("forward").(string) == "none" {
-				//	dnsparamset(d.Get("dnsserver").(string), oid, "forward", "", meta)
-				//} else {
-				dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
-				//}
-
-				// Building forwarder list
+				// Building forward mode and forward list
 				fwdList := ""
 				for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
 					fwdList += fwd + ";"
 				}
-				if fwdList != "" {
-					dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", fwdList, meta)
+
+				if d.Get("forward").(string) == "none" && fwdList != "" {
+					return fmt.Errorf("SOLIDServer - Error updating DNS view: %s (Forward mode set to 'none' but forwarders list is not empty).", strings.ToLower(d.Get("name").(string)))
 				}
+
+				dnsparamset(d.Get("dnsserver").(string), oid, "forward", strings.ToLower(d.Get("forward").(string)), meta)
+				dnsparamset(d.Get("dnsserver").(string), oid, "forwarders", fwdList, meta)
 
 				return nil
 			}
@@ -505,6 +500,8 @@ func resourcednsviewRead(d *schema.ResourceData, meta interface{}) error {
 			if forwardersErr == nil {
 				if forwarders != "" {
 					d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(forwarders, ";"), ";")))
+				} else {
+					d.Set("forwarders", make([]string, 0))
 				}
 			} else {
 				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forwarders list (oid): %s\n", d.Id())
@@ -652,6 +649,8 @@ func resourcednsviewImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			if forwardersErr == nil {
 				if forwarders != "" {
 					d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(forwarders, ";"), ";")))
+				} else {
+					d.Set("forwarders", make([]string, 0))
 				}
 			} else {
 				log.Printf("[DEBUG] SOLIDServer - Unable to DNS view's forwarders list (oid): %s\n", d.Id())

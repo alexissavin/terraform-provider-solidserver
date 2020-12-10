@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"regexp"
@@ -56,10 +57,11 @@ func resourcednssmart() *schema.Resource {
 				Default:     true,
 			},
 			"forward": {
-				Type:        schema.TypeString,
-				Description: "The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).",
-				Optional:    true,
-				Default:     "none",
+				Type:         schema.TypeString,
+				Description:  "The forwarding mode of the DNS SMART (Supported: none, first, only; Default: none).",
+				ValidateFunc: validation.StringInSlice([]string{"none", "first", "only"}, false),
+				Optional:     true,
+				Default:      "none",
 			},
 			"forwarders": {
 				Type:        schema.TypeList,
@@ -172,18 +174,21 @@ func resourcednssmartCreate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("dns_recursion", "no")
 	}
 
-	// Building forward mode
-	if d.Get("forward").(string) == "none" {
-		parameters.Add("dns_forward", "")
-	} else {
-		parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
-	}
-
-	// Building forwarder list
+	// Building forward mode and forwarder list
 	fwdList := ""
 	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
 		fwdList += fwd + ";"
 	}
+
+	if d.Get("forward").(string) == "none" {
+		parameters.Add("dns_forward", "")
+		if fwdList != "" {
+			return fmt.Errorf("SOLIDServer - Error creating DNS SMART: %s (Forward mode set to 'none' but forwarders list is not empty).", strings.ToLower(d.Get("name").(string)))
+		}
+	} else {
+		parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+	}
+
 	parameters.Add("dns_forwarders", fwdList)
 
 	// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
@@ -191,7 +196,7 @@ func resourcednssmartCreate(d *schema.ResourceData, meta interface{}) error {
 	allowTransfers := ""
 	for _, allowTransfer := range toStringArray(d.Get("allow_transfer").([]interface{})) {
 		if match, _ := regexp.MatchString(regexp_network_acl, allowTransfer); match == false {
-			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_transfer parameter")
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS SMART's allow_transfer parameter")
 		}
 		allowTransfers += allowTransfer + ";"
 	}
@@ -201,7 +206,7 @@ func resourcednssmartCreate(d *schema.ResourceData, meta interface{}) error {
 	allowQueries := ""
 	for _, allowQuery := range toStringArray(d.Get("allow_query").([]interface{})) {
 		if match, _ := regexp.MatchString(regexp_network_acl, allowQuery); match == false {
-			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_query parameter")
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS SMART's allow_query parameter")
 		}
 		allowQueries += allowQuery + ";"
 	}
@@ -211,7 +216,7 @@ func resourcednssmartCreate(d *schema.ResourceData, meta interface{}) error {
 	allowRecursions := ""
 	for _, allowRecursion := range toStringArray(d.Get("allow_recursion").([]interface{})) {
 		if match, _ := regexp.MatchString(regexp_network_acl, allowRecursion); match == false {
-			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_recursion parameter")
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS SMART's allow_recursion parameter")
 		}
 		allowRecursions += allowRecursion + ";"
 	}
@@ -269,18 +274,21 @@ func resourcednssmartUpdate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("dns_recursion", "no")
 	}
 
-	// Building forward mode
-	if d.Get("forward").(string) == "none" {
-		parameters.Add("dns_forward", "")
-	} else {
-		parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
-	}
-
-	// Building forwarder list
+	// Building forward mode and forwarder list
 	fwdList := ""
 	for _, fwd := range toStringArray(d.Get("forwarders").([]interface{})) {
 		fwdList += fwd + ";"
 	}
+
+	if d.Get("forward").(string) == "none" {
+		parameters.Add("dns_forward", "")
+		if fwdList != "" {
+			return fmt.Errorf("SOLIDServer - Error creating DNS SMART: %s (Forward mode set to 'none' but forwarders list is not empty).", strings.ToLower(d.Get("name").(string)))
+		}
+	} else {
+		parameters.Add("dns_forward", strings.ToLower(d.Get("forward").(string)))
+	}
+
 	parameters.Add("dns_forwarders", fwdList)
 
 	// Only look for network prefixes, acl(s) names will be ignored during the sync process with SOLIDserver
@@ -288,7 +296,7 @@ func resourcednssmartUpdate(d *schema.ResourceData, meta interface{}) error {
 	allowTransfers := ""
 	for _, allowTransfer := range toStringArray(d.Get("allow_transfer").([]interface{})) {
 		if match, _ := regexp.MatchString(regexp_network_acl, allowTransfer); match == false {
-			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_transfer parameter")
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS SMART's allow_transfer parameter")
 		}
 		allowTransfers += allowTransfer + ";"
 	}
@@ -298,7 +306,7 @@ func resourcednssmartUpdate(d *schema.ResourceData, meta interface{}) error {
 	allowQueries := ""
 	for _, allowQuery := range toStringArray(d.Get("allow_query").([]interface{})) {
 		if match, _ := regexp.MatchString(regexp_network_acl, allowQuery); match == false {
-			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_query parameter")
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS SMART's allow_query parameter")
 		}
 		allowQueries += allowQuery + ";"
 	}
@@ -308,7 +316,7 @@ func resourcednssmartUpdate(d *schema.ResourceData, meta interface{}) error {
 	allowRecursions := ""
 	for _, allowRecursion := range toStringArray(d.Get("allow_recursion").([]interface{})) {
 		if match, _ := regexp.MatchString(regexp_network_acl, allowRecursion); match == false {
-			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS view's allow_recursion parameter")
+			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS SMART's allow_recursion parameter")
 		}
 		allowRecursions += allowRecursion + ";"
 	}
