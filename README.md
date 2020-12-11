@@ -25,9 +25,9 @@ go build -o terraform-provider-solidserver_vX.Y.Z
 
 # Install
 
-If using terraform 0.13 or higher, you can leverage the terraform registry to install the provider [see here]:https://registry.terraform.io/providers/alexissavin/solidserver/latest/docs.
+If using terraform 0.13 or higher, you can leverage the terraform registry to install the provider [see here](https://registry.terraform.io/providers/alexissavin/solidserver/latest/docs).
 
-Download the appropriate build for your system from the [release page]: https://github.com/alexissavin/terraform-provider-solidserver/releases or build the master branch of this repository.
+Download the appropriate build for your system from the [release page]( https://github.com/alexissavin/terraform-provider-solidserver/releases) or build the master branch of this repository.
 
 ## Linux
 Move the binary file `terraform-provider-solidserver_vX.Y.Z` into the following directory: `$HOME/.terraform.d/plugins/`.

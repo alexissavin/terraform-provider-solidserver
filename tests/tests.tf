@@ -240,8 +240,8 @@ resource "solidserver_dns_view" "mySecondDnsView" {
   name            = "mySecondDnsView"
   dnsserver       = solidserver_dns_smart.myFirstDnsSMART.name
   recursion       = true
-  forward         = "first"
-  forwarders      = ["10.0.0.42", "10.0.0.43"]
+  forward         = "none"
+  forwarders      = []
   allow_transfer  = ["10.0.0.0/8"]
   allow_query     = ["10.0.0.0/8"]
   allow_recursion = ["10.0.0.0/8"]
