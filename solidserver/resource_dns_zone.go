@@ -62,6 +62,39 @@ func resourcednszone() *schema.Resource {
 				ForceNew:    false,
 				Default:     false,
 			},
+			/* FIXME - Implement Notify Configuration support
+			        # Inherited
+			        "dnszone_notify": "",
+			        "dnszone_also_notify": "",
+
+			        # No
+			        "dnszone_notify": "no"
+			        "dnszone_also_notify": ""
+
+			        # Yes
+			        "dnszone_notify": "yes",
+			        "dnszone_also_notify": "192.168.1.16 port 53;",
+
+			        # Explicit
+						  "dnszone_notify": "explicit"
+						  "dnszone_also_notify": "127.0.0.2 port 53;",
+			*/
+			"notify": {
+				Type:        schema.TypeString,
+				Description: "The expected notify behavior (Supported: empty (Inherited), Yes, No, Explicit; Default: empty (Inherited).",
+				Optional:    true,
+				ForceNew:    false,
+				Default:     "",
+			},
+			"also_notify": {
+				Type:        schema.TypeMap,
+				Description: "The list of IP addresses and related port that will receive zone change notifications in addition to the NS listed in the SOA",
+				Optional:    true,
+				ForceNew:    false,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 			"class": {
 				Type:        schema.TypeString,
 				Description: "The class associated to the zone.",
@@ -148,6 +181,10 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("dnszone_name", d.Get("name").(string))
 	parameters.Add("dnszone_type", strings.ToLower(d.Get("type").(string)))
 	parameters.Add("dnszone_site_id", siteID)
+
+	parameters.Add("dnszone_notify", d.Get("notify").(string))
+	//FIXME - dnszone_also_notify
+
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
 
 	// Building class_parameters
@@ -211,6 +248,10 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 		parameters.Add("dnsview_name", strings.ToLower(d.Get("dnsview").(string)))
 	}
 	parameters.Add("dnszone_site_id", siteID)
+
+	parameters.Add("dnszone_notify", d.Get("notify").(string))
+	//FIXME - dnszone_also_notify
+
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
 
 	// Building class_parameters
@@ -327,6 +368,11 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("space", "")
 			}
 
+			d.Set("notify", buf[0]["dnszone_notify"].(string))
+			//FIXME - dnszone_also_notify
+
+			d.Set("class", buf[0]["dnszone_class_name"].(string))
+
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
@@ -400,6 +446,11 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			} else {
 				d.Set("space", "")
 			}
+
+			d.Set("notify", buf[0]["dnszone_notify"].(string))
+			//FIXME - dnszone_also_notify
+
+			d.Set("class", buf[0]["dnszone_class_name"].(string))
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})

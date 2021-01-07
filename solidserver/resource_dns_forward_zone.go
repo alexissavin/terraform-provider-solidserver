@@ -296,6 +296,8 @@ func resourcednsforwardzoneRead(d *schema.ResourceData, meta interface{}) error 
 				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnszone_forwarders"].(string), ";"), ";")))
 			}
 
+			d.Set("class", buf[0]["dnszone_class_name"].(string))
+
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["dnszone_class_parameters"].(string))
@@ -370,6 +372,8 @@ func resourcednsforwardzoneImportState(d *schema.ResourceData, meta interface{})
 			if buf[0]["dnszone_forwarders"].(string) != "" {
 				d.Set("forwarders", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dnszone_forwarders"].(string), ";"), ";")))
 			}
+
+			d.Set("class", buf[0]["dnszone_class_name"].(string))
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
