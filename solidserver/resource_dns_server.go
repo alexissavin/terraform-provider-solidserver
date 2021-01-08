@@ -243,7 +243,7 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_transfer ACL
 	allowTransfers := ""
 	for _, allowTransfer := range toStringArray(d.Get("allow_transfer").([]interface{})) {
-		if match, _ := regexp.MatchString(regexp_network_acl, allowTransfer); match == false {
+		if match, _ := regexp.MatchString(regexpNetworkAcl, allowTransfer); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS server's allow_transfer parameter")
 		}
 		allowTransfers += allowTransfer + ";"
@@ -253,7 +253,7 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_query ACL
 	allowQueries := ""
 	for _, allowQuery := range toStringArray(d.Get("allow_query").([]interface{})) {
-		if match, _ := regexp.MatchString(regexp_network_acl, allowQuery); match == false {
+		if match, _ := regexp.MatchString(regexpNetworkAcl, allowQuery); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS server's allow_query parameter")
 		}
 		allowQueries += allowQuery + ";"
@@ -263,7 +263,7 @@ func resourcednsserverCreate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_recursion ACL
 	allowRecursions := ""
 	for _, allowRecursion := range toStringArray(d.Get("allow_recursion").([]interface{})) {
-		if match, _ := regexp.MatchString(regexp_network_acl, allowRecursion); match == false {
+		if match, _ := regexp.MatchString(regexpNetworkAcl, allowRecursion); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS server's allow_recursion parameter")
 		}
 		allowRecursions += allowRecursion + ";"
@@ -365,7 +365,7 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_transfer ACL
 	allowTransfers := ""
 	for _, allowTransfer := range toStringArray(d.Get("allow_transfer").([]interface{})) {
-		if match, _ := regexp.MatchString(regexp_network_acl, allowTransfer); match == false {
+		if match, _ := regexp.MatchString(regexpNetworkAcl, allowTransfer); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS server's allow_transfer parameter")
 		}
 		allowTransfers += allowTransfer + ";"
@@ -375,7 +375,7 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_query ACL
 	allowQueries := ""
 	for _, allowQuery := range toStringArray(d.Get("allow_query").([]interface{})) {
-		if match, _ := regexp.MatchString(regexp_network_acl, allowQuery); match == false {
+		if match, _ := regexp.MatchString(regexpNetworkAcl, allowQuery); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS server's allow_query parameter")
 		}
 		allowQueries += allowQuery + ";"
@@ -385,7 +385,7 @@ func resourcednsserverUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Building allow_recursion ACL
 	allowRecursions := ""
 	for _, allowRecursion := range toStringArray(d.Get("allow_recursion").([]interface{})) {
-		if match, _ := regexp.MatchString(regexp_network_acl, allowRecursion); match == false {
+		if match, _ := regexp.MatchString(regexpNetworkAcl, allowRecursion); match == false {
 			return fmt.Errorf("SOLIDServer - Only network prefixes are supported for DNS server's allow_recursion parameter")
 		}
 		allowRecursions += allowRecursion + ";"
@@ -535,7 +535,7 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 			if buf[0]["dns_allow_transfer"].(string) != "" {
 				allowTransfers := []string{}
 				for _, allowTransfer := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_allow_transfer"].(string), ";"), ";")) {
-					if match, _ := regexp.MatchString(regexp_network_acl, allowTransfer.(string)); match == true {
+					if match, _ := regexp.MatchString(regexpNetworkAcl, allowTransfer.(string)); match == true {
 						allowTransfers = append(allowTransfers, allowTransfer.(string))
 					}
 				}
@@ -546,7 +546,7 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 			if buf[0]["dns_allow_query"].(string) != "" {
 				allowQueries := []string{}
 				for _, allowQuery := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_allow_query"].(string), ";"), ";")) {
-					if match, _ := regexp.MatchString(regexp_network_acl, allowQuery.(string)); match == true {
+					if match, _ := regexp.MatchString(regexpNetworkAcl, allowQuery.(string)); match == true {
 						allowQueries = append(allowQueries, allowQuery.(string))
 					}
 				}
@@ -557,7 +557,7 @@ func resourcednsserverRead(d *schema.ResourceData, meta interface{}) error {
 			if buf[0]["dns_allow_recursion"].(string) != "" {
 				allowRecursions := []string{}
 				for _, allowRecursion := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_allow_recursion"].(string), ";"), ";")) {
-					if match, _ := regexp.MatchString(regexp_network_acl, allowRecursion.(string)); match == true {
+					if match, _ := regexp.MatchString(regexpNetworkAcl, allowRecursion.(string)); match == true {
 						allowRecursions = append(allowRecursions, allowRecursion.(string))
 					}
 				}
@@ -649,7 +649,7 @@ func resourcednsserverImportState(d *schema.ResourceData, meta interface{}) ([]*
 			if buf[0]["dns_allow_transfer"].(string) != "" {
 				allowTransfers := []string{}
 				for _, allowTransfer := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_allow_transfer"].(string), ";"), ";")) {
-					if match, _ := regexp.MatchString(regexp_network_acl, allowTransfer.(string)); match == true {
+					if match, _ := regexp.MatchString(regexpNetworkAcl, allowTransfer.(string)); match == true {
 						allowTransfers = append(allowTransfers, allowTransfer.(string))
 					}
 				}
@@ -660,7 +660,7 @@ func resourcednsserverImportState(d *schema.ResourceData, meta interface{}) ([]*
 			if buf[0]["dns_allow_query"].(string) != "" {
 				allowQueries := []string{}
 				for _, allowQuery := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_allow_query"].(string), ";"), ";")) {
-					if match, _ := regexp.MatchString(regexp_network_acl, allowQuery.(string)); match == true {
+					if match, _ := regexp.MatchString(regexpNetworkAcl, allowQuery.(string)); match == true {
 						allowQueries = append(allowQueries, allowQuery.(string))
 					}
 				}
@@ -671,7 +671,7 @@ func resourcednsserverImportState(d *schema.ResourceData, meta interface{}) ([]*
 			if buf[0]["dns_allow_recursion"].(string) != "" {
 				allowRecursions := []string{}
 				for _, allowRecursion := range toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["dns_allow_recursion"].(string), ";"), ";")) {
-					if match, _ := regexp.MatchString(regexp_network_acl, allowRecursion.(string)); match == true {
+					if match, _ := regexp.MatchString(regexpNetworkAcl, allowRecursion.(string)); match == true {
 						allowRecursions = append(allowRecursions, allowRecursion.(string))
 					}
 				}

@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
 	"net/url"
+	"regexp"
 	"strings"
 )
 
@@ -63,21 +64,21 @@ func resourcednszone() *schema.Resource {
 				Default:     false,
 			},
 			/* FIXME - Implement Notify Configuration support
-			        # Inherited
-			        "dnszone_notify": "",
-			        "dnszone_also_notify": "",
+			  # Inherited
+			  "dnszone_notify": "",
+			  "dnszone_also_notify": "",
 
-			        # No
-			        "dnszone_notify": "no"
-			        "dnszone_also_notify": ""
+			  # No
+			  "dnszone_notify": "no"
+			  "dnszone_also_notify": ""
 
-			        # Yes
-			        "dnszone_notify": "yes",
-			        "dnszone_also_notify": "192.168.1.16 port 53;",
+			  # Yes
+			  "dnszone_notify": "yes",
+			  "dnszone_also_notify": "192.168.1.16 port 53;",
 
-			        # Explicit
-						  "dnszone_notify": "explicit"
-						  "dnszone_also_notify": "127.0.0.2 port 53;",
+			  # Explicit
+				"dnszone_notify": "explicit"
+				"dnszone_also_notify": "127.0.0.2 port 53;",
 			*/
 			"notify": {
 				Type:        schema.TypeString,
@@ -87,8 +88,8 @@ func resourcednszone() *schema.Resource {
 				Default:     "",
 			},
 			"also_notify": {
-				Type:        schema.TypeMap,
-				Description: "The list of IP addresses and related port that will receive zone change notifications in addition to the NS listed in the SOA",
+				Type:        schema.TypeList,
+				Description: "The list of IP addresses (Format <IP>:<Port>) that will receive zone change notifications in addition to the NS listed in the SOA",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -182,8 +183,24 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("dnszone_type", strings.ToLower(d.Get("type").(string)))
 	parameters.Add("dnszone_site_id", siteID)
 
+	// Building Notify and Also Notify Statements
 	parameters.Add("dnszone_notify", d.Get("notify").(string))
-	//FIXME - dnszone_also_notify
+
+	alsoNotifies := ""
+	for _, alsoNotify := range toStringArray(d.Get("also_notify").([]interface{})) {
+		if match, _ := regexp.MatchString(regexpIPPort, alsoNotify); match == false {
+			return fmt.Errorf("SOLIDServer - Only IP:Port format is supported")
+		}
+		alsoNotifies += strings.Replace(alsoNotify, ":", " port ", 1) + ";"
+	}
+
+	if d.Get("notify").(string) == "" || strings.ToLower(d.Get("notify").(string)) == "no" {
+		if alsoNotifies != "" {
+			return fmt.Errorf("SOLIDServer - Error creating DNS zone: %s (Notify set to 'Inherited' or 'No' but also_notify list is not empty).", strings.ToLower(d.Get("name").(string)))
+		}
+	} else {
+		parameters.Add("dnszone_also_notify", alsoNotifies)
+	}
 
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
 
@@ -249,8 +266,24 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 	parameters.Add("dnszone_site_id", siteID)
 
+	// Building Notify and Also Notify Statements
 	parameters.Add("dnszone_notify", d.Get("notify").(string))
-	//FIXME - dnszone_also_notify
+
+	alsoNotifies := ""
+	for _, alsoNotify := range toStringArray(d.Get("also_notify").([]interface{})) {
+		if match, _ := regexp.MatchString(regexpIPPort, alsoNotify); match == false {
+			return fmt.Errorf("SOLIDServer - Only IP:Port format is supported")
+		}
+		alsoNotifies += strings.Replace(alsoNotify, ":", " port ", 1) + ";"
+	}
+
+	if d.Get("notify").(string) == "" || strings.ToLower(d.Get("notify").(string)) == "no" {
+		if alsoNotifies != "" {
+			return fmt.Errorf("SOLIDServer - Error creating DNS zone: %s (Notify set to 'Inherited' or 'No' but also_notify list is not empty).", strings.ToLower(d.Get("name").(string)))
+		}
+	} else {
+		parameters.Add("dnszone_also_notify", alsoNotifies)
+	}
 
 	parameters.Add("dnszone_class_name", d.Get("class").(string))
 
@@ -369,7 +402,7 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 			}
 
 			d.Set("notify", buf[0]["dnszone_notify"].(string))
-			//FIXME - dnszone_also_notify
+			d.Set("also_notify", toStringArrayInterface(strings.Split(strings.ReplaceAll(strings.TrimSuffix(buf[0]["dnszone_also_notify"].(string), ";"), " port ", ":"), ";")))
 
 			d.Set("class", buf[0]["dnszone_class_name"].(string))
 
@@ -448,7 +481,7 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 			}
 
 			d.Set("notify", buf[0]["dnszone_notify"].(string))
-			//FIXME - dnszone_also_notify
+			d.Set("also_notify", toStringArrayInterface(strings.Split(strings.ReplaceAll(strings.TrimSuffix(buf[0]["dnszone_also_notify"].(string), ";"), " port ", ":"), ";")))
 
 			d.Set("class", buf[0]["dnszone_class_name"].(string))
 
