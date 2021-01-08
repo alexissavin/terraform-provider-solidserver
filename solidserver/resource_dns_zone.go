@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"regexp"
@@ -64,11 +65,12 @@ func resourcednszone() *schema.Resource {
 				Default:     false,
 			},
 			"notify": {
-				Type:        schema.TypeString,
-				Description: "The expected notify behavior (Supported: empty (Inherited), Yes, No, Explicit; Default: empty (Inherited).",
-				Optional:    true,
-				ForceNew:    false,
-				Default:     "",
+				Type:         schema.TypeString,
+				Description:  "The expected notify behavior (Supported: empty (Inherited), Yes, No, Explicit; Default: empty (Inherited).",
+				Optional:     true,
+				ForceNew:     false,
+				Default:      "",
+				ValidateFunc: validation.StringInSlice([]string{"", "yes", "no", "explicit"}, false),
 			},
 			"also_notify": {
 				Type:        schema.TypeList,
