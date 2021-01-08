@@ -63,23 +63,6 @@ func resourcednszone() *schema.Resource {
 				ForceNew:    false,
 				Default:     false,
 			},
-			/* FIXME - Implement Notify Configuration support
-			  # Inherited
-			  "dnszone_notify": "",
-			  "dnszone_also_notify": "",
-
-			  # No
-			  "dnszone_notify": "no"
-			  "dnszone_also_notify": ""
-
-			  # Yes
-			  "dnszone_notify": "yes",
-			  "dnszone_also_notify": "192.168.1.16 port 53;",
-
-			  # Explicit
-				"dnszone_notify": "explicit"
-				"dnszone_also_notify": "127.0.0.2 port 53;",
-			*/
 			"notify": {
 				Type:        schema.TypeString,
 				Description: "The expected notify behavior (Supported: empty (Inherited), Yes, No, Explicit; Default: empty (Inherited).",
@@ -198,6 +181,7 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 		if alsoNotifies != "" {
 			return fmt.Errorf("SOLIDServer - Error creating DNS zone: %s (Notify set to 'Inherited' or 'No' but also_notify list is not empty).", strings.ToLower(d.Get("name").(string)))
 		}
+		parameters.Add("dnszone_also_notify", alsoNotifies)
 	} else {
 		parameters.Add("dnszone_also_notify", alsoNotifies)
 	}
@@ -279,8 +263,9 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 
 	if d.Get("notify").(string) == "" || strings.ToLower(d.Get("notify").(string)) == "no" {
 		if alsoNotifies != "" {
-			return fmt.Errorf("SOLIDServer - Error creating DNS zone: %s (Notify set to 'Inherited' or 'No' but also_notify list is not empty).", strings.ToLower(d.Get("name").(string)))
+			return fmt.Errorf("SOLIDServer - Error updating DNS zone: %s (Notify set to 'Inherited' or 'No' but also_notify list is not empty).", strings.ToLower(d.Get("name").(string)))
 		}
+		parameters.Add("dnszone_also_notify", alsoNotifies)
 	} else {
 		parameters.Add("dnszone_also_notify", alsoNotifies)
 	}
