@@ -184,7 +184,7 @@ func resourcednszoneCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("dnszone_site_id", siteID)
 
 	// Building Notify and Also Notify Statements
-	parameters.Add("dnszone_notify", d.Get("notify").(string))
+	parameters.Add("dnszone_notify", strings.ToLower(d.Get("notify").(string)))
 
 	alsoNotifies := ""
 	for _, alsoNotify := range toStringArray(d.Get("also_notify").([]interface{})) {
@@ -267,7 +267,7 @@ func resourcednszoneUpdate(d *schema.ResourceData, meta interface{}) error {
 	parameters.Add("dnszone_site_id", siteID)
 
 	// Building Notify and Also Notify Statements
-	parameters.Add("dnszone_notify", d.Get("notify").(string))
+	parameters.Add("dnszone_notify", strings.ToLower(d.Get("notify").(string)))
 
 	alsoNotifies := ""
 	for _, alsoNotify := range toStringArray(d.Get("also_notify").([]interface{})) {
@@ -401,8 +401,10 @@ func resourcednszoneRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("space", "")
 			}
 
-			d.Set("notify", buf[0]["dnszone_notify"].(string))
-			d.Set("also_notify", toStringArrayInterface(strings.Split(strings.ReplaceAll(strings.TrimSuffix(buf[0]["dnszone_also_notify"].(string), ";"), " port ", ":"), ";")))
+			d.Set("notify", strings.ToLower(buf[0]["dnszone_notify"].(string)))
+			if buf[0]["dnszone_also_notify"].(string) != "" {
+				d.Set("also_notify", toStringArrayInterface(strings.Split(strings.ReplaceAll(strings.TrimSuffix(buf[0]["dnszone_also_notify"].(string), ";"), " port ", ":"), ";")))
+			}
 
 			d.Set("class", buf[0]["dnszone_class_name"].(string))
 
@@ -480,8 +482,10 @@ func resourcednszoneImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 				d.Set("space", "")
 			}
 
-			d.Set("notify", buf[0]["dnszone_notify"].(string))
-			d.Set("also_notify", toStringArrayInterface(strings.Split(strings.ReplaceAll(strings.TrimSuffix(buf[0]["dnszone_also_notify"].(string), ";"), " port ", ":"), ";")))
+			d.Set("notify", strings.ToLower(buf[0]["dnszone_notify"].(string)))
+			if buf[0]["dnszone_also_notify"].(string) != "" {
+				d.Set("also_notify", toStringArrayInterface(strings.Split(strings.ReplaceAll(strings.TrimSuffix(buf[0]["dnszone_also_notify"].(string), ";"), " port ", ":"), ";")))
+			}
 
 			d.Set("class", buf[0]["dnszone_class_name"].(string))
 
