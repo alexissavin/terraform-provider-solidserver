@@ -6,6 +6,8 @@ terraform {
     solidserver = {
       source  = "terraform.efficientip.com/efficientip/solidserver"
       version = ">= 99999.9"
+      #source = "alexissavin/solidserver"
+      #version = "1.1.6"
     }
   }
 }
@@ -255,6 +257,8 @@ resource "solidserver_dns_zone" "myFirstZone" {
   dnsview         = solidserver_dns_view.myFirstDnsView.name
   name            = "mycompany.priv"
   type            = "master"
+  notify          = "explicit"
+  also_notify     = ["127.0.0.2:53", "127.0.0.3:53"]
   createptr       = false
 }
 
@@ -346,6 +350,18 @@ resource "solidserver_app_node" "myFirstNode" {
   healthcheck_parameters = {
     tcp_port = "443"
   }
+}
+
+resource "solidserver_user" "myFirstUser" {
+  description = "My First User"
+  email = "myFirstUser@test.priv"
+  first_name = "First"
+  groups = [
+    "admin",
+  ]
+  last_name = "User"
+  login = "firstuser"
+  password = "test"
 }
 
 resource "solidserver_cdb" "myFirstCustomDB" {
