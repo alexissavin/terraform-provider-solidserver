@@ -222,6 +222,8 @@ func resourceuserCreate(d *schema.ResourceData, meta interface{}) error {
 				log.Printf("[DEBUG] SOLIDServer - Created user (oid): %s\n", oid)
 				d.SetId(oid)
 			}
+		} else {
+			return fmt.Errorf("SOLIDServer - Unable to create user: %s\n", d.Get("login").(string))
 		}
 	} else {
 		return err

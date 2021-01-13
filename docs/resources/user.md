@@ -13,7 +13,7 @@ resource "solidserver_user" "myFirstUser" {
    last_name = "Smith"
    first_name = "John"
    email = "j.smith@efficientip.com"
-   groups = [ "${solidserver_usergroup.grp_admin.id}" ]
+   groups = [ "${solidserver_usergroup.grp_admin.name}" ]
 }
 ```
 
