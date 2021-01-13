@@ -82,30 +82,34 @@ func resourceuser() *schema.Resource {
 	}
 }
 
-func _addUserToGroupId(d *schema.ResourceData,
+func _addUserToGroup(d *schema.ResourceData,
 	meta interface{},
 	group string) error {
 	s := meta.(*SOLIDserver)
 
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
-	parameters.Add("grp_id", group)
+	parameters.Add("grp_name", group)
 	// parameters.Add("usr_login", d.Get("login").(string))
 	parameters.Add("usr_id", d.Id())
 
 	log.Printf("[DEBUG] - add user in group %s\n", parameters)
 
 	// Sending creation request of the user
-	resp, body, err := s.Request("post",
-		"rest/group_user_add",
-		&parameters)
+	resp, body, err := s.Request("post", "rest/group_user_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode == 200 || resp.StatusCode == 201 || resp.StatusCode == 400 {
+		if resp.StatusCode == 204 && len(buf) == 0 {
+			log.Printf("[DEBUG] - User affected from group %s\n", group)
+			return nil
+		}
+
+		//if resp.StatusCode == 200 || resp.StatusCode == 201 || resp.StatusCode == 400 {
+		if resp.StatusCode == 200 || resp.StatusCode == 201 {
 			if len(buf) > 0 {
 				if buf[0]["errno"].(string) == "0" {
 					log.Printf("[DEBUG] - User affected to group %s\n", group)
@@ -130,13 +134,13 @@ func _addUserToGroupId(d *schema.ResourceData,
 		d.Get("login").(string), group)
 }
 
-func _delUserFromGroupId(d *schema.ResourceData,
+func _delUserFromGroup(d *schema.ResourceData,
 	meta interface{},
 	group string) error {
 	s := meta.(*SOLIDserver)
 
 	parameters := url.Values{}
-	parameters.Add("grp_id", group)
+	parameters.Add("grp_name", group)
 	parameters.Add("usr_login", d.Get("login").(string))
 
 	// Sending creation request of the user
@@ -265,7 +269,7 @@ func resourceuserCreate(d *schema.ResourceData,
 	}
 
 	for _, elem := range groups.List() {
-		if _addUserToGroupId(d, meta, elem.(string)) != nil {
+		if _addUserToGroup(d, meta, elem.(string)) != nil {
 			return fmt.Errorf("SOLIDServer - Unable to affect user %s to his group\n", d.Get("login").(string))
 		}
 	}
@@ -341,7 +345,7 @@ func resourceuserUpdate(d *schema.ResourceData,
 
 		if !bFound {
 			// new group is not on the old set, we affect the user to it
-			if _addUserToGroupId(d, meta, elem.(string)) != nil {
+			if _addUserToGroup(d, meta, elem.(string)) != nil {
 				return fmt.Errorf("SOLIDServer - Unable to affect user %s to group %s\n",
 					d.Get("login").(string),
 					elem.(string))
@@ -361,7 +365,7 @@ func resourceuserUpdate(d *schema.ResourceData,
 
 		if !bFound {
 			// old group is not on the new set, suppress affectation
-			if _delUserFromGroupId(d, meta, elem.(string)) != nil {
+			if _delUserFromGroup(d, meta, elem.(string)) != nil {
 				return fmt.Errorf("SOLIDServer - Unable to delete user %s from group %s\n",
 					d.Get("login").(string),
 					elem.(string))
@@ -456,13 +460,13 @@ func resourceuserRead(d *schema.ResourceData,
 	json.Unmarshal([]byte(body), &bufg)
 
 	// Checking the answer
-	if resp.StatusCode == 200 {
+	if resp.StatusCode == 200 || resp.StatusCode == 204 {
 		if len(bufg) > 0 {
 			var groups []string
 
 			for _, elem := range bufg {
-				log.Printf("[DEBUG] resourceuserRead grp = %s\n", elem["grp_id"])
-				groups = append(groups, elem["grp_id"].(string))
+				log.Printf("[DEBUG] resourceuserRead grp = %s\n", elem["grp_name"])
+				groups = append(groups, elem["grp_name"].(string))
 			}
 			log.Printf("[DEBUG] resourceuserRead set grp = %s\n", groups)
 
@@ -470,6 +474,8 @@ func resourceuserRead(d *schema.ResourceData,
 
 			return nil
 		}
+
+		return nil
 	}
 
 	return fmt.Errorf("SOLIDServer - Unable to find group for user: %s\n",
