@@ -60,6 +60,16 @@ resource "solidserver_vlan" "myFirstVxlan" {
   }
 }
 
+resource "solidserver_vlan" "mySecondVxlan" {
+  depends_on       = [solidserver_vlan_domain.myFirstVxlanDomain]
+  vlan_domain      = solidserver_vlan_domain.myFirstVxlanDomain.name
+  name             = "mySecondVxlan"
+  request_id       = "42"
+  class            = "ACI VxLAN"
+  class_parameters = {
+  }
+}
+
 resource "solidserver_ip_subnet" "myFirstIPBlock" {
   space            = solidserver_ip_space.myFirstSpace.name
   request_ip       = "10.0.0.0"
