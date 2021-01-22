@@ -108,7 +108,7 @@ func resourcevlanCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Determining if a VLAN ID was submitted in or if we should get one from the VLAN Manager
 	if d.Get("request_id").(int) > 0 {
-		vlanIDs = []string{d.Get("request_id").(string)}
+		vlanIDs = []string{strconv.Itoa(d.Get("request_id").(int))}
 	} else {
 		var vlanErr error = nil
 
