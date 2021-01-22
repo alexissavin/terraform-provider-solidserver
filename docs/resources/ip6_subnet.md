@@ -24,7 +24,7 @@ resource "solidserver_ip6_subnet" "myFirstIP6Subnet" {
   name             = "myFirstIP6Subnet"
   gateway_offset   = 1
   class            = "VIRTUAL"
-  class_parameters {
+  class_parameters = {
     vnid = "12666"
   }
 }

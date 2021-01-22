@@ -24,7 +24,7 @@ resource "solidserver_ip_subnet" "myFirstIPSubnet" {
   name             = "myFirstIPSubnet"
   gateway_offset   = -1
   class            = "VIRTUAL"
-  class_parameters {
+  class_parameters = {
     vnid = "12666"
   }
 }

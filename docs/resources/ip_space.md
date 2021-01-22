@@ -9,7 +9,7 @@ Creating an IP Space:
 resource "solidserver_ip_space" "myFirstSpace" {
   name   = "myFirstSpace"
   class  = "CUSTOM_SPACE"
-  class_parameters {
+  class_parameters = {
     LOCATION = "PARIS"
   }
 }

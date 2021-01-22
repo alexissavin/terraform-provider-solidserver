@@ -12,7 +12,7 @@ resource "solidserver_ip_address" "myFirstIPAddress" {
   name    = "myfirstipaddress"
   device  = "${solidserver_device.myFirstDevice.name}"
   class   = "AWS_VPC_ADDRESS"
-  class_parameters {
+  class_parameters = {
     interfaceid = "eni-d5b961d5"
   }
 }
