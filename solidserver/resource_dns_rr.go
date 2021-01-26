@@ -32,6 +32,7 @@ func resourcednsrr() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "The View name of the RR to create.",
 				Optional:    true,
+				ForceNew:    true,
 				Default:     "",
 			},
 			"name": {
