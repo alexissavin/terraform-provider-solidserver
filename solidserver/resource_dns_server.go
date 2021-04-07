@@ -444,7 +444,7 @@ func resourcednsserverDelete(d *schema.ResourceData, meta interface{}) error {
 			if dnsserverpendingdeletions(d.Id(), meta) == 0 {
 				break
 			}
-			time.Sleep(time.Duration(16 * time.Second))
+			time.Sleep(time.Duration(32 * time.Second))
 		}
 
 		// Reporting a failure

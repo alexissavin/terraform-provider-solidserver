@@ -1203,33 +1203,69 @@ func dnsparamget(serverName string, viewID string, paramKey string, meta interfa
 func dnsaddtosmart(smartName string, serverName string, serverRole string, meta interface{}) bool {
 	s := meta.(*SOLIDserver)
 
-	// Building parameters for retrieving SMART vdns_dns_group_role information
 	parameters := url.Values{}
-	parameters.Add("WHERE", "vdns_parent_name='"+smartName+"' AND dns_type!='vdns'")
+	parameters.Add("vdns_name", smartName)
+	parameters.Add("dns_name", serverName)
+	parameters.Add("dns_role", serverRole)
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/dns_server_list", &parameters)
+	resp, body, err := s.Request("post", "rest/dns_smart_member_add", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
 		// Checking the answer
-		if resp.StatusCode == 200 || resp.StatusCode == 204 {
+		if resp.StatusCode == 200 || resp.StatusCode == 201 {
+			return true
+		}
 
-			// Building vdns_dns_group_role parameter from the SMART member list
-			membersRole := ""
+		// Atomic SMART registration service unavailable attempting to use existing services
+		if resp.StatusCode == 400 || resp.StatusCode == 404 {
+			// Random Delay (in case of concurrent resources creation - until 8.0 and service dns_smart_member_add)
+			//time.Sleep(time.Duration((rand.Intn(600) / 10) * time.Second))
 
-			if len(buf) > 0 {
-				for _, smartMember := range buf {
-					membersRole += smartMember["dns_name"].(string) + "&" + smartMember["dns_role"].(string) + ";"
+			// Otherwise proceed using the previous method
+			// Building parameters for retrieving SMART vdns_dns_group_role information
+			parameters := url.Values{}
+			parameters.Add("WHERE", "vdns_parent_name='"+smartName+"' AND dns_type!='vdns'")
+
+			// Sending the read request
+			resp, body, err := s.Request("get", "rest/dns_server_list", &parameters)
+
+			if err == nil {
+				var buf [](map[string]interface{})
+				json.Unmarshal([]byte(body), &buf)
+
+				// Checking the answer
+				if resp.StatusCode == 200 || resp.StatusCode == 204 {
+
+					// Building vdns_dns_group_role parameter from the SMART member list
+					membersRole := ""
+
+					if len(buf) > 0 {
+						for _, smartMember := range buf {
+							membersRole += smartMember["dns_name"].(string) + "&" + smartMember["dns_role"].(string) + ";"
+						}
+					}
+
+					membersRole += serverName + "&" + serverRole
+
+					if dnssmartmembersupdate(smartName, membersRole, meta) {
+						return true
+					}
+
+					return false
 				}
-			}
 
-			membersRole += serverName + "&" + serverRole
-
-			if dnssmartmembersupdate(smartName, membersRole, meta) {
-				return true
+				// Log the error
+				if len(buf) > 0 {
+					if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+						log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s (%s)\n", smartName, errMsg)
+					}
+				} else {
+					log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s\n", smartName)
+				}
 			}
 
 			return false
@@ -1238,10 +1274,10 @@ func dnsaddtosmart(smartName string, serverName string, serverRole string, meta 
 		// Log the error
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s (%s)\n", smartName, errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to update the member list of the DNS SMART: %s (%s)\n", smartName, errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s\n", smartName)
+			log.Printf("[DEBUG] SOLIDServer - Unable to update the member list of the DNS SMART: %s\n", smartName)
 		}
 	}
 
@@ -1253,12 +1289,12 @@ func dnsaddtosmart(smartName string, serverName string, serverRole string, meta 
 func dnsdeletefromsmart(smartName string, serverName string, meta interface{}) bool {
 	s := meta.(*SOLIDserver)
 
-	// Building parameters for retrieving SMART vdns_dns_group_role information
 	parameters := url.Values{}
-	parameters.Add("WHERE", "vdns_parent_name='"+smartName+"' AND dns_type!='vdns'")
+	parameters.Add("vdns_name", smartName)
+	parameters.Add("dns_name", serverName)
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/dns_server_list", &parameters)
+	resp, body, err := s.Request("delete", "rest/dns_smart_member_delete", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -1266,20 +1302,54 @@ func dnsdeletefromsmart(smartName string, serverName string, meta interface{}) b
 
 		// Checking the answer
 		if resp.StatusCode == 200 || resp.StatusCode == 204 {
+			return true
+		}
 
-			// Building vdns_dns_group_role parameter from the SMART member list
-			membersRole := ""
+		// Atomic SMART registration service unavailable attempting to use existing services
+		if resp.StatusCode == 400 || resp.StatusCode == 404 {
+			// Random Delay (in case of concurrent resources creation - until 8.0 and service dns_smart_member_add)
+			//time.Sleep(time.Duration((rand.Intn(600) / 10) * time.Second))
 
-			if len(buf) > 0 {
-				for _, smartMember := range buf {
-					if smartMember["dns_name"].(string) != serverName {
-						membersRole += smartMember["dns_name"].(string) + "&" + smartMember["dns_role"].(string) + ";"
+			// Building parameters for retrieving SMART vdns_dns_group_role information
+			parameters := url.Values{}
+			parameters.Add("WHERE", "vdns_parent_name='"+smartName+"' AND dns_type!='vdns'")
+
+			// Sending the read request
+			resp, body, err := s.Request("get", "rest/dns_server_list", &parameters)
+
+			if err == nil {
+				var buf [](map[string]interface{})
+				json.Unmarshal([]byte(body), &buf)
+
+				// Checking the answer
+				if resp.StatusCode == 200 || resp.StatusCode == 204 {
+
+					// Building vdns_dns_group_role parameter from the SMART member list
+					membersRole := ""
+
+					if len(buf) > 0 {
+						for _, smartMember := range buf {
+							if smartMember["dns_name"].(string) != serverName {
+								membersRole += smartMember["dns_name"].(string) + "&" + smartMember["dns_role"].(string) + ";"
+							}
+						}
 					}
-				}
-			}
 
-			if dnssmartmembersupdate(smartName, membersRole, meta) {
-				return true
+					if dnssmartmembersupdate(smartName, membersRole, meta) {
+						return true
+					}
+
+					return false
+				}
+
+				// Log the error
+				if len(buf) > 0 {
+					if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
+						log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s (%s)\n", smartName, errMsg)
+					}
+				} else {
+					log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s\n", smartName)
+				}
 			}
 
 			return false
@@ -1288,10 +1358,10 @@ func dnsdeletefromsmart(smartName string, serverName string, meta interface{}) b
 		// Log the error
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s (%s)\n", smartName, errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to update the member list of the DNS SMART: %s (%s)\n", smartName, errMsg)
 			}
 		} else {
-			log.Printf("[DEBUG] SOLIDServer - Unable to retrieve members list of the DNS SMART: %s\n", smartName)
+			log.Printf("[DEBUG] SOLIDServer - Unable to update the member list of the DNS SMART: %s\n", smartName)
 		}
 	}
 
