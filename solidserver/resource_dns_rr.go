@@ -35,6 +35,13 @@ func resourcednsrr() *schema.Resource {
 				ForceNew:    true,
 				Default:     "",
 			},
+			"dnszone": {
+				Type:        schema.TypeString,
+				Description: "The Zone name of the RR to create.",
+				Optional:    true,
+				ForceNew:    true,
+				Default:     "",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Description: "The Fully Qualified Domain Name of the RR to create.",
@@ -91,12 +98,29 @@ func resourcednsrrExists(d *schema.ResourceData, meta interface{}) (bool, error)
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("rr_id", d.Id())
-
-	log.Printf("[DEBUG] Checking existence of RR (oid): %s\n", d.Id())
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
+	//parameters.Add("rr_id", d.Id())
+	//log.Printf("[DEBUG] Checking existence of RR (oid): %s\n", d.Id())
+	//resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
+
+	// Attempt to not rely on the ID that may change due to DNS behavior
+	whereClause := "dns_name='" + d.Get("dnsserver").(string) + "' AND rr_full_name='" + d.Get("name").(string) + "' AND rr_type='" + strings.ToUpper(d.Get("type").(string)) + "' AND value1='" + d.Get("value").(string) + "' "
+
+	// Attempt to hande changing RR IDs
+	if len(d.Get("dnsview").(string)) != 0 {
+		whereClause += "AND dnsview_name='" + d.Get("dnsview").(string) + "' "
+	} else {
+		whereClause += "AND dnsview_name='#' "
+	}
+
+	// Add dnszone parameter if it is supplied
+	if len(d.Get("dnszone").(string)) != 0 {
+		whereClause += "AND dnszone_name='" + d.Get("dnszone").(string) + "' "
+	}
+
+	parameters.Add("WHERE", whereClause)
+	resp, body, err := s.Request("get", "rest/dns_rr_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -104,6 +128,9 @@ func resourcednsrrExists(d *schema.ResourceData, meta interface{}) (bool, error)
 
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
+			if oid, oidExist := buf[0]["rr_id"].(string); oidExist {
+				d.SetId(oid)
+			}
 			return true, nil
 		}
 
@@ -140,6 +167,11 @@ func resourcednsrrCreate(d *schema.ResourceData, meta interface{}) error {
 	// Add dnsview parameter if it is supplied
 	if len(d.Get("dnsview").(string)) != 0 {
 		parameters.Add("dnsview_name", strings.ToLower(d.Get("dnsview").(string)))
+	}
+
+	// Add dnszone parameter if it is supplied
+	if len(d.Get("dnszone").(string)) != 0 {
+		parameters.Add("dnszone_name", strings.ToLower(d.Get("dnszone").(string)))
 	}
 
 	// Sending the creation request
@@ -188,6 +220,11 @@ func resourcednsrrUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Add dnsview parameter if it is supplied
 	if len(d.Get("dnsview").(string)) != 0 {
 		parameters.Add("dnsview_name", strings.ToLower(d.Get("dnsview").(string)))
+	}
+
+	// Add dnszone parameter if it is supplied
+	if len(d.Get("dnszone").(string)) != 0 {
+		parameters.Add("dnszone_name", strings.ToLower(d.Get("dnszone").(string)))
 	}
 
 	// Sending the update request
@@ -270,10 +307,28 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("rr_id", d.Id())
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
+	//parameters.Add("rr_id", d.Id())
+	//resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
+
+	// Attempt to not rely on the ID that may change due to DNS behavior
+	whereClause := "dns_name='" + d.Get("dnsserver").(string) + "' AND rr_full_name='" + d.Get("name").(string) + "' AND rr_type='" + strings.ToUpper(d.Get("type").(string)) + "' AND value1='" + d.Get("value").(string) + "' "
+
+	// Attempt to hande changing RR IDs
+	if len(d.Get("dnsview").(string)) != 0 {
+		whereClause += "AND dnsview_name='" + d.Get("dnsview").(string) + "' "
+	} else {
+		whereClause += "AND dnsview_name='#' "
+	}
+
+	// Add dnszone parameter if it is supplied
+	if len(d.Get("dnszone").(string)) != 0 {
+		whereClause += "AND dnszone_name='" + d.Get("dnszone").(string) + "' "
+	}
+
+	parameters.Add("WHERE", whereClause)
+	resp, body, err := s.Request("get", "rest/dns_rr_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -281,6 +336,10 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
+			if oid, oidExist := buf[0]["rr_id"].(string); oidExist {
+				d.SetId(oid)
+			}
+
 			ttl, _ := strconv.Atoi(buf[0]["ttl"].(string))
 
 			d.Set("dnsserver", buf[0]["dns_name"].(string))
