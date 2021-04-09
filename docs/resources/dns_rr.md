@@ -7,11 +7,12 @@ DNS Resource Record resource allows to create DNS RR.
 Creating a DNS Resource Record:
 ```
 resource "solidserver_dns_rr" "aaRecord" {
-  dnsserver    = "ns.mycompany.priv"
-  dnsview_name = "Internal"
-  name         = "aarecord.mycompany.priv"
-  type         = "A"
-  value        = "127.0.0.1"
+  dnsserver = "ns.mycompany.priv"
+  dnsview   = "Internal"
+  dnszone   = "mycompany.priv"
+  name      = "aarecord.mycompany.priv"
+  type      = "A"
+  value     = "127.0.0.1"
 }
 ```
 
@@ -23,18 +24,20 @@ data "solidserver_ip_ptr" "myFirstIPPTR" {
 }
 
 resource "solidserver_dns_rr" "aaRecord" {
-  dnsserver    = "ns.mycompany.priv"
-  dnsview_name = "Internal"
-  name         = "${solidserver_ip_ptr.myFirstIPPTR.dname}"
-  type         = "PTR"
-  value        = "myapp.mycompany.priv"
+  dnsserver = "ns.mycompany.priv"
+  dnsview   = "Internal"
+  dnszone   = "mycompany.priv"
+  name      = "${solidserver_ip_ptr.myFirstIPPTR.dname}"
+  type      = "PTR"
+  value     = "myapp.mycompany.priv"
 }
 ```
 
 ## Argument Reference
 
 * `dnsserver` - (Required) The managed SMART DNS server name, or DNS server name hosting the RR's zone.
-* `dnsview_name` - (Optional) The View name of the RR to create.
+* `dnsview` - (Optional) The View name of the RR to create.
+* `dnszone` - (Optional) The Zone name of the RR to create.
 * `name` - (Required) The Fully Qualified Domain Name of the RR to create.
 * `type` - (Required) The type of the RR to create (Supported: A, AAAA, CNAME, DNAME, TXT, NS, PTR).
 * `value` - (Required) The value od the RR to create.
