@@ -110,6 +110,12 @@ data "solidserver_ip_subnet" "mySecondIPSubnetData" {
   name             = solidserver_ip_subnet.mySecondIPSubnet.name
 }
 
+data "solidserver_ip_subnet_query" "mySecondIPSubnetQueriedData" {
+  depends_on       = [solidserver_ip_subnet.mySecondIPSubnet]
+  query            = "tag_network_vnid = '12666'"
+  tags             = "network.vnid"
+}
+
 resource "solidserver_ip_pool" "myFirstIPPool" {
   space            = solidserver_ip_space.myFirstSpace.name
   subnet           = solidserver_ip_subnet.mySecondIPSubnet.name
@@ -165,6 +171,18 @@ resource "solidserver_ip6_subnet" "mySecondIP6Subnet" {
   class_parameters = {
     vnid = "12666"
   }
+}
+
+data "solidserver_ip6_subnet" "mySecondIP6SubnetData" {
+  depends_on       = [solidserver_ip6_subnet.mySecondIP6Subnet]
+  space            = solidserver_ip6_subnet.mySecondIP6Subnet.space
+  name             = solidserver_ip6_subnet.mySecondIP6Subnet.name
+}
+
+data "solidserver_ip6_subnet_query" "mySecondIP6SubnetQueriedData" {
+  depends_on       = [solidserver_ip6_subnet.mySecondIP6Subnet]
+  query            = "tag_network6_vnid = '12666'"
+  tags             = "network6.vnid"
 }
 
 resource "solidserver_ip6_address" "myFirstIP6Address" {
@@ -395,32 +413,4 @@ resource "solidserver_cdb_data" "mySecondCustomData" {
   custom_db    = solidserver_cdb.myFirstCustomDB.name
   value1       = "US"
   value2       = "United States of America"
-}
-
-output "sds-space01" {
-  value = "${solidserver_ip_space.myFirstSpace.name} [${solidserver_ip_space.myFirstSpace.id}]"
-}
-output "sds-block01" {
-  value = "${solidserver_ip_subnet.myFirstIPBlock.name} [${solidserver_ip_subnet.myFirstIPBlock.id}]"
-}
-output "sds-subnet01" {
-  value = "${solidserver_ip_subnet.myFirstIPSubnet.name} [${solidserver_ip_subnet.myFirstIPSubnet.id}]"
-}
-output "sds-ipv4_01" {
-  value = "${solidserver_ip_address.myFirstIPAddress.name} [${solidserver_ip_address.myFirstIPAddress.id}]"
-}
-output "sds-blockv6_01" {
-  value = "${solidserver_ip6_subnet.myFirstIP6Block.name} [${solidserver_ip6_subnet.myFirstIP6Block.id}]"
-}
-output "sds-subnetv6_01" {
-  value = "${solidserver_ip6_subnet.myFirstIP6Subnet.name} [${solidserver_ip6_subnet.myFirstIP6Subnet.id}]"
-}
-output "sds-ipv6_01" {
-  value = "${solidserver_ip6_address.myFirstIP6Address.name} [${solidserver_ip6_address.myFirstIP6Address.id}]"
-}
-output "sds-aliasv4_01" {
-  value = "${solidserver_ip_alias.myFirstIPAlias.name} [${solidserver_ip_alias.myFirstIPAlias.id}]"
-}
-output "sds-aliasv6_01" {
-  value = "${solidserver_ip6_alias.myFirstIP6Alias.name} [${solidserver_ip6_alias.myFirstIP6Alias.id}]"
 }

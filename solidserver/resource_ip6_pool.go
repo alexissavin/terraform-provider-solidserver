@@ -37,16 +37,17 @@ func resourceip6pool() *schema.Resource {
 			},
 			"start": {
 				Type:         schema.TypeString,
-				Description:  "The IP v6 pool lower IP v6 address.",
+				Description:  "The IP v6 pool's lower IP v6 address.",
 				ValidateFunc: validation.SingleIP(),
 				Required:     true,
 				ForceNew:     true,
 			},
-			"size": {
-				Type:        schema.TypeInt,
-				Description: "The size of the IP v6 pool to create.",
-				Required:    true,
-				ForceNew:    true,
+			"end": {
+				Type:         schema.TypeString,
+				Description:  "The IP v6 pool's higher IP v6 address.",
+				ValidateFunc: validation.SingleIP(),
+				Required:     true,
+				ForceNew:     true,
 			},
 			"dhcp_range": {
 				Type:        schema.TypeBool,
@@ -150,8 +151,8 @@ func resourceip6poolCreate(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("add_flag", "new_only")
 	parameters.Add("subnet6_id", subnetInfo["id"].(string))
-	parameters.Add("start_ip6_addr", ip6tohexip6(d.Get("start").(string)))
-	parameters.Add("pool6_size", strconv.Itoa(d.Get("size").(int)))
+	parameters.Add("start_addr", ip6tohexip6(d.Get("start").(string)))
+	parameters.Add("end_addr", ip6tohexip6(d.Get("end").(string)))
 	parameters.Add("pool6_name", d.Get("name").(string))
 	parameters.Add("pool6_class_name", d.Get("class").(string))
 

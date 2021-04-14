@@ -16,47 +16,52 @@ func dataSourceippool() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the pool.",
+				Description: "The name of the IP pool.",
 				Required:    true,
 			},
 			"subnet": {
 				Type:        schema.TypeString,
-				Description: "The parent subnet of the pool.",
+				Description: "The parent subnet of the IP pool.",
 				Required:    true,
 			},
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The space associated to the pool.",
+				Description: "The space associated to the IP pool.",
 				Required:    true,
 			},
 			"start": {
 				Type:        schema.TypeString,
-				Description: "The fisrt address of the pool.",
+				Description: "The fisrt address of the IP pool.",
 				Computed:    true,
 			},
 			"end": {
 				Type:        schema.TypeString,
-				Description: "The last address of the pool.",
+				Description: "The last address of the IP pool.",
 				Computed:    true,
 			},
 			"size": {
 				Type:        schema.TypeString,
-				Description: "The size of the pool.",
+				Description: "The size of the IP pool.",
 				Computed:    true,
 			},
 			"prefix": {
 				Type:        schema.TypeString,
-				Description: "The prefix of the parent subnet of the pool.",
+				Description: "The prefix of the parent subnet of the IP pool.",
 				Computed:    true,
 			},
 			"prefix_size": {
 				Type:        schema.TypeInt,
-				Description: "The size prefix of the parent subnet of the pool.",
+				Description: "The size prefix of the parent subnet of the IP pool.",
+				Computed:    true,
+			},
+			"class": {
+				Type:        schema.TypeString,
+				Description: "The class associated to the IP pool.",
 				Computed:    true,
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to the pool.",
+				Description: "The class parameters associated to the IP pool.",
 				Computed:    true,
 			},
 		},
@@ -96,6 +101,8 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("prefix", hexiptoip(buf[0]["subnet_start_ip_addr"].(string))+"/"+strconv.Itoa(prefixLength))
 			d.Set("prefix_size", prefixLength)
 
+			d.Set("class", buf[0]["pool_class_name"].(string))
+
 			// Updating local class_parameters
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["pool_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
@@ -112,15 +119,15 @@ func dataSourceippoolRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to read information from pool: %s (%s)\n", d.Get("name").(string), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP pool: %s (%s)\n", d.Get("name").(string), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to read information from pool: %s\n", d.Get("name").(string))
+			log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP pool: %s\n", d.Get("name").(string))
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find pool: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IP pool: %s", d.Get("name").(string))
 	}
 
 	// Reporting a failure

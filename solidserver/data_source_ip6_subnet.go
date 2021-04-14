@@ -9,19 +9,19 @@ import (
 	"strconv"
 )
 
-func dataSourceipsubnet() *schema.Resource {
+func dataSourceip6subnet() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceipsubnetRead,
+		Read: dataSourceip6subnetRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the IP subnet.",
+				Description: "The name of the IP v6 subnet.",
 				Required:    true,
 			},
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The space associated to the IP subnet.",
+				Description: "The space associated to the IP v6 subnet.",
 				Required:    true,
 			},
 			"address": {
@@ -31,17 +31,12 @@ func dataSourceipsubnet() *schema.Resource {
 			},
 			"prefix": {
 				Type:        schema.TypeString,
-				Description: "The IP subnet prefix.",
+				Description: "The IP v6 subnet prefix.",
 				Computed:    true,
 			},
 			"prefix_size": {
 				Type:        schema.TypeInt,
-				Description: "The IP subnet's prefix length (ex: 24 for a '/24').",
-				Computed:    true,
-			},
-			"netmask": {
-				Type:        schema.TypeString,
-				Description: "The IP subnet netmask.",
+				Description: "The IP v6 subnet's prefix length (ex: 64 for a '/64').",
 				Computed:    true,
 			},
 			"terminal": {
@@ -51,17 +46,17 @@ func dataSourceipsubnet() *schema.Resource {
 			},
 			"gateway": {
 				Type:        schema.TypeString,
-				Description: "The subnet's computed gateway.",
+				Description: "The  IP v6 subnet's computed gateway.",
 				Computed:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the IP subnet.",
+				Description: "The class associated to the IP v6 subnet.",
 				Computed:    true,
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to IP subnet.",
+				Description: "The class parameters associated to IP v6 subnet.",
 				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -71,19 +66,19 @@ func dataSourceipsubnet() *schema.Resource {
 	}
 }
 
-func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceip6subnetRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 	d.SetId("")
 
 	// Building parameters
 	parameters := url.Values{}
-	whereClause := "subnet_name LIKE '" + d.Get("name").(string) + "'" +
+	whereClause := "subnet6_name LIKE '" + d.Get("name").(string) + "'" +
 		" and site_name LIKE '" + d.Get("space").(string) + "'"
 
 	parameters.Add("WHERE", whereClause)
 
 	// Sending the read request
-	resp, body, err := s.Request("get", "rest/ip_block_subnet_list", &parameters)
+	resp, body, err := s.Request("get", "rest/ip6_block6_subnet6_list", &parameters)
 
 	if err == nil {
 		var buf [](map[string]interface{})
@@ -91,18 +86,15 @@ func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 		// Checking the answer
 		if resp.StatusCode == 200 && len(buf) > 0 {
-			d.SetId(buf[0]["subnet_id"].(string))
+			d.SetId(buf[0]["subnet6_id"].(string))
 
-			address := hexiptoip(buf[0]["start_ip_addr"].(string))
-			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
-			prefix_length := sizetoprefixlength(subnet_size)
-			prefix := address + "/" + strconv.Itoa(prefix_length)
+			address := hexip6toip6(buf[0]["start_ip6_addr"].(string))
+			prefix_size, _ := strconv.Atoi(buf[0]["subnet6_prefix"].(string))
 
-			d.Set("name", buf[0]["subnet_name"].(string))
+			d.Set("name", buf[0]["subnet6_name"].(string))
 			d.Set("address", address)
-			d.Set("prefix", prefix)
-			d.Set("prefix_size", prefix_length)
-			d.Set("netmask", prefixlengthtohexip(prefix_length))
+			d.Set("prefix", address+"/"+buf[0]["subnet6_prefix"].(string))
+			d.Set("prefix_size", prefix_size)
 
 			if buf[0]["is_terminal"].(string) == "1" {
 				d.Set("terminal", true)
@@ -110,10 +102,10 @@ func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("terminal", false)
 			}
 
-			d.Set("class", buf[0]["subnet_class_name"].(string))
+			d.Set("class", buf[0]["subnet6_class_name"].(string))
 
 			// Setting local class_parameters
-			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet_class_parameters"].(string))
+			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet6_class_parameters"].(string))
 			computedClassParameters := map[string]string{}
 
 			if gateway, gatewayExist := retrievedClassParameters["gateway"]; gatewayExist {
@@ -133,15 +125,15 @@ func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP subnet: %s (%s)\n", d.Get("name").(string), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP v6 subnet: %s (%s)\n", d.Get("name").(string), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP subnet: %s\n", d.Get("name").(string))
+			log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP v6 subnet: %s\n", d.Get("name").(string))
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find IP subnet: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IP v6 subnet: %s", d.Get("name").(string))
 	}
 
 	// Reporting a failure

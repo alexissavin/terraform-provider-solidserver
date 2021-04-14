@@ -9,20 +9,37 @@ import (
 	"strconv"
 )
 
-func dataSourceipsubnet() *schema.Resource {
+func dataSourceipsubnetquery() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceipsubnetRead,
+		Read: dataSourceipsubnetqueryRead,
 
 		Schema: map[string]*schema.Schema{
+			"query": {
+				Type:        schema.TypeString,
+				Description: "The query used to find the first matching subnet.",
+				Required:    true,
+			},
+			"tags": {
+				Type:        schema.TypeString,
+				Description: "The tags to be used to find the first matching subnet in the query.",
+				Optional:    true,
+				Default:     "",
+			},
+			"orderby": {
+				Type:        schema.TypeString,
+				Description: "The query used to find the first matching subnet.",
+				Optional:    true,
+				Default:     "",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Description: "The name of the IP subnet.",
-				Required:    true,
+				Computed:    true,
 			},
 			"space": {
 				Type:        schema.TypeString,
 				Description: "The space associated to the IP subnet.",
-				Required:    true,
+				Computed:    true,
 			},
 			"address": {
 				Type:        schema.TypeString,
@@ -44,15 +61,11 @@ func dataSourceipsubnet() *schema.Resource {
 				Description: "The IP subnet netmask.",
 				Computed:    true,
 			},
-			"terminal": {
-				Type:        schema.TypeBool,
-				Description: "The terminal property of the IP v6 subnet.",
-				Computed:    true,
-			},
 			"gateway": {
 				Type:        schema.TypeString,
 				Description: "The subnet's computed gateway.",
 				Computed:    true,
+				ForceNew:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
@@ -71,16 +84,16 @@ func dataSourceipsubnet() *schema.Resource {
 	}
 }
 
-func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceipsubnetqueryRead(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 	d.SetId("")
 
 	// Building parameters
 	parameters := url.Values{}
-	whereClause := "subnet_name LIKE '" + d.Get("name").(string) + "'" +
-		" and site_name LIKE '" + d.Get("space").(string) + "'"
-
-	parameters.Add("WHERE", whereClause)
+	parameters.Add("TAGS", d.Get("tags").(string))
+	parameters.Add("WHERE", d.Get("query").(string))
+	parameters.Add("ORDERBY", d.Get("orderby").(string))
+	parameters.Add("limit", "1")
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip_block_subnet_list", &parameters)
@@ -103,12 +116,6 @@ func dataSourceipsubnetRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("prefix", prefix)
 			d.Set("prefix_size", prefix_length)
 			d.Set("netmask", prefixlengthtohexip(prefix_length))
-
-			if buf[0]["is_terminal"].(string) == "1" {
-				d.Set("terminal", true)
-			} else {
-				d.Set("terminal", false)
-			}
 
 			d.Set("class", buf[0]["subnet_class_name"].(string))
 
