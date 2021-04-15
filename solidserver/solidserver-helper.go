@@ -95,6 +95,21 @@ func ip6toptr(ip string) string {
 	return res + "ip6.arpa"
 }
 
+
+// Convert a net.IP object into an IPv6 address in full format
+// func FullIPv6(ip net.IP) string {
+//     dst := make([]byte, hex.EncodedLen(len(ip)))
+//     _ = hex.Encode(dst, ip)
+//     return string(dst[0:4]) + ":" +
+//         string(dst[4:8]) + ":" +
+//         string(dst[8:12]) + ":" +
+//         string(dst[12:16]) + ":" +
+//         string(dst[16:20]) + ":" +
+//         string(dst[20:24]) + ":" +
+//         string(dst[24:28]) + ":" +
+//         string(dst[28:])
+// }
+
 // Convert hexa IPv6 address string into standard IPv6 address string
 // Return an empty string in case of failure
 func hexip6toip6(hexip string) string {
