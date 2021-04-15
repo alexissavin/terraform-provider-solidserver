@@ -16,12 +16,12 @@ func dataSourceip6subnet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the IP v6 subnet.",
+				Description: "The name of the IPv6 subnet.",
 				Required:    true,
 			},
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The space associated to the IP v6 subnet.",
+				Description: "The space associated to the IPv6 subnet.",
 				Required:    true,
 			},
 			"address": {
@@ -31,32 +31,32 @@ func dataSourceip6subnet() *schema.Resource {
 			},
 			"prefix": {
 				Type:        schema.TypeString,
-				Description: "The IP v6 subnet prefix.",
+				Description: "The IPv6 subnet prefix.",
 				Computed:    true,
 			},
 			"prefix_size": {
 				Type:        schema.TypeInt,
-				Description: "The IP v6 subnet's prefix length (ex: 64 for a '/64').",
+				Description: "The IPv6 subnet's prefix length (ex: 64 for a '/64').",
 				Computed:    true,
 			},
 			"terminal": {
 				Type:        schema.TypeBool,
-				Description: "The terminal property of the IP v6 subnet.",
+				Description: "The terminal property of the IPv6 subnet.",
 				Computed:    true,
 			},
 			"gateway": {
 				Type:        schema.TypeString,
-				Description: "The  IP v6 subnet's computed gateway.",
+				Description: "The  IPv6 subnet's computed gateway.",
 				Computed:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the IP v6 subnet.",
+				Description: "The class associated to the IPv6 subnet.",
 				Computed:    true,
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to IP v6 subnet.",
+				Description: "The class parameters associated to IPv6 subnet.",
 				Computed:    true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -125,15 +125,15 @@ func dataSourceip6subnetRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP v6 subnet: %s (%s)\n", d.Get("name").(string), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to read information from IPv6 subnet: %s (%s)\n", d.Get("name").(string), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP v6 subnet: %s\n", d.Get("name").(string))
+			log.Printf("[DEBUG] SOLIDServer - Unable to read information from IPv6 subnet: %s\n", d.Get("name").(string))
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find IP v6 subnet: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IPv6 subnet: %s", d.Get("name").(string))
 	}
 
 	// Reporting a failure

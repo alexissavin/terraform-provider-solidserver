@@ -27,19 +27,19 @@ func resourceip6subnet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The name of the space into which creating the IP v6 subnet.",
+				Description: "The name of the space into which creating the IPv6 subnet.",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"block": {
 				Type:        schema.TypeString,
-				Description: "The name of the block intyo which creating the IP v6 subnet.",
+				Description: "The name of the block intyo which creating the IPv6 subnet.",
 				Optional:    true,
 				ForceNew:    true,
 			},
 			"request_ip": {
 				Type:         schema.TypeString,
-				Description:  "The optionally requested subnet IP v6 address.",
+				Description:  "The optionally requested subnet IPv6 address.",
 				ValidateFunc: validation.SingleIP(),
 				Optional:     true,
 				ForceNew:     true,
@@ -47,18 +47,18 @@ func resourceip6subnet() *schema.Resource {
 			},
 			"prefix_size": {
 				Type:        schema.TypeInt,
-				Description: "The expected IP v6 subnet's prefix length (ex: 24 for a '/24').",
+				Description: "The expected IPv6 subnet's prefix length (ex: 24 for a '/24').",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"prefix": {
 				Type:        schema.TypeString,
-				Description: "The provisionned IP v6 prefix.",
+				Description: "The provisionned IPv6 prefix.",
 				Computed:    true,
 			},
 			"address": {
 				Type:        schema.TypeString,
-				Description: "The provisionned IP v6 network address.",
+				Description: "The provisionned IPv6 network address.",
 				Computed:    true,
 				ForceNew:    true,
 			},
@@ -77,27 +77,27 @@ func resourceip6subnet() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the IP v6 subnet to create.",
+				Description: "The name of the IPv6 subnet to create.",
 				Required:    true,
 				ForceNew:    false,
 			},
 			"terminal": {
 				Type:        schema.TypeBool,
-				Description: "The terminal property of the IP v6 subnet.",
+				Description: "The terminal property of the IPv6 subnet.",
 				Optional:    true,
 				ForceNew:    true,
 				Default:     true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the IP v6 subnet.",
+				Description: "The class associated to the IPv6 subnet.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to the IP v6 subnet.",
+				Description: "The class parameters associated to the IPv6 subnet.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -115,7 +115,7 @@ func resourceip6subnetExists(d *schema.ResourceData, meta interface{}) (bool, er
 	parameters := url.Values{}
 	parameters.Add("subnet6_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of IP v6 subnet (oid): %s\n", d.Id())
+	log.Printf("[DEBUG] Checking existence of IPv6 subnet (oid): %s\n", d.Id())
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip6_block6_subnet6_info", &parameters)
@@ -132,11 +132,11 @@ func resourceip6subnetExists(d *schema.ResourceData, meta interface{}) (bool, er
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 subnet (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 subnet (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -174,7 +174,7 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 
 		// However, we can't create a block as a terminal subnet
 		if d.Get("terminal").(bool) {
-			return fmt.Errorf("SOLIDServer - Can't create a terminal IP v6 block subnet: %s", d.Get("name").(string))
+			return fmt.Errorf("SOLIDServer - Can't create a terminal IPv6 block subnet: %s", d.Get("name").(string))
 		}
 	}
 
@@ -252,7 +252,7 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 			// Checking the answer
 			if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 				if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-					log.Printf("[DEBUG] SOLIDServer - Created IP v6 subnet (oid): %s\n", oid)
+					log.Printf("[DEBUG] SOLIDServer - Created IPv6 subnet (oid): %s\n", oid)
 					d.SetId(oid)
 					d.Set("prefix", prefix)
 					d.Set("address", hexip6toip6(subnetAddresses[i]))
@@ -264,12 +264,12 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 			} else {
 				if len(buf) > 0 {
 					if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-						log.Printf("[DEBUG] SOLIDServer - Failed IP subnet registration for IP v6 subnet: %s with prefix: %s (%s)\n", d.Get("name").(string), prefix, errMsg)
+						log.Printf("[DEBUG] SOLIDServer - Failed IP subnet registration for IPv6 subnet: %s with prefix: %s (%s)\n", d.Get("name").(string), prefix, errMsg)
 					} else {
-						log.Printf("[DEBUG] SOLIDServer - Failed IP subnet registration for IP v6 subnet: %s with prefix: %s\n", d.Get("name").(string), prefix)
+						log.Printf("[DEBUG] SOLIDServer - Failed IP subnet registration for IPv6 subnet: %s with prefix: %s\n", d.Get("name").(string), prefix)
 					}
 				} else {
-					log.Printf("[DEBUG] SOLIDServer - Failed IP subnet registration for IP v6 subnet: %s with prefix: %s\n", d.Get("name").(string), prefix)
+					log.Printf("[DEBUG] SOLIDServer - Failed IP subnet registration for IPv6 subnet: %s with prefix: %s\n", d.Get("name").(string), prefix)
 				}
 			}
 		} else {
@@ -279,7 +279,7 @@ func resourceip6subnetCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Reporting a failure
-	return fmt.Errorf("SOLIDServer - Unable to create IP v6 subnet: %s, unable to find a suitable prefix\n", d.Get("name").(string))
+	return fmt.Errorf("SOLIDServer - Unable to create IPv6 subnet: %s, unable to find a suitable prefix\n", d.Get("name").(string))
 }
 
 func resourceip6subnetUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -325,7 +325,7 @@ func resourceip6subnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Updated IP v6 subnet (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated IPv6 subnet (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -334,11 +334,11 @@ func resourceip6subnetUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to update IP v6 subnet: %s (%s)", d.Get("name").(string), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to update IPv6 subnet: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to update IP v6 subnet: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to update IPv6 subnet: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -366,15 +366,15 @@ func resourceip6subnetgatewayDelete(d *schema.ResourceData, meta interface{}) er
 				// Reporting a failure
 				if len(buf) > 0 {
 					if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-						log.Printf("[DEBUG] SOLIDServer - Unable to delete IP v6 subnet's gateway: %s (%s)", d.Get("gateway").(string), errMsg)
+						log.Printf("[DEBUG] SOLIDServer - Unable to delete IPv6 subnet's gateway: %s (%s)", d.Get("gateway").(string), errMsg)
 					}
 				}
 
-				log.Printf("[DEBUG] SOLIDServer - Unable to delete IP v6 subnet's gateway: %s", d.Get("gateway").(string))
+				log.Printf("[DEBUG] SOLIDServer - Unable to delete IPv6 subnet's gateway: %s", d.Get("gateway").(string))
 			}
 
 			// Log deletion
-			log.Printf("[DEBUG] SOLIDServer - Deleted IP v6 subnet's gateway: %s\n", d.Get("gateway").(string))
+			log.Printf("[DEBUG] SOLIDServer - Deleted IPv6 subnet's gateway: %s\n", d.Get("gateway").(string))
 
 			// Reporting a success
 			return nil
@@ -412,7 +412,7 @@ func resourceip6subnetDelete(d *schema.ResourceData, meta interface{}) error {
 			// Reporting a failure
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-					return fmt.Errorf("SOLIDServer - Unable to delete IP v6 subnet : %s (%s)", d.Get("name").(string), errMsg)
+					return fmt.Errorf("SOLIDServer - Unable to delete IPv6 subnet : %s (%s)", d.Get("name").(string), errMsg)
 				}
 			}
 
@@ -420,7 +420,7 @@ func resourceip6subnetDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted IP v6 subnet (oid): %s\n", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted IPv6 subnet (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -485,17 +485,17 @@ func resourceip6subnetRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 subnet: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 subnet (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find IP v6 subnet: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IPv6 subnet: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -548,15 +548,15 @@ func resourceip6subnetImportState(d *schema.ResourceData, meta interface{}) ([]*
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to import IP v6 subnet (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import IPv6 subnet (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import IP v6 subnet (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import IPv6 subnet (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import IP v6 subnet (oid): %s\n", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import IPv6 subnet (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure

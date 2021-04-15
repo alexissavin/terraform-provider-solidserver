@@ -46,7 +46,7 @@ func dataSourceipsubnet() *schema.Resource {
 			},
 			"terminal": {
 				Type:        schema.TypeBool,
-				Description: "The terminal property of the IP v6 subnet.",
+				Description: "The terminal property of the IPv6 subnet.",
 				Computed:    true,
 			},
 			"gateway": {

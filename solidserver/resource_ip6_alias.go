@@ -25,14 +25,14 @@ func resourceip6alias() *schema.Resource {
 			},
 			"address": {
 				Type:         schema.TypeString,
-				Description:  "The IP v6 address for which the alias will be associated to.",
+				Description:  "The IPv6 address for which the alias will be associated to.",
 				ValidateFunc: validation.SingleIP(),
 				Required:     true,
 				ForceNew:     true,
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The FQDN of the IP v6 address alias to create.",
+				Description: "The FQDN of the IPv6 address alias to create.",
 				Required:    true,
 				ForceNew:    true,
 			},
@@ -80,7 +80,7 @@ func resourceip6aliasCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Created IP v6 alias (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created IPv6 alias (oid): %s\n", oid)
 				d.SetId(oid)
 
 				return nil
@@ -90,11 +90,11 @@ func resourceip6aliasCreate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to create IP v6 alias: %s - %s associated to IP v6 address (OID): %s (%s)\n", d.Get("name").(string), d.Get("type"), addressID, errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to create IPv6 alias: %s - %s associated to IPv6 address (OID): %s (%s)\n", d.Get("name").(string), d.Get("type"), addressID, errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to create IP v6 alias: %s - %s associated to IP v6 address (OID): %s\n", d.Get("name").(string), d.Get("type"), addressID)
+		return fmt.Errorf("SOLIDServer - Unable to create IPv6 alias: %s - %s associated to IPv6 address (OID): %s\n", d.Get("name").(string), d.Get("type"), addressID)
 	}
 
 	// Reporting a failure
@@ -120,15 +120,15 @@ func resourceip6aliasDelete(d *schema.ResourceData, meta interface{}) error {
 			// Reporting a failure
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-					return fmt.Errorf("[DEBUG] SOLIDServer - Unable to delete IP v6 alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errMsg)
+					return fmt.Errorf("[DEBUG] SOLIDServer - Unable to delete IPv6 alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errMsg)
 				}
 			}
 
-			return fmt.Errorf("[DEBUG] SOLIDServer - Unable to delete IP v6 alias : %s - %s\n", d.Get("name"), d.Get("type"))
+			return fmt.Errorf("[DEBUG] SOLIDServer - Unable to delete IPv6 alias : %s - %s\n", d.Get("name"), d.Get("type"))
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted IP v6 alias with oid: %s\n", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted IPv6 alias with oid: %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -180,17 +180,17 @@ func resourceip6aliasRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 alias: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 alias: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 alias (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 alias (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find IP v6 alias: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IPv6 alias: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure

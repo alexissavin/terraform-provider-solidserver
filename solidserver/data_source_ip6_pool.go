@@ -16,47 +16,47 @@ func dataSourceip6pool() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the IP v6 pool.",
+				Description: "The name of the IPv6 pool.",
 				Required:    true,
 			},
 			"subnet": {
 				Type:        schema.TypeString,
-				Description: "The parent subnet of the IP v6 pool.",
+				Description: "The parent subnet of the IPv6 pool.",
 				Required:    true,
 			},
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The space associated to the IP v6 pool.",
+				Description: "The space associated to the IPv6 pool.",
 				Required:    true,
 			},
 			"start": {
 				Type:        schema.TypeString,
-				Description: "The fisrt address of the IP v6 pool.",
+				Description: "The fisrt address of the IPv6 pool.",
 				Computed:    true,
 			},
 			"end": {
 				Type:        schema.TypeString,
-				Description: "The last address of the IP v6 pool.",
+				Description: "The last address of the IPv6 pool.",
 				Computed:    true,
 			},
 			"prefix": {
 				Type:        schema.TypeString,
-				Description: "The prefix of the parent subnet of the IP v6 pool.",
+				Description: "The prefix of the parent subnet of the IPv6 pool.",
 				Computed:    true,
 			},
 			"prefix_size": {
 				Type:        schema.TypeInt,
-				Description: "The size prefix of the parent subnet of the IP v6 pool.",
+				Description: "The size prefix of the parent subnet of the IPv6 pool.",
 				Computed:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the IP v6 pool.",
+				Description: "The class associated to the IPv6 pool.",
 				Computed:    true,
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to the IP v6 pool.",
+				Description: "The class parameters associated to the IPv6 pool.",
 				Computed:    true,
 			},
 		},
@@ -112,15 +112,15 @@ func dataSourceip6poolRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP v6 pool: %s (%s)\n", d.Get("name").(string), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to read information from IPv6 pool: %s (%s)\n", d.Get("name").(string), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to read information from IP v6 pool: %s\n", d.Get("name").(string))
+			log.Printf("[DEBUG] SOLIDServer - Unable to read information from IPv6 pool: %s\n", d.Get("name").(string))
 		}
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find IP v6 pool: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IPv6 pool: %s", d.Get("name").(string))
 	}
 
 	// Reporting a failure

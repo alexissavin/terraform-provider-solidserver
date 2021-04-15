@@ -20,7 +20,7 @@ resource "solidserver_ip6_pool" "myFirstIPPool" {
 * `space` - (Required) The name of the space into which creating the IP Pool.
 * `subnet` - (Required) The name of the parent IPv6 subnet into which creating the IP pool.
 * `start` - (Required) The IPv6 pool's lower IPv6 address.
-* `end` - (Required) The IP v6 pool's higher IP v6 address.
+* `end` - (Required) The IPv6 pool's higher IPv6 address.
 * `name` - (Required) The name of the IPv6 pool to create.
 * `dhcp_range` - (Optional) Specify wether to create the equivalent DHCP range, or not (Default: false).
 * `class` - (Optional) An optional object class name allowing to store and display custom meta-data.
@@ -35,7 +35,7 @@ resource "solidserver_ip6_pool" "myFirstIPPool" {
 * `prefix` - The IPv6 Prefix of the parent IPv6 Subnet.
 * `prefix_size` - The IPv6 Prefix's size of the parent IPv6 Subnet.
 * `start` - The IPv6 pool's lower IPv6 address.
-* `size` - The size of the IPv6 pool.
+* `end` - The IPv6 pool's higher IPv6 address.
 * `dhcp_range` - Specify wether to create the equivalent DHCP range, or not.
 * `class` - The class name of the IPv6 Pool.
 * `class_parameters` - The class parameters of the IPv6 Pool.

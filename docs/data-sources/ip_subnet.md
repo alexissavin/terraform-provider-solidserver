@@ -25,5 +25,7 @@ data "solidserver_ip_subnet" "myFirstIPSubnetData" {
 * `prefix` - The IP subnet prefix.
 * `prefix_size` - The IP subnet's prefix length (ex: 24 for a '/24').
 * `netmask` - The netmask of the IP Subnet.
+* `terminal` - The terminal property of the IP Subnet.
+* `gateway` - The gateway of the IP Subnet.
 * `class` -  The name of the class associated with the IP Subnet.
 * `class_parameters` - The class parameters associated with the IP Subnet. class, as key/value.

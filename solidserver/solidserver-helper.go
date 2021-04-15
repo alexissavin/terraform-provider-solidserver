@@ -52,7 +52,7 @@ func BigIntToStr(bigInt *big.Int) string {
 	return fmt.Sprintf("%v", bigInt)
 }
 
-// Convert hexa IP v6 address string into standard IP v6 address string
+// Convert hexa IPv6 address string into standard IPv6 address string
 // Return an empty string in case of failure
 func hexiptoip(hexip string) string {
 	a, b, c, d := 0, 0, 0, 0
@@ -80,7 +80,7 @@ func iptoptr(ip string) string {
 	return ""
 }
 
-// Convert IP v6 address string into PTR record name
+// Convert IPv6 address string into PTR record name
 // Return an empty string in case of failure
 func ip6toptr(ip string) string {
 	buffer := strings.Split(ip, ":")
@@ -95,7 +95,7 @@ func ip6toptr(ip string) string {
 	return res + "ip6.arpa"
 }
 
-// Convert hexa IP v6 address string into standard IP v6 address string
+// Convert hexa IPv6 address string into standard IPv6 address string
 // Return an empty string in case of failure
 func hexip6toip6(hexip string) string {
 	res := ""
@@ -135,7 +135,7 @@ func iptohexip(ip string) string {
 	return ""
 }
 
-// Convert standard IP v6 address string into hexa IP v6 address string
+// Convert standard IPv6 address string into hexa IPv6 address string
 // Return an empty string in case of failure
 func ip6tohexip6(ip string) string {
 	ipDec := strings.Split(ip, ":")
@@ -359,7 +359,7 @@ func ip6addressfindfree(subnetID string, poolID string, meta interface{}) ([]str
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP v6 address in subnet (oid): %s\n", subnetID)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IPv6 address in subnet (oid): %s\n", subnetID)
 
 	return []string{}, err
 }
@@ -628,7 +628,7 @@ func ip6subnetidbyname(siteID string, subnetName string, terminal bool, meta int
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet: %s\n", subnetName)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 subnet: %s\n", subnetName)
 
 	return "", err
 }
@@ -657,7 +657,7 @@ func ip6poolidbyname(siteID string, poolName string, subnetName string, meta int
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 pool: %s\n", poolName)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 pool: %s\n", poolName)
 
 	return "", err
 }
@@ -710,7 +710,7 @@ func ip6subnetinfobyname(siteID string, subnetName string, terminal bool, meta i
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 subnet: %s\n", subnetName)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 subnet: %s\n", subnetName)
 
 	return nil, err
 }
@@ -768,7 +768,7 @@ func ip6addressidbyip6(siteID string, ipAddress string, meta interface{}) (strin
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 address: %s\n", ipAddress)
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 address: %s\n", ipAddress)
 
 	return "", err
 }
@@ -884,7 +884,7 @@ func ip6subnetfindbysize(siteID string, blockID string, requestedIP string, pref
 
 			for i := 0; i < len(buf); i++ {
 				if hexaddr, hexaddr_exist := buf[i]["start_ip6_addr"].(string); hexaddr_exist {
-					log.Printf("[DEBUG] SOLIDServer - Suggested IP v6 subnet address: %s\n", hexip6toip6(hexaddr))
+					log.Printf("[DEBUG] SOLIDServer - Suggested IPv6 subnet address: %s\n", hexip6toip6(hexaddr))
 					subnetAddresses = append(subnetAddresses, hexaddr)
 				}
 			}
@@ -892,7 +892,7 @@ func ip6subnetfindbysize(siteID string, blockID string, requestedIP string, pref
 		}
 	}
 
-	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IP v6 subnet in space (oid): %s, block (oid): %s, size: %s\n", siteID, blockID, strconv.Itoa(prefixSize))
+	log.Printf("[DEBUG] SOLIDServer - Unable to find a free IPv6 subnet in space (oid): %s, block (oid): %s, size: %s\n", siteID, blockID, strconv.Itoa(prefixSize))
 
 	return []string{}, err
 }

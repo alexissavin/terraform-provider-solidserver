@@ -25,26 +25,26 @@ func resourceip6pool() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The name of the space into which creating the IP v6 pool.",
+				Description: "The name of the space into which creating the IPv6 pool.",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"subnet": {
 				Type:        schema.TypeString,
-				Description: "The name of the parent IP subnet into which creating the IP v6 pool.",
+				Description: "The name of the parent IP subnet into which creating the IPv6 pool.",
 				Required:    true,
 				ForceNew:    true,
 			},
 			"start": {
 				Type:         schema.TypeString,
-				Description:  "The IP v6 pool's lower IP v6 address.",
+				Description:  "The IPv6 pool's lower IPv6 address.",
 				ValidateFunc: validation.SingleIP(),
 				Required:     true,
 				ForceNew:     true,
 			},
 			"end": {
 				Type:         schema.TypeString,
-				Description:  "The IP v6 pool's higher IP v6 address.",
+				Description:  "The IPv6 pool's higher IPv6 address.",
 				ValidateFunc: validation.SingleIP(),
 				Required:     true,
 				ForceNew:     true,
@@ -58,7 +58,7 @@ func resourceip6pool() *schema.Resource {
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The name of the IP v6 pool to create.",
+				Description: "The name of the IPv6 pool to create.",
 				Required:    true,
 				ForceNew:    false,
 			},
@@ -74,14 +74,14 @@ func resourceip6pool() *schema.Resource {
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the IP v6 pool.",
+				Description: "The class associated to the IPv6 pool.",
 				Optional:    true,
 				ForceNew:    false,
 				Default:     "",
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to the IP v6 pool.",
+				Description: "The class parameters associated to the IPv6 pool.",
 				Optional:    true,
 				ForceNew:    false,
 				Elem: &schema.Schema{
@@ -99,7 +99,7 @@ func resourceip6poolExists(d *schema.ResourceData, meta interface{}) (bool, erro
 	parameters := url.Values{}
 	parameters.Add("pool6_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of IP v6 pool (oid): %s\n", d.Id())
+	log.Printf("[DEBUG] Checking existence of IPv6 pool (oid): %s\n", d.Id())
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip6_pool6_info", &parameters)
@@ -116,11 +116,11 @@ func resourceip6poolExists(d *schema.ResourceData, meta interface{}) (bool, erro
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 pool (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 pool (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 pool (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 pool (oid): %s\n", d.Id())
 		}
 
 		// Unset local ID
@@ -184,7 +184,7 @@ func resourceip6poolCreate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Created IP v6 pool (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Created IPv6 pool (oid): %s\n", oid)
 				d.SetId(oid)
 
 				d.Set("prefix", subnetInfo["start_addr"].(string)+"/"+strconv.Itoa(subnetInfo["prefix_length"].(int)))
@@ -197,11 +197,11 @@ func resourceip6poolCreate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to create IP v6 pool: %s (%s)", d.Get("name").(string), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to create IPv6 pool: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to create IP v6 pool: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to create IPv6 pool: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -246,7 +246,7 @@ func resourceip6poolUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Checking the answer
 		if (resp.StatusCode == 200 || resp.StatusCode == 201) && len(buf) > 0 {
 			if oid, oidExist := buf[0]["ret_oid"].(string); oidExist {
-				log.Printf("[DEBUG] SOLIDServer - Updated IP v6 pool (oid): %s\n", oid)
+				log.Printf("[DEBUG] SOLIDServer - Updated IPv6 pool (oid): %s\n", oid)
 				d.SetId(oid)
 				return nil
 			}
@@ -255,11 +255,11 @@ func resourceip6poolUpdate(d *schema.ResourceData, meta interface{}) error {
 		// Reporting a failure
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-				return fmt.Errorf("SOLIDServer - Unable to update IP v6 pool: %s (%s)", d.Get("name").(string), errMsg)
+				return fmt.Errorf("SOLIDServer - Unable to update IPv6 pool: %s (%s)", d.Get("name").(string), errMsg)
 			}
 		}
 
-		return fmt.Errorf("SOLIDServer - Unable to update IP v6 pool: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to update IPv6 pool: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -285,15 +285,15 @@ func resourceip6poolDelete(d *schema.ResourceData, meta interface{}) error {
 			// Reporting a failure
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-					return fmt.Errorf("SOLIDServer - Unable to delete IP v6 pool: %s (%s)", d.Get("name").(string), errMsg)
+					return fmt.Errorf("SOLIDServer - Unable to delete IPv6 pool: %s (%s)", d.Get("name").(string), errMsg)
 				}
 			}
 
-			return fmt.Errorf("SOLIDServer - Unable to delete IP v6 pool: %s", d.Get("name").(string))
+			return fmt.Errorf("SOLIDServer - Unable to delete IPv6 pool: %s", d.Get("name").(string))
 		}
 
 		// Log deletion
-		log.Printf("[DEBUG] SOLIDServer - Deleted IP v6 pool (oid): %s\n", d.Id())
+		log.Printf("[DEBUG] SOLIDServer - Deleted IPv6 pool (oid): %s\n", d.Id())
 
 		// Unset local ID
 		d.SetId("")
@@ -354,17 +354,17 @@ func resourceip6poolRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 pool: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 pool: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 pool (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 pool (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find IP v6 pool: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IPv6 pool: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
@@ -419,15 +419,15 @@ func resourceip6poolImportState(d *schema.ResourceData, meta interface{}) ([]*sc
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to import IP v6 pool (oid): %s (%s)\n", d.Id(), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to import IPv6 pool (oid): %s (%s)\n", d.Id(), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find and import IP v6 pool (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find and import IPv6 pool (oid): %s\n", d.Id())
 		}
 
 		// Reporting a failure
-		return nil, fmt.Errorf("SOLIDServer - Unable to find and import IP v6 pool (oid): %s\n", d.Id())
+		return nil, fmt.Errorf("SOLIDServer - Unable to find and import IPv6 pool (oid): %s\n", d.Id())
 	}
 
 	// Reporting a failure

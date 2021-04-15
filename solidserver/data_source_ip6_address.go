@@ -17,62 +17,57 @@ func dataSourceip6address() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"space": {
 				Type:        schema.TypeString,
-				Description: "The name of the space of the IP v6 address.",
+				Description: "The name of the space of the IPv6 address.",
 				Required:    true,
 			},
 			"subnet": {
 				Type:        schema.TypeString,
-				Description: "The name of the subnet of the IP v6 address.",
+				Description: "The name of the subnet of the IPv6 address.",
 				Computed:    true,
 			},
 			"pool": {
 				Type:        schema.TypeString,
-				Description: "The name of the pool of the IP v6 address.",
+				Description: "The name of the pool of the IPv6 address.",
 				Computed:    true,
 			},
 			"address": {
 				Type:        schema.TypeString,
-				Description: "The IP v6 address.",
+				Description: "The IPv6 address.",
 				Required:    true,
 			},
 			"device": {
 				Type:        schema.TypeString,
-				Description: "Device Name associated to the IP v6 address (Require a 'Device Manager' license).",
+				Description: "Device Name associated to the IPv6 address (Require a 'Device Manager' license).",
 				Computed:    true,
 			},
 			"name": {
 				Type:        schema.TypeString,
-				Description: "The short name or FQDN of the IP v6 address.",
+				Description: "The short name or FQDN of the IPv6 address.",
 				Computed:    true,
 			},
 			"mac": {
 				Type:        schema.TypeString,
-				Description: "The MAC Address of the IP v6 address.",
+				Description: "The MAC Address of the IPv6 address.",
 				Computed:    true,
 			},
 			"prefix": {
 				Type:        schema.TypeString,
-				Description: "The IP v6 address prefix.",
+				Description: "The IPv6 address prefix.",
 				Computed:    true,
 			},
 			"prefix_size": {
 				Type:        schema.TypeInt,
-				Description: "The prefix_length associated to the IP v6 address.",
-				Computed:    true,
-			},
-			"netmask": {
-				Type:        schema.TypeString,
-				Description: "The provisionned IP v6 address netmask.",
+				Description: "The prefix_length associated to the IPv6 address.",
 				Computed:    true,
 			},
 			"class": {
 				Type:        schema.TypeString,
-				Description: "The class associated to the IP v6 address.",
+				Description: "The class associated to the IPv6 address.",
 				Computed:    true,
 			},
 			"class_parameters": {
 				Type:        schema.TypeMap,
-				Description: "The class parameters associated to the IP v6 address.",
+				Description: "The class parameters associated to the IPv6 address.",
 				Computed:    true,
 			},
 		},
@@ -133,17 +128,17 @@ func dataSourceip6addressRead(d *schema.ResourceData, meta interface{}) error {
 		if len(buf) > 0 {
 			if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 address: %s (%s)\n", d.Get("name"), errMsg)
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 address: %s (%s)\n", d.Get("name"), errMsg)
 			}
 		} else {
 			// Log the error
-			log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 address (oid): %s\n", d.Id())
+			log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 address (oid): %s\n", d.Id())
 		}
 
 		// Do not unset the local ID to avoid inconsistency
 
 		// Reporting a failure
-		return fmt.Errorf("SOLIDServer - Unable to find IP v6 address: %s", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find IPv6 address: %s", d.Get("name").(string))
 	}
 
 	// Reporting a failure

@@ -27,14 +27,14 @@ func resourceip6mac() *schema.Resource {
 			},
 			"address": {
 				Type:         schema.TypeString,
-				Description:  "The IP v6 address to map with the MAC address.",
+				Description:  "The IPv6 address to map with the MAC address.",
 				ValidateFunc: validation.SingleIP(),
 				Required:     true,
 				ForceNew:     true,
 			},
 			"mac": {
 				Type:             schema.TypeString,
-				Description:      "The MAC Address o map with the IP v6 address.",
+				Description:      "The MAC Address o map with the IPv6 address.",
 				ValidateFunc:     validation.StringMatch(regexp.MustCompile("^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$"), "Unsupported MAC address format."),
 				DiffSuppressFunc: resourcediffsuppresscase,
 				Required:         true,
@@ -51,7 +51,7 @@ func resourceip6macExists(d *schema.ResourceData, meta interface{}) (bool, error
 	parameters := url.Values{}
 	parameters.Add("ip6_id", d.Id())
 
-	log.Printf("[DEBUG] Checking existence of IP v6 address (oid): %s; associated to the mac: %s\n", d.Id(), d.Get("mac").(string))
+	log.Printf("[DEBUG] Checking existence of IPv6 address (oid): %s; associated to the mac: %s\n", d.Id(), d.Get("mac").(string))
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip6_address6_info", &parameters)
@@ -67,17 +67,17 @@ func resourceip6macExists(d *schema.ResourceData, meta interface{}) (bool, error
 					return true, nil
 				}
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find the IP v6 address (oid): %s; associated to the mac (%s)\n", d.Id(), d.Get("mac").(string))
+				log.Printf("[DEBUG] SOLIDServer - Unable to find the IPv6 address (oid): %s; associated to the mac (%s)\n", d.Id(), d.Get("mac").(string))
 			}
 		} else {
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 					// Log the error
-					log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 address (oid): %s (%s)\n", d.Id(), errMsg)
+					log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 address (oid): %s (%s)\n", d.Id(), errMsg)
 				}
 			} else {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 address (oid): %s\n", d.Id())
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 address (oid): %s\n", d.Id())
 			}
 		}
 
@@ -163,7 +163,7 @@ func resourceip6macRead(d *schema.ResourceData, meta interface{}) error {
 	parameters := url.Values{}
 	parameters.Add("ip6_id", d.Id())
 
-	log.Printf("[DEBUG] Reading information about IP v6 address (oid): %s; associated to the mac: %s\n", d.Id(), d.Get("mac").(string))
+	log.Printf("[DEBUG] Reading information about IPv6 address (oid): %s; associated to the mac: %s\n", d.Id(), d.Get("mac").(string))
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip6_address6_info", &parameters)
@@ -179,17 +179,17 @@ func resourceip6macRead(d *schema.ResourceData, meta interface{}) error {
 					return nil
 				}
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find the IP v6 address (oid): %s; associated to the mac (%s)\n", d.Id(), d.Get("mac").(string))
+				log.Printf("[DEBUG] SOLIDServer - Unable to find the IPv6 address (oid): %s; associated to the mac (%s)\n", d.Id(), d.Get("mac").(string))
 			}
 		} else {
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 					// Log the error
-					log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 address (oid): %s (%s)\n", d.Id(), errMsg)
+					log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 address (oid): %s (%s)\n", d.Id(), errMsg)
 				}
 			} else {
 				// Log the error
-				log.Printf("[DEBUG] SOLIDServer - Unable to find IP v6 address (oid): %s\n", d.Id())
+				log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 address (oid): %s\n", d.Id())
 			}
 		}
 
