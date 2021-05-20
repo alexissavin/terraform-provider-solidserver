@@ -244,7 +244,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Reporting a failure
-	return fmt.Errorf("SOLIDServer - Unable to create IP address: %s, unable to find a suitable address\n", d.Get("name").(string))
+	return fmt.Errorf("SOLIDServer - Unable to create IP address: %s, unable to find a suitable network or address\n", d.Get("name").(string))
 }
 
 func resourceipaddressUpdate(d *schema.ResourceData, meta interface{}) error {
