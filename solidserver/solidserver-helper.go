@@ -502,12 +502,12 @@ func ipsubnetidbyname(siteID string, subnetName string, terminal bool, meta inte
 	// Building parameters
 	parameters := url.Values{}
 
-	whereClause := "WHERE", "site_id='"+siteID+"' AND "+"subnet_name='"+strings.ToLower(subnetName)+"'"
+	whereClause := "site_id='" + siteID + "' AND " + "subnet_name='" + strings.ToLower(subnetName) + "'"
 
 	if terminal {
-		whereClause += "AND is_terminal", "1")
+		whereClause += "AND is_terminal='1'"
 	} else {
-		whereClause += "AND is_terminal", "0")
+		whereClause += "AND is_terminal='0'"
 	}
 
 	parameters.Add("WHERE", whereClause)
@@ -569,13 +569,16 @@ func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta in
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet_name='"+strings.ToLower(subnetName)+"'")
+
+	whereClause := "site_id='" + siteID + "' AND " + "subnet_name='" + strings.ToLower(subnetName) + "'"
 
 	if terminal {
-		parameters.Add("is_terminal", "1")
+		whereClause += "AND is_terminal='1'"
 	} else {
-		parameters.Add("is_terminal", "0")
+		whereClause += "AND is_terminal='0'"
 	}
+
+	parameters.Add("WHERE", whereClause)
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip_block_subnet_list", &parameters)
@@ -624,12 +627,12 @@ func ip6subnetidbyname(siteID string, subnetName string, terminal bool, meta int
 	// Building parameters
 	parameters := url.Values{}
 
-	whereClause := "WHERE", "site_id='"+siteID+"' AND "+"subnet6_name='"+strings.ToLower(subnetName)+"'"
+	whereClause := "site_id='" + siteID + "' AND " + "subnet6_name='" + strings.ToLower(subnetName) + "'"
 
 	if terminal {
-		whereClause += "AND is_terminal", "1")
+		whereClause += "AND is_terminal='1'"
 	} else {
-		whereClause += "AND is_terminal", "0")
+		whereClause += "AND is_terminal='0'"
 	}
 
 	parameters.Add("WHERE", whereClause)
@@ -691,12 +694,16 @@ func ip6subnetinfobyname(siteID string, subnetName string, terminal bool, meta i
 
 	// Building parameters
 	parameters := url.Values{}
-	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"subnet6_name='"+strings.ToLower(subnetName)+"'")
+
+	whereClause := "site_id='" + siteID + "' AND " + "subnet6_name='" + strings.ToLower(subnetName) + "'"
+
 	if terminal {
-		parameters.Add("is_terminal", "1")
+		whereClause += "AND is_terminal='1'"
 	} else {
-		parameters.Add("is_terminal", "0")
+		whereClause += "AND is_terminal='0'"
 	}
+
+	parameters.Add("WHERE", whereClause)
 
 	// Sending the read request
 	resp, body, err := s.Request("get", "rest/ip6_block6_subnet6_list", &parameters)
