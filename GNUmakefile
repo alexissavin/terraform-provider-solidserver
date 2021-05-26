@@ -1,11 +1,17 @@
 SHELL := /bin/bash
 GO_FILES?=$(find . -name '*.go' |grep -v vendor)
 
-# To provide the version use 'make release VERSION=1.1.1'
+# To provide the version use 'make release VERSION=1.1.1 GPGKEY=<example@efficientip.com>'
 ifdef VERSION
 	RELEASE := $(VERSION)
 else
 	RELEASE := 99999.9
+endif
+
+ifdef GPGKEY
+	GPGKEYOPTION := -u $(GPGKEY)
+else
+	GPGKEYOPTION :=
 endif
 
 # Terraform 13 local registry handler
@@ -52,7 +58,7 @@ release:
 	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_windows_amd64
 	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_amd64
 	cd ./_releases/$(RELEASE) && shasum -a 256 *.zip > ./terraform-provider-solidserver_$(RELEASE)_SHA256SUMS && cd ../..
-	cd ./_releases/$(RELEASE) && gpg --detach-sign ./terraform-provider-solidserver_$(RELEASE)_SHA256SUMS && cd ../..
+	cd ./_releases/$(RELEASE) && gpg $(GPGKEYOPTION) --detach-sign ./terraform-provider-solidserver_$(RELEASE)_SHA256SUMS && cd ../..
 
 test: fmtcheck vet
 	go test -v ./... || exit 1
