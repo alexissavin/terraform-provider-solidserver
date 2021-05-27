@@ -561,6 +561,56 @@ func ippoolidbyname(siteID string, poolName string, subnetName string, meta inte
 	return "", err
 }
 
+// Return the oid of a pool from site_id and pool_name
+// Or an empty string in case of failure
+func ippoolinfobyname(siteID string, poolName string, subnetName string, meta interface{}) (map[string]interface{}, error) {
+	res := make(map[string]interface{})
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"pool_name='"+strings.ToLower(poolName)+"' AND subnet_name='"+strings.ToLower(subnetName)+"'")
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/ip_pool_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if poolID, poolIDExist := buf[0]["pool_id"].(string); poolIDExist {
+				res["id"] = poolID
+
+				if poolName, poolNameExist := buf[0]["pool_name"].(string); poolNameExist {
+					res["name"] = poolName
+				}
+
+				if poolSize, poolSizeExist := buf[0]["pool_size"].(string); poolSizeExist {
+					res["size"], _ = strconv.Atoi(poolSize)
+				}
+
+				if poolStartAddr, poolStartAddrExist := buf[0]["start_ip_addr"].(string); poolStartAddrExist {
+					res["start_hex_addr"] = poolStartAddr
+					res["start_addr"] = hexiptoip(poolStartAddr)
+				}
+
+				if poolEndAddr, poolEndAddrExist := buf[0]["end_ip_addr"].(string); poolEndAddrExist {
+					res["end_hex_addr"] = poolEndAddr
+					res["end_addr"] = hexiptoip(poolEndAddr)
+				}
+
+				return res, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IP pool: %s\n", poolName)
+
+	return nil, err
+}
+
 // Return a map of information about a subnet from site_id, subnet_name and is_terminal property
 // Or nil in case of failure
 func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta interface{}) (map[string]interface{}, error) {
@@ -602,7 +652,17 @@ func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta in
 				}
 
 				if subnetStartAddr, subnetStartAddrExist := buf[0]["start_ip_addr"].(string); subnetStartAddrExist {
+					res["start_hex_addr"] = subnetStartAddr
 					res["start_addr"] = hexiptoip(subnetStartAddr)
+				}
+
+				if subnetEndAddr, subnetEndAddrExist := buf[0]["end_ip_addr"].(string); subnetEndAddrExist {
+					res["end_hex_addr"] = subnetEndAddr
+					res["end_addr"] = hexiptoip(subnetEndAddr)
+				}
+
+				if subnetTerminal, subnetTerminalExist := buf[0]["is_terminal"].(string); subnetTerminalExist {
+					res["terminal"] = subnetTerminal
 				}
 
 				if subnetLvl, subnetLvlExist := buf[0]["subnet_level"].(string); subnetLvlExist {
@@ -686,6 +746,56 @@ func ip6poolidbyname(siteID string, poolName string, subnetName string, meta int
 	return "", err
 }
 
+// Return the oid of a pool from site_id and pool_name
+// Or an empty string in case of failure
+func ip6poolinfobyname(siteID string, poolName string, subnetName string, meta interface{}) (map[string]interface{}, error) {
+	res := make(map[string]interface{})
+	s := meta.(*SOLIDserver)
+
+	// Building parameters
+	parameters := url.Values{}
+	parameters.Add("WHERE", "site_id='"+siteID+"' AND "+"pool6_name='"+strings.ToLower(poolName)+"' AND subnet6_name='"+strings.ToLower(subnetName)+"'")
+
+	// Sending the read request
+	resp, body, err := s.Request("get", "rest/ip6_pool6_list", &parameters)
+
+	if err == nil {
+		var buf [](map[string]interface{})
+		json.Unmarshal([]byte(body), &buf)
+
+		// Checking the answer
+		if resp.StatusCode == 200 && len(buf) > 0 {
+			if poolID, poolIDExist := buf[0]["pool6_id"].(string); poolIDExist {
+				res["id"] = poolID
+
+				if poolName, poolNameExist := buf[0]["pool6_name"].(string); poolNameExist {
+					res["name"] = poolName
+				}
+
+				if poolSize, poolSizeExist := buf[0]["pool6_size"].(string); poolSizeExist {
+					res["size"], _ = strconv.Atoi(poolSize)
+				}
+
+				if poolStartAddr, poolStartAddrExist := buf[0]["start_ip6_addr"].(string); poolStartAddrExist {
+					res["start_hex_addr"] = poolStartAddr
+					res["start_addr"] = hexiptoip(poolStartAddr)
+				}
+
+				if poolEndAddr, poolEndAddrExist := buf[0]["end_ip6_addr"].(string); poolEndAddrExist {
+					res["end_hex_addr"] = poolEndAddr
+					res["end_addr"] = hexiptoip(poolEndAddr)
+				}
+
+				return res, nil
+			}
+		}
+	}
+
+	log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 pool: %s\n", poolName)
+
+	return nil, err
+}
+
 // Return a map of information about a subnet from site_id, subnet_name and is_terminal property
 // Or nil in case of failure
 func ip6subnetinfobyname(siteID string, subnetName string, terminal bool, meta interface{}) (map[string]interface{}, error) {
@@ -726,7 +836,17 @@ func ip6subnetinfobyname(siteID string, subnetName string, terminal bool, meta i
 				}
 
 				if subnetStartAddr, subnetStartAddrExist := buf[0]["start_ip6_addr"].(string); subnetStartAddrExist {
+					res["start_hex_addr"] = subnetStartAddr
 					res["start_addr"] = hexiptoip(subnetStartAddr)
+				}
+
+				if subnetEndAddr, subnetEndAddrExist := buf[0]["end_ip6_addr"].(string); subnetEndAddrExist {
+					res["end_hex_addr"] = subnetEndAddr
+					res["end_addr"] = hexiptoip(subnetEndAddr)
+				}
+
+				if subnetTerminal, subnetTerminalExist := buf[0]["is_terminal"].(string); subnetTerminalExist {
+					res["terminal"] = subnetTerminal
 				}
 
 				if subnetLvl, subnetLvlExist := buf[0]["subnet_level"].(string); subnetLvlExist {
