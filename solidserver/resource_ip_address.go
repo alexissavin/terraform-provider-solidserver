@@ -3,12 +3,12 @@ package solidserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 	"net/url"
 	"regexp"
-
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"strings"
 )
 
 func resourceipaddress() *schema.Resource {
@@ -139,9 +139,10 @@ func resourceipaddressExists(d *schema.ResourceData, meta interface{}) (bool, er
 func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	s := meta.(*SOLIDserver)
 
+	var requestedHexIP string = iptohexip(d.Get("request_ip").(string))
+	var poolInfo map[string]interface{} = nil
 	var ipAddresses []string = nil
 	var deviceID string = ""
-	var poolID string = ""
 
 	// Gather required ID(s) from provided information
 	siteID, siteErr := ipsiteidbyname(d.Get("space").(string), meta)
@@ -151,7 +152,13 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 		return siteErr
 	}
 
-	subnetID, subnetErr := ipsubnetidbyname(siteID, d.Get("subnet").(string), true, meta)
+	//subnetID, subnetErr := ipsubnetidbyname(siteID, d.Get("subnet").(string), true, meta)
+	//if subnetErr != nil {
+	//	// Reporting a failure
+	//	return subnetErr
+	//}
+
+	subnetInfo, subnetErr := ipsubnetinfobyname(siteID, d.Get("subnet").(string), true, meta)
 	if subnetErr != nil {
 		// Reporting a failure
 		return subnetErr
@@ -160,7 +167,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	if len(d.Get("pool").(string)) > 0 {
 		var poolErr error = nil
 
-		poolID, poolErr = ippoolidbyname(siteID, d.Get("pool").(string), d.Get("subnet").(string), meta)
+		poolInfo, poolErr = ippoolinfobyname(siteID, d.Get("pool").(string), d.Get("subnet").(string), meta)
 
 		if poolErr != nil {
 			// Reporting a failure
@@ -182,11 +189,24 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 
 	// Determining if an IP address was submitted in or if we should get one from the IPAM
 	if len(d.Get("request_ip").(string)) > 0 {
-		ipAddresses = []string{d.Get("request_ip").(string)}
+		// Ensure IP Address is within the given subnet start and end IP addresses
+		if strings.Compare(subnetInfo["terminal"].(string), "1") == 0 &&
+			strings.Compare(subnetInfo["start_hex_addr"].(string), requestedHexIP) == -1 &&
+			strings.Compare(requestedHexIP, subnetInfo["end_hex_addr"].(string)) == -1 {
+
+			if poolInfo != nil && (strings.Compare(poolInfo["start_hex_addr"].(string), requestedHexIP) == 1 ||
+				strings.Compare(requestedHexIP, poolInfo["end_hex_addr"].(string)) == 1) {
+				return fmt.Errorf("SOLIDServer - Unable to create IP address: %s, address is out of pool's range\n", d.Get("name").(string))
+			}
+
+			ipAddresses = []string{d.Get("request_ip").(string)}
+		} else {
+			return fmt.Errorf("SOLIDServer - Unable to create IP address: %s, address is out of network's range\n", d.Get("name").(string))
+		}
 	} else {
 		var ipErr error = nil
 
-		ipAddresses, ipErr = ipaddressfindfree(subnetID, poolID, meta)
+		ipAddresses, ipErr = ipaddressfindfree(subnetInfo["id"].(string),  poolInfo["id"].(string), meta)
 
 		if ipErr != nil {
 			// Reporting a failure

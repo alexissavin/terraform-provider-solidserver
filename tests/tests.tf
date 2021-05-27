@@ -121,7 +121,14 @@ resource "solidserver_ip_pool" "myFirstIPPool" {
   subnet           = solidserver_ip_subnet.mySecondIPSubnet.name
   name             = "myFirstIPPool"
   start            = solidserver_ip_subnet.mySecondIPSubnet.address
-  size             = 2
+  size             = 4
+}
+
+data "solidserver_ip_pool" "myFirstIPPoolData" {
+  depends_on       = [solidserver_ip_pool.myFirstIPPool]
+  space            = solidserver_ip_space.myFirstSpace.name
+  subnet           = solidserver_ip_subnet.mySecondIPSubnet.name
+  name             = solidserver_ip_pool.myFirstIPPool.name
 }
 
 resource "solidserver_ip_address" "myFirstIPAddress" {
@@ -135,6 +142,12 @@ resource "solidserver_ip_address" "myFirstIPAddress" {
   }
 }
 
+data "solidserver_ip_address" "myFirstIPAddressData" {
+  depends_on       = [solidserver_ip_address.myFirstIPAddress]
+  space            = solidserver_ip_space.myFirstSpace.name
+  address          = solidserver_ip_address.myFirstIPAddress.address
+}
+
 resource "solidserver_ip_mac" "myFirstIPMacAassoc" {
   space   = solidserver_ip_space.myFirstSpace.name
   address = solidserver_ip_address.myFirstIPAddress.address
@@ -144,6 +157,22 @@ resource "solidserver_ip_mac" "myFirstIPMacAassoc" {
 data "solidserver_ip_ptr" "myFirstIPPTR" {
   address = solidserver_ip_address.myFirstIPAddress.address
 }
+
+resource "solidserver_ip_address" "mySecondIPAddress" {
+  space   = solidserver_ip_space.myFirstSpace.name
+  subnet  = solidserver_ip_subnet.mySecondIPSubnet.name
+  pool    = solidserver_ip_pool.myFirstIPPool.name
+  name    = "mysecondipaddress"
+  request_ip = "10.0.0.2"
+}
+
+#resource "solidserver_ip_address" "myErroredPAddress" {
+#  space   = solidserver_ip_space.myFirstSpace.name
+#  subnet  = solidserver_ip_subnet.mySecondIPSubnet.name
+#  pool    = solidserver_ip_pool.myFirstIPPool.name
+#  name    = "myerroredipaddress"
+#  request_ip = "10.0.0.3"
+#}
 
 resource "solidserver_ip6_subnet" "myFirstIP6Block" {
   space            = solidserver_ip_space.myFirstSpace.name
@@ -185,6 +214,21 @@ data "solidserver_ip6_subnet_query" "mySecondIP6SubnetQueriedData" {
   tags             = "network6.vnid"
 }
 
+#resource "solidserver_ip6_pool" "myFirstIP6Pool" {
+#  space            = solidserver_ip_space.myFirstSpace.name
+#  subnet           = solidserver_ip6_subnet.mySecondIP6Subnet.name
+#  name             = "myFirstIP6Pool"
+#  start            = solidserver_ip6_subnet.mySecondIP6Subnet.address
+#  end              = cidrhost(solidserver_ip6_subnet.mySecondIP6Subnet.prefix, 4)
+#}
+
+#data "solidserver_ip6_pool" "myFirstIP6PoolData" {
+#  depends_on       = [solidserver_ip6_pool.myFirstIP6Pool]
+#  space            = solidserver_ip_space.myFirstSpace.name
+#  subnet           = solidserver_ip6_subnet.mySecondIP6Subnet.name
+#  name             = solidserver_ip6_pool.myFirstIP6Pool.name
+#}
+
 resource "solidserver_ip6_address" "myFirstIP6Address" {
   space   = solidserver_ip_space.myFirstSpace.name
   subnet  = solidserver_ip6_subnet.mySecondIP6Subnet.name
@@ -193,6 +237,12 @@ resource "solidserver_ip6_address" "myFirstIP6Address" {
   lifecycle {
     ignore_changes = [mac]
   }
+}
+
+data "solidserver_ip6_address" "myFirstIP6AddressData" {
+  depends_on       = [solidserver_ip6_address.myFirstIP6Address]
+  space            = solidserver_ip_space.myFirstSpace.name
+  address          = solidserver_ip6_address.myFirstIP6Address.address
 }
 
 data "solidserver_ip6_ptr" "myFirstIPPTR" {
@@ -245,6 +295,20 @@ data "solidserver_dns_server" "myFirstDnsServerData" {
   name = solidserver_dns_server.myFirstDnsServer.name
 }
 
+#resource "solidserver_dns_server" "mySecondDnsServer" {
+#  name       = "mySecondDnsServer.priv"
+#  address    = "127.0.0.2"
+#  login      = "admin"
+#  password   = "admin"
+#  recursion       = true
+#  forward         = "first"
+#  forwarders      = ["172.16.0.42", "172.16.0.43"]
+#  allow_transfer  = ["172.16.0.0/12", "192.168.0.0/24"]
+#  allow_query     = ["172.16.0.0/12", "192.168.0.0/24"]
+#  allow_recursion = ["172.16.0.0/12", "192.168.0.0/24"]
+#  comment    = "My First DNS Server Autmatically created"
+#}
+
 resource "solidserver_dns_view" "myFirstDnsView" {
   depends_on      = [solidserver_dns_smart.myFirstDnsSMART]
   name            = "myfirstdnsview"
@@ -262,7 +326,7 @@ resource "solidserver_dns_view" "myFirstDnsView" {
 data "solidserver_dns_view" "myFirstDnsViewData" {
   depends_on = [solidserver_dns_view.myFirstDnsView]
   name       = solidserver_dns_view.myFirstDnsView.name
-  dnsserver  = solidserver_dns_server.myFirstDnsServer.name
+  dnsserver  = solidserver_dns_smart.myFirstDnsSMART.name
 }
 
 resource "solidserver_dns_view" "mySecondDnsView" {
