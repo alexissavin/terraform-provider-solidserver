@@ -206,7 +206,7 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	} else {
 		var ipErr error = nil
 
-		ipAddresses, ipErr = ipaddressfindfree(subnetInfo["id"].(string),  poolInfo["id"].(string), meta)
+		ipAddresses, ipErr = ipaddressfindfree(subnetInfo["id"].(string), poolInfo["id"].(string), meta)
 
 		if ipErr != nil {
 			// Reporting a failure
