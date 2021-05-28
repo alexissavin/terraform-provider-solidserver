@@ -159,8 +159,13 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 	//}
 
 	subnetInfo, subnetErr := ipsubnetinfobyname(siteID, d.Get("subnet").(string), true, meta)
-	if subnetErr != nil {
+
+	if subnetInfo == nil || subnetErr != nil {
 		// Reporting a failure
+		if subnetInfo == nil {
+			return fmt.Errorf("SOLIDServer - Unable to create IP address: %s, unable to find requested network\n", d.Get("name").(string))
+		}
+
 		return subnetErr
 	}
 
@@ -168,7 +173,6 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 		var poolErr error = nil
 
 		poolInfo, poolErr = ippoolinfobyname(siteID, d.Get("pool").(string), d.Get("subnet").(string), meta)
-
 		if poolErr != nil {
 			// Reporting a failure
 			return poolErr
@@ -180,7 +184,6 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 		var deviceErr error = nil
 
 		deviceID, deviceErr = hostdevidbyname(d.Get("device").(string), meta)
-
 		if deviceErr != nil {
 			// Reporting a failure
 			return deviceErr
@@ -204,9 +207,14 @@ func resourceipaddressCreate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("SOLIDServer - Unable to create IP address: %s, address is out of network's range\n", d.Get("name").(string))
 		}
 	} else {
+		var poolID string = ""
 		var ipErr error = nil
 
-		ipAddresses, ipErr = ipaddressfindfree(subnetInfo["id"].(string), poolInfo["id"].(string), meta)
+		if poolInfo != nil {
+			poolID = poolInfo["id"].(string)
+		}
+
+		ipAddresses, ipErr = ipaddressfindfree(subnetInfo["id"].(string), poolID, meta)
 
 		if ipErr != nil {
 			// Reporting a failure

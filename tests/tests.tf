@@ -166,13 +166,13 @@ resource "solidserver_ip_address" "mySecondIPAddress" {
   request_ip = "10.0.0.2"
 }
 
-#resource "solidserver_ip_address" "myErroredPAddress" {
-#  space   = solidserver_ip_space.myFirstSpace.name
-#  subnet  = solidserver_ip_subnet.mySecondIPSubnet.name
-#  pool    = solidserver_ip_pool.myFirstIPPool.name
-#  name    = "myerroredipaddress"
-#  request_ip = "10.0.0.3"
-#}
+resource "solidserver_ip_address" "myThirdIPAddress" {
+  space   = solidserver_ip_space.myFirstSpace.name
+  subnet  = solidserver_ip_subnet.mySecondIPSubnet.name
+  pool    = solidserver_ip_pool.myFirstIPPool.name
+  name    = "mythirdipaddress"
+  request_ip = "10.0.0.3"
+}
 
 resource "solidserver_ip6_subnet" "myFirstIP6Block" {
   space            = solidserver_ip_space.myFirstSpace.name

@@ -152,17 +152,20 @@ func resourceip6addressCreate(d *schema.ResourceData, meta interface{}) error {
 		return siteErr
 	}
 
-	subnetInfo, SubnetErr := ip6subnetinfobyname(siteID, d.Get("subnet").(string), true, meta)
-	if SubnetErr != nil {
+	subnetInfo, subnetErr := ip6subnetinfobyname(siteID, d.Get("subnet").(string), true, meta)
+	if subnetInfo == nil || subnetErr != nil {
 		// Reporting a failure
-		return SubnetErr
+		if subnetInfo == nil {
+			return fmt.Errorf("SOLIDServer - Unable to create IP address: %s, unable to find requested network\n", d.Get("name").(string))
+		}
+
+		return subnetErr
 	}
 
 	if len(d.Get("pool").(string)) > 0 {
 		var poolErr error = nil
 
 		poolInfo, poolErr = ip6poolinfobyname(siteID, d.Get("pool").(string), d.Get("subnet").(string), meta)
-
 		if poolErr != nil {
 			// Reporting a failure
 			return poolErr
@@ -198,9 +201,14 @@ func resourceip6addressCreate(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("SOLIDServer - Unable to create IPv6 address: %s, address is out of network's range\n", d.Get("name").(string))
 		}
 	} else {
+		var poolID string = ""
 		var ipErr error = nil
 
-		ipAddresses, ipErr = ip6addressfindfree(subnetInfo["id"].(string), poolInfo["id"].(string), meta)
+		if poolInfo != nil {
+			poolID = poolInfo["id"].(string)
+		}
+
+		ipAddresses, ipErr = ip6addressfindfree(subnetInfo["id"].(string), poolID, meta)
 
 		if ipErr != nil {
 			// Reporting a failure
