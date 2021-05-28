@@ -1155,7 +1155,7 @@ func dnsserverpendingdeletions(serverID string, meta interface{}) int {
 
 	// Building parameters for retrieving information
 	parameters := url.Values{}
-	parameters.Add("WHERE", "delayed_delete_time='1'")
+	parameters.Add("WHERE", "delayed_delete_time='1' AND dns_id='"+serverID+"'")
 
 	// Sending the get request
 	resp, body, err := s.Request("get", "rest/dns_zone_count", &parameters)
@@ -1185,7 +1185,7 @@ func dnsserverpendingdeletions(serverID string, meta interface{}) int {
 
 	// Building parameters for retrieving information
 	parameters = url.Values{}
-	parameters.Add("WHERE", "delayed_delete_time='1'")
+	parameters.Add("WHERE", "delayed_delete_time='1' AND dns_id='"+serverID+"'")
 
 	// Sending the get request
 	resp, body, err = s.Request("get", "rest/dns_view_count", &parameters)
