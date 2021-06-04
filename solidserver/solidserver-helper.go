@@ -7,6 +7,7 @@ import (
 	"log"
 	"math/big"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -23,6 +24,7 @@ func abs(x int) int {
 // Convert a Schema.TypeList interface into an array of strings
 func toStringArray(in []interface{}) []string {
 	out := make([]string, len(in))
+
 	for i, v := range in {
 		if v == nil {
 			out[i] = ""
@@ -30,6 +32,9 @@ func toStringArray(in []interface{}) []string {
 		}
 		out[i] = v.(string)
 	}
+
+	sort.Strings(out)
+
 	return out
 }
 
