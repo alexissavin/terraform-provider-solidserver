@@ -171,7 +171,7 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 	if s.Authenticated == false {
 		apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusTooManyRequests, http.StatusInternalServerError)
 	} else {
-		apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusTooManyRequests, http.StatusUnauthorized, http.StatusInternalServerError)
+		apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusRequestTimeout, http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusUnauthorized)
 	}
 
 	switch method {
