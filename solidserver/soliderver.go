@@ -29,6 +29,7 @@ type SOLIDserver struct {
 	SSLVerify                bool
 	AdditionalTrustCertsFile string
 	Version                  int
+	Authenticated            bool
 }
 
 func NewSOLIDserver(host string, username string, password string, sslverify bool, certsfile string, version string) (*SOLIDserver, error) {
@@ -40,6 +41,7 @@ func NewSOLIDserver(host string, username string, password string, sslverify boo
 		SSLVerify:                sslverify,
 		AdditionalTrustCertsFile: certsfile,
 		Version:                  0,
+		Authenticated:            false,
 	}
 
 	if err := s.GetVersion(version); err != nil {
@@ -166,7 +168,11 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 
 	// Set gorequest options
 	apiclient.Timeout(16 * time.Second)
-	apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusTooManyRequests)
+	if s.Authenticated == false {
+		apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusTooManyRequests, http.StatusInternalServerError)
+	} else {
+		apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusTooManyRequests, http.StatusUnauthorized, http.StatusInternalServerError)
+	}
 
 	switch method {
 	case "post":
@@ -211,6 +217,10 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 	if len(body) > 0 && body[0] == '{' && body[len(body)-1] == '}' {
 		log.Printf("[DEBUG] Repacking HTTP JSON Body\n")
 		body = "[" + body + "]"
+	}
+
+	if s.Authenticated == false && (200 <= resp.StatusCode && resp.StatusCode <= 204) {
+		s.Authenticated = true
 	}
 
 	return resp, body, nil
