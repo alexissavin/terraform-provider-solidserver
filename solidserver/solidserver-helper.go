@@ -20,6 +20,16 @@ func abs(x int) int {
 	return x
 }
 
+// Return the offset of a matching string in a slice or -1 if not found
+func stringOffsetInSlice(s string, list []string) int {
+	for offset, entry := range list {
+		if entry == s {
+			return offset
+		}
+	}
+	return -1
+}
+
 // Convert a Schema.TypeList interface into an array of strings
 func toStringArray(in []interface{}) []string {
 	out := make([]string, len(in))
