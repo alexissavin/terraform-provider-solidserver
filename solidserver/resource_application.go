@@ -281,9 +281,11 @@ func resourceapplicationRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("class", buf[0]["appapplication_class_name"].(string))
 
 			// Updating gslb_members information
-			if buf[0]["appapplication_gslbserver_list"].(string) != "" {
-				d.Set("gslb_members", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ","), ",")))
-			}
+			// TODO - Issue because of https://github.com/hashicorp/terraform-plugin-sdk/issues/477
+			// Doesn't make sense to read this information until this issue is fixed
+			//if buf[0]["appapplication_gslbserver_list"].(string) != "" {
+			//	d.Set("gslb_members", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ","), ",")))
+			//}
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
