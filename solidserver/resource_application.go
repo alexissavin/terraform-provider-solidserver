@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
 	"log"
+	"sort"
 	"net/url"
 	"strings"
 )
@@ -40,6 +41,10 @@ func resourceapplication() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				// Suspended because of issue https://github.com/hashicorp/terraform-plugin-sdk/issues/477
+				//DiffSuppressFunc: func(k, old, new []string, d *schema.ResourceData) bool {
+				//	return len(old) == 0 || reflect.DeepEqual(old, new)
+				//},
 			},
 			"class": {
 				Type:        schema.TypeString,
@@ -281,11 +286,47 @@ func resourceapplicationRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("class", buf[0]["appapplication_class_name"].(string))
 
 			// Updating gslb_members information
-			// TODO - Issue because of https://github.com/hashicorp/terraform-plugin-sdk/issues/477
+			// Suspended because of issue https://github.com/hashicorp/terraform-plugin-sdk/issues/477
 			// Doesn't make sense to read this information until this issue is fixed
 			//if buf[0]["appapplication_gslbserver_list"].(string) != "" {
 			//	d.Set("gslb_members", toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ","), ",")))
 			//}
+
+			if buf[0]["appapplication_gslbserver_list"].(string) != "" {
+				// Retrieve the list of the remotely configured members
+				remote_members := toStringArrayInterface(strings.Split(strings.TrimSuffix(buf[0]["appapplication_gslbserver_list"].(string), ","), ","))
+
+				// Build local list of member indexed by their offset
+				local_members := toStringArray(d.Get("gslb_members").([]interface{}))
+				local_members_offsets := make(map[int]string, len(local_members))
+				diff := make([]string, 0, len(remote_members))
+				res := make([]interface{}, 0, len(remote_members))
+
+				for _, remote_member := range remote_members {
+					offset := stringOffsetInSlice(remote_member.(string), local_members)
+
+					if offset != -1 {
+						local_members_offsets[offset] = remote_member.(string)
+					} else {
+						diff = append(diff, remote_member.(string))
+					}
+				}
+
+				// Concat sorted members from by their offset and the diff into d.Set("gslb_members")
+				keys := make([]int, 0, len(local_members))
+				for k := range local_members_offsets {
+					keys = append(keys, k)
+				}
+				sort.Ints(keys)
+				for _, k := range keys {
+					res = append(res, local_members_offsets[k])
+				}
+				for _, v := range diff {
+					res = append(res, v)
+				}
+
+				d.Set("gslb_members", res)
+			}
 
 			// Updating local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
