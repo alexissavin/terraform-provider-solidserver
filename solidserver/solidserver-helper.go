@@ -41,9 +41,13 @@ func toStringArray(in []interface{}) []string {
 // Convert an array of strings into a Schema.TypeList interface
 func toStringArrayInterface(in []string) []interface{} {
 	out := make([]interface{}, len(in))
+
+	sort.Strings(in)
+
 	for i, v := range in {
 		out[i] = v
 	}
+
 	return out
 }
 
