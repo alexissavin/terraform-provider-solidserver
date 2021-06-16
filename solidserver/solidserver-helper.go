@@ -7,7 +7,6 @@ import (
 	"log"
 	"math/big"
 	"net/url"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -33,20 +32,12 @@ func toStringArray(in []interface{}) []string {
 		out[i] = v.(string)
 	}
 
-	// Possible issue because of https://github.com/hashicorp/terraform-plugin-sdk/issues/477
-	// It's not possible to guarantee the order of the element from TF file and SOLIDserver's answers...
-	//sort.Strings(out)
-
 	return out
 }
 
 // Convert an array of strings into a Schema.TypeList interface
 func toStringArrayInterface(in []string) []interface{} {
 	out := make([]interface{}, len(in))
-
-	// Possible issue because of https://github.com/hashicorp/terraform-plugin-sdk/issues/477
-	// It's not possible to guarantee the order of the element from TF file and SOLIDserver's answers...
-	//sort.Strings(in)
 
 	for i, v := range in {
 		out[i] = v
