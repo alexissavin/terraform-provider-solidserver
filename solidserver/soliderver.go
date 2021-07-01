@@ -80,13 +80,13 @@ func (s *SOLIDserver) GetVersion(version string) error {
 	parameters := url.Values{}
 	parameters.Add("WHERE", "member_is_me='1'")
 
-	resp, body, err := apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, "rest/member_list", parameters.Encode())).
+	resp, body, errs := apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, "rest/member_list", parameters.Encode())).
 		TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 		Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 		Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 		End()
 
-	if err == nil && resp.StatusCode == 200 {
+	if errs == nil && resp.StatusCode == 200 {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
@@ -116,7 +116,7 @@ func (s *SOLIDserver) GetVersion(version string) error {
 		}
 	}
 
-	if err == nil && resp.StatusCode == 401 && version != "" {
+	if errs == nil && resp.StatusCode == 401 && version != "" {
 		StrVersion := strings.Split(version, ".")
 
 		for i := 0; i < len(StrVersion) && i < 3; i++ {
@@ -139,7 +139,7 @@ func (s *SOLIDserver) GetVersion(version string) error {
 func (s *SOLIDserver) Request(method string, service string, parameters *url.Values) (*http.Response, string, error) {
 	var resp *http.Response = nil
 	var body string = ""
-	var err []error = nil
+	var errs []error = nil
 
 	// Get the SystemCertPool, continue with an empty pool on error
 	rootCAs, x509err := x509.SystemCertPool()
@@ -178,7 +178,7 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 	case "post":
 		// Random Delay for write operation to distribute the load
 		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
-		resp, body, err = apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+		resp, body, errs = apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
@@ -186,7 +186,7 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 	case "put":
 		// Random Delay for write operation to distribute the load
 		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
-		resp, body, err = apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+		resp, body, errs = apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
@@ -194,13 +194,13 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 	case "delete":
 		// Random Delay for write operation to distribute the load
 		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
-		resp, body, err = apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+		resp, body, errs = apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 			End()
 	case "get":
-		resp, body, err = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+		resp, body, errs = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
@@ -210,8 +210,10 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call, unsupported HTTP request\n")
 	}
 
-	if err != nil {
-		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", err)
+	// https://stackoverflow.com/questions/23494950/specifically-check-for-timeout-error/23497404
+
+	if errs != nil {
+		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", errs)
 	}
 
 	if len(body) > 0 && body[0] == '{' && body[len(body)-1] == '}' {
