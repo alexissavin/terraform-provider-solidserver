@@ -10,12 +10,24 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+	"reflect"
 )
+
+
+type HttpRequestFunc func(*gorequest.SuperAgent, string) *gorequest.SuperAgent
+
+var httpRequestMethods = map[string]HttpRequestFunc{
+	"post": (*gorequest.SuperAgent).Post,
+	"put": (*gorequest.SuperAgent).Put,
+	"delete": (*gorequest.SuperAgent).Delete,
+	"get": (*gorequest.SuperAgent).Get,
+}
 
 const regexpIPPort = `^!?(([0-9]{1,3})\.){3}[0-9]{1,3}:[0-9]{1,5}$`
 const regexpHostname = `^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$`
@@ -85,6 +97,15 @@ func (s *SOLIDserver) GetVersion(version string) error {
 		Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
 		Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 		End()
+
+
+	log.Printf("[ERROR] SOLIDServer - checking for errors", errs)
+	if errs != nil {
+		log.Printf("[ERROR] http request failed with error (%v)\n", errs)
+		for i, err := range errs {
+			log.Printf("[ERROR] errs[%d] / (%s) = '%v'\n", i, reflect.TypeOf(err), err)
+		}
+	}
 
 	if errs == nil && resp.StatusCode == 200 {
 		var buf [](map[string]interface{})
@@ -167,50 +188,45 @@ func (s *SOLIDserver) Request(method string, service string, parameters *url.Val
 	apiclient := gorequest.New()
 
 	// Set gorequest options
-	apiclient.Timeout(16 * time.Second)
+	apiclient.Timeout(4 * time.Second)
 	if s.Authenticated == false {
 		apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusTooManyRequests, http.StatusInternalServerError)
 	} else {
 		apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusRequestTimeout, http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusUnauthorized)
 	}
 
-	switch method {
-	case "post":
-		// Random Delay for write operation to distribute the load
-		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
-		resp, body, errs = apiclient.Post(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
-			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
-			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
-			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
-			End()
-	case "put":
-		// Random Delay for write operation to distribute the load
-		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
-		resp, body, errs = apiclient.Put(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
-			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
-			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
-			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
-			End()
-	case "delete":
-		// Random Delay for write operation to distribute the load
-		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
-		resp, body, errs = apiclient.Delete(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
-			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
-			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
-			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
-			End()
-	case "get":
-		resp, body, errs = apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
-			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
-			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
-			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
-			Set("Cache-Control", "no-cache").
-			End()
-	default:
-		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call, unsupported HTTP request\n")
-	}
+	retryCount := 0
 
-	// https://stackoverflow.com/questions/23494950/specifically-check-for-timeout-error/23497404
+KeepTrying:
+	for retryCount < 3 {
+
+	log.Printf("[ERROR] Request retryCount=%d\n", retryCount)
+
+	httpFunc := httpRequestMethods[method]
+	// Random Delay for write operation to distribute the load
+	time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
+	resp, body, errs = httpFunc(apiclient, fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
+		TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
+		Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
+		Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
+		End()
+
+	log.Printf("[ERROR] SOLIDServer - checking for errors\n")
+	if errs != nil {
+		log.Printf("[ERROR] SOLIDServer - http request failed with error (%v)\n", errs)
+		for i, err := range errs {
+			log.Printf("[ERROR] errs[%d] / (%s) = '%v'\n", i, reflect.TypeOf(err), err)
+			// https://stackoverflow.com/questions/23494950/specifically-check-for-timeout-error/23497404
+			if err, ok := err.(net.Error) ; ok && err.Timeout() {
+				log.Printf("[ERROR] This error is a fucking TIMEOUT!!!\n")
+				retryCount++
+				continue KeepTrying
+			}
+		}
+		log.Printf("[ERROR] This error is not a timeout\n")
+	}
+	break KeepTrying
+	}
 
 	if errs != nil {
 		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", errs)
