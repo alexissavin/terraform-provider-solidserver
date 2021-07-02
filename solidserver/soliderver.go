@@ -13,31 +13,30 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
-	"reflect"
 )
-
 
 type HttpRequestFunc func(*gorequest.SuperAgent, string) *gorequest.SuperAgent
 
 var httpRequestMethods = map[string]HttpRequestFunc{
-	"post": (*gorequest.SuperAgent).Post,
-	"put": (*gorequest.SuperAgent).Put,
+	"post":   (*gorequest.SuperAgent).Post,
+	"put":    (*gorequest.SuperAgent).Put,
 	"delete": (*gorequest.SuperAgent).Delete,
-	"get": (*gorequest.SuperAgent).Get,
+	"get":    (*gorequest.SuperAgent).Get,
 }
 
 var httpRequestTimings = map[string]struct {
-	msSweep int
+	msSweep  int
 	sTimeout int
-	maxTry int
+	maxTry   int
 }{
-	"post": { msSweep:16, sTimeout:10, maxTry:1 },
-	"put": { msSweep:16, sTimeout:10, maxTry:1 },
-	"delete": { msSweep:16, sTimeout:10, maxTry:1 },
-	"get": { msSweep:16, sTimeout:3, maxTry:6 },
+	"post":   {msSweep: 16, sTimeout: 10, maxTry: 1},
+	"put":    {msSweep: 16, sTimeout: 10, maxTry: 1},
+	"delete": {msSweep: 16, sTimeout: 10, maxTry: 1},
+	"get":    {msSweep: 16, sTimeout: 3, maxTry: 6},
 }
 
 const regexpIPPort = `^!?(([0-9]{1,3})\.){3}[0-9]{1,3}:[0-9]{1,5}$`
@@ -136,7 +135,7 @@ KeepTrying:
 		for i, err := range errs {
 			log.Printf("[DEBUG] errs[%d] / (%s) = '%v'\n", i, reflect.TypeOf(err), err)
 			// https://stackoverflow.com/questions/23494950/specifically-check-for-timeout-error/23497404
-			if err, ok := err.(net.Error) ; ok && err.Timeout() {
+			if err, ok := err.(net.Error); ok && err.Timeout() {
 				log.Printf("[WARNN] timeout error: retrying...\n")
 				retryCount++
 				continue KeepTrying
