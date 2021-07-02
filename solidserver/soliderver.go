@@ -128,32 +128,25 @@ KeepTrying:
 			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
 			End()
 
-		log.Printf("[DEBUG] checking for errors\n")
-		if errs != nil {
-			log.Printf("[DEBUG] '%s' API request '%s' failed with errors...\n", method, requestUrl)
-			for i, err := range errs {
-				log.Printf("[DEBUG] errs[%d] / (%s) = '%v'\n", i, reflect.TypeOf(err), err)
-				// https://stackoverflow.com/questions/23494950/specifically-check-for-timeout-error/23497404
-				if err, ok := err.(net.Error) ; ok && err.Timeout() {
-					log.Printf("[DEBUG] timeout error: retrying...\n")
-					retryCount++
-					continue KeepTrying
-				}
-				log.Printf("[DEBUG] non retryable error: bailing out...\n")
-			}
+		if errs == nil {
+			return resp, body, nil
 		}
-		break KeepTrying
+
+		log.Printf("[DEBUG] '%s' API request '%s' failed with errors...\n", method, requestUrl)
+		for i, err := range errs {
+			log.Printf("[DEBUG] errs[%d] / (%s) = '%v'\n", i, reflect.TypeOf(err), err)
+			// https://stackoverflow.com/questions/23494950/specifically-check-for-timeout-error/23497404
+			if err, ok := err.(net.Error) ; ok && err.Timeout() {
+				log.Printf("[WARNN] timeout error: retrying...\n")
+				retryCount++
+				continue KeepTrying
+			}
+			log.Printf("[ERROR] non retryable error: bailing out...\n")
+			return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", errs)
+		}
 	}
 
-	if retryCount >= t.maxTry {
-		return nil, "", fmt.Errorf("SOLIDServer - [ERROR] '%s' API request '%s' : timeout retry count exceeded (maxTry = %d) !\n", method, requestUrl, t.maxTry)
-	}
-
-	if errs != nil {
-		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", errs)
-	}
-
-	return resp, body, nil
+	return nil, "", fmt.Errorf("SOLIDServer - [ERROR] '%s' API request '%s' : timeout retry count exceeded (maxTry = %d) !\n", method, requestUrl, t.maxTry)
 }
 
 func (s *SOLIDserver) GetVersion(version string) error {
