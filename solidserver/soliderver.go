@@ -40,7 +40,6 @@ var httpRequestTimings = map[string]struct {
 	"get": { msSweep:16, sTimeout:3, maxTry:6 },
 }
 
-const maxTry = 6
 const regexpIPPort = `^!?(([0-9]{1,3})\.){3}[0-9]{1,3}:[0-9]{1,5}$`
 const regexpHostname = `^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$`
 const regexpNetworkAcl = `^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`
@@ -146,8 +145,8 @@ KeepTrying:
 		break KeepTrying
 	}
 
-	if retryCount >= maxTry {
-		return nil, "", fmt.Errorf("SOLIDServer - [ERROR] '%s' API request '%s' : timeout retry count exceeded (maxTry = %d) !\n", method, requestUrl, maxTry)
+	if retryCount >= t.maxTry {
+		return nil, "", fmt.Errorf("SOLIDServer - [ERROR] '%s' API request '%s' : timeout retry count exceeded (maxTry = %d) !\n", method, requestUrl, t.maxTry)
 	}
 
 	if errs != nil {
