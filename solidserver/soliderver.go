@@ -29,6 +29,7 @@ var httpRequestMethods = map[string]HttpRequestFunc{
 	"get": (*gorequest.SuperAgent).Get,
 }
 
+const maxTry = 6
 const regexpIPPort = `^!?(([0-9]{1,3})\.){3}[0-9]{1,3}:[0-9]{1,5}$`
 const regexpHostname = `^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$`
 const regexpNetworkAcl = `^!?(([0-9]{1,3})\.){3}[0-9]{1,3}/[0-9]{1,2}$`
@@ -63,7 +64,12 @@ func NewSOLIDserver(host string, username string, password string, sslverify boo
 	return s, nil
 }
 
-func (s *SOLIDserver) GetVersion(version string) error {
+func SubmitRequest(s *SOLIDserver, apiclient *gorequest.SuperAgent, method string, service string, parameters string) (*http.Response, string, error) {
+	var resp *http.Response = nil
+	var body string = ""
+	var errs []error = nil
+	var requestUrl string = ""
+
 	// Get the SystemCertPool, continue with an empty pool on error
 	rootCAs, x509err := x509.SystemCertPool()
 
@@ -87,25 +93,64 @@ func (s *SOLIDserver) GetVersion(version string) error {
 		log.Printf("[DEBUG] Cert Subjects After Append = %d\n", len(rootCAs.Subjects()))
 	}
 
+	apiclient.Timeout(3 * time.Second)
+
+	retryCount := 0
+
+KeepTrying:
+	for retryCount < maxTry {
+
+		log.Printf("[DEBUG] request retryCount=%d\n", retryCount)
+
+		httpFunc, ok := httpRequestMethods[method]
+		if !ok {
+			return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call, unsupported HTTP request '%s'\n", method)
+		}
+		// Random Delay for write operation to distribute the load
+		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
+		requestUrl = fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters)
+		resp, body, errs = httpFunc(apiclient, requestUrl).
+			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
+			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
+			Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
+			End()
+
+		log.Printf("[DEBUG] checking for errors\n")
+		if errs != nil {
+			log.Printf("[DEBUG] '%s' API request '%s' failed with errors...\n", method, requestUrl)
+			for i, err := range errs {
+				log.Printf("[DEBUG] errs[%d] / (%s) = '%v'\n", i, reflect.TypeOf(err), err)
+				// https://stackoverflow.com/questions/23494950/specifically-check-for-timeout-error/23497404
+				if err, ok := err.(net.Error) ; ok && err.Timeout() {
+					log.Printf("[DEBUG] timeout error: retrying...\n")
+					retryCount++
+					continue KeepTrying
+				}
+				log.Printf("[DEBUG] non retryable error: bailing out...\n")
+			}
+		}
+		break KeepTrying
+	}
+
+	if retryCount >= maxTry {
+		return nil, "", fmt.Errorf("SOLIDServer - [ERROR] '%s' API request '%s' : timeout retry count exceeded (maxTry = %d) !\n", method, requestUrl, maxTry)
+	}
+
+	if errs != nil {
+		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", errs)
+	}
+
+	return resp, body, nil
+}
+
+func (s *SOLIDserver) GetVersion(version string) error {
+
 	apiclient := gorequest.New()
 
 	parameters := url.Values{}
 	parameters.Add("WHERE", "member_is_me='1'")
 
-	resp, body, errs := apiclient.Get(fmt.Sprintf("%s/%s?%s", s.BaseUrl, "rest/member_list", parameters.Encode())).
-		TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
-		Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
-		Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
-		End()
-
-
-	log.Printf("[ERROR] SOLIDServer - checking for errors", errs)
-	if errs != nil {
-		log.Printf("[ERROR] http request failed with error (%v)\n", errs)
-		for i, err := range errs {
-			log.Printf("[ERROR] errs[%d] / (%s) = '%v'\n", i, reflect.TypeOf(err), err)
-		}
-	}
+	resp, body, errs := SubmitRequest(s, apiclient, "get", "rest/member_list", parameters.Encode())
 
 	if errs == nil && resp.StatusCode == 200 {
 		var buf [](map[string]interface{})
@@ -160,76 +205,20 @@ func (s *SOLIDserver) GetVersion(version string) error {
 func (s *SOLIDserver) Request(method string, service string, parameters *url.Values) (*http.Response, string, error) {
 	var resp *http.Response = nil
 	var body string = ""
-	var errs []error = nil
-
-	// Get the SystemCertPool, continue with an empty pool on error
-	rootCAs, x509err := x509.SystemCertPool()
-
-	if rootCAs == nil || x509err != nil {
-		rootCAs = x509.NewCertPool()
-	}
-
-	if s.AdditionalTrustCertsFile != "" {
-		certs, readErr := ioutil.ReadFile(s.AdditionalTrustCertsFile)
-		log.Printf("[DEBUG] Certificates = %s\n", certs)
-
-		if readErr != nil {
-			log.Fatalf("Failed to append %q to RootCAs: %v\n", s.AdditionalTrustCertsFile, readErr)
-		}
-
-		log.Printf("[DEBUG] Cert Subjects Before Append = %d\n", len(rootCAs.Subjects()))
-
-		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
-			log.Printf("No certs appended, using system certs only\n")
-		}
-		log.Printf("[DEBUG] Cert Subjects After Append = %d\n", len(rootCAs.Subjects()))
-	}
+	var err error = nil
 
 	apiclient := gorequest.New()
 
-	// Set gorequest options
-	apiclient.Timeout(4 * time.Second)
 	if s.Authenticated == false {
 		apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusTooManyRequests, http.StatusInternalServerError)
 	} else {
 		apiclient.Retry(3, time.Duration(rand.Intn(15)+1)*time.Second, http.StatusRequestTimeout, http.StatusTooManyRequests, http.StatusInternalServerError, http.StatusUnauthorized)
 	}
 
-	retryCount := 0
+	resp, body, err = SubmitRequest(s, apiclient, method, service, parameters.Encode())
 
-KeepTrying:
-	for retryCount < 3 {
-
-	log.Printf("[ERROR] Request retryCount=%d\n", retryCount)
-
-	httpFunc := httpRequestMethods[method]
-	// Random Delay for write operation to distribute the load
-	time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
-	resp, body, errs = httpFunc(apiclient, fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters.Encode())).
-		TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
-		Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
-		Set("X-IPM-Password", base64.StdEncoding.EncodeToString([]byte(s.Password))).
-		End()
-
-	log.Printf("[ERROR] SOLIDServer - checking for errors\n")
-	if errs != nil {
-		log.Printf("[ERROR] SOLIDServer - http request failed with error (%v)\n", errs)
-		for i, err := range errs {
-			log.Printf("[ERROR] errs[%d] / (%s) = '%v'\n", i, reflect.TypeOf(err), err)
-			// https://stackoverflow.com/questions/23494950/specifically-check-for-timeout-error/23497404
-			if err, ok := err.(net.Error) ; ok && err.Timeout() {
-				log.Printf("[ERROR] This error is a fucking TIMEOUT!!!\n")
-				retryCount++
-				continue KeepTrying
-			}
-		}
-		log.Printf("[ERROR] This error is not a timeout\n")
-	}
-	break KeepTrying
-	}
-
-	if errs != nil {
-		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", errs)
+	if err != nil {
+		return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", err)
 	}
 
 	if len(body) > 0 && body[0] == '{' && body[len(body)-1] == '}' {
