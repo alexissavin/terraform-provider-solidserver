@@ -29,6 +29,17 @@ var httpRequestMethods = map[string]HttpRequestFunc{
 	"get": (*gorequest.SuperAgent).Get,
 }
 
+var httpRequestTimings = map[string]struct {
+	msSweep int
+	sTimeout int
+	maxTry int
+}{
+	"post": { msSweep:16, sTimeout:10, maxTry:1 },
+	"put": { msSweep:16, sTimeout:10, maxTry:1 },
+	"delete": { msSweep:16, sTimeout:10, maxTry:1 },
+	"get": { msSweep:16, sTimeout:3, maxTry:6 },
+}
+
 const maxTry = 6
 const regexpIPPort = `^!?(([0-9]{1,3})\.){3}[0-9]{1,3}:[0-9]{1,5}$`
 const regexpHostname = `^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$`
@@ -93,12 +104,15 @@ func SubmitRequest(s *SOLIDserver, apiclient *gorequest.SuperAgent, method strin
 		log.Printf("[DEBUG] Cert Subjects After Append = %d\n", len(rootCAs.Subjects()))
 	}
 
-	apiclient.Timeout(3 * time.Second)
+	t := httpRequestTimings[method]
+	log.Printf("[DEBUG] timings for method '%s' : {%v}\n", method, t)
+
+	apiclient.Timeout(time.Duration(t.sTimeout) * time.Second)
 
 	retryCount := 0
 
 KeepTrying:
-	for retryCount < maxTry {
+	for retryCount < t.maxTry {
 
 		log.Printf("[DEBUG] request retryCount=%d\n", retryCount)
 
@@ -107,7 +121,7 @@ KeepTrying:
 			return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call, unsupported HTTP request '%s'\n", method)
 		}
 		// Random Delay for write operation to distribute the load
-		time.Sleep(time.Duration(rand.Intn(16)) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Intn(t.msSweep)) * time.Millisecond)
 		requestUrl = fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters)
 		resp, body, errs = httpFunc(apiclient, requestUrl).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
