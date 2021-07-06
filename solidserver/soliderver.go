@@ -13,7 +13,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -88,22 +87,24 @@ func SubmitRequest(s *SOLIDserver, apiclient *gorequest.SuperAgent, method strin
 
 	if s.AdditionalTrustCertsFile != "" {
 		certs, readErr := ioutil.ReadFile(s.AdditionalTrustCertsFile)
-		log.Printf("[DEBUG] Certificates = %s\n", certs)
+		log.Printf("[DEBUG] SOLIDServer - Certificates = %s\n", certs)
 
 		if readErr != nil {
-			log.Fatalf("Failed to append %q to RootCAs: %v\n", s.AdditionalTrustCertsFile, readErr)
+			log.Fatalf("[ERROR] SOLIDServer - Failed to append %q to RootCAs: %v\n", s.AdditionalTrustCertsFile, readErr)
 		}
 
-		log.Printf("[DEBUG] Cert Subjects Before Append = %d\n", len(rootCAs.Subjects()))
+		log.Printf("[DEBUG] SOLIDServer - Cert Subjects Before Append = %d\n", len(rootCAs.Subjects()))
 
 		if ok := rootCAs.AppendCertsFromPEM(certs); !ok {
-			log.Printf("No certs appended, using system certs only\n")
+			log.Printf("[DEBUG] SOLIDServer - No certs appended, using system certs only\n")
 		}
-		log.Printf("[DEBUG] Cert Subjects After Append = %d\n", len(rootCAs.Subjects()))
+
+		log.Printf("[DEBUG] SOLIDServer - Cert Subjects After Append = %d\n", len(rootCAs.Subjects()))
 	}
 
 	t := httpRequestTimings[method]
-	log.Printf("[DEBUG] timings for method '%s' : {%v}\n", method, t)
+
+	log.Printf("[DEBUG] SOLIDServer - Timings for method '%s' : {%v}\n", method, t)
 
 	apiclient.Timeout(time.Duration(t.sTimeout) * time.Second)
 
@@ -112,15 +113,17 @@ func SubmitRequest(s *SOLIDserver, apiclient *gorequest.SuperAgent, method strin
 KeepTrying:
 	for retryCount < t.maxTry {
 
-		log.Printf("[DEBUG] request retryCount=%d\n", retryCount)
-
 		httpFunc, ok := httpRequestMethods[method]
+
 		if !ok {
-			return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call, unsupported HTTP request '%s'\n", method)
+			return nil, "", fmt.Errorf("Unsupported HTTP request '%s'\n", method)
 		}
+
 		// Random Delay for write operation to distribute the load
 		time.Sleep(time.Duration(rand.Intn(t.msSweep)) * time.Millisecond)
+
 		requestUrl = fmt.Sprintf("%s/%s?%s", s.BaseUrl, service, parameters)
+
 		resp, body, errs = httpFunc(apiclient, requestUrl).
 			TLSClientConfig(&tls.Config{InsecureSkipVerify: !s.SSLVerify, RootCAs: rootCAs}).
 			Set("X-IPM-Username", base64.StdEncoding.EncodeToString([]byte(s.Username))).
@@ -131,21 +134,20 @@ KeepTrying:
 			return resp, body, nil
 		}
 
-		log.Printf("[DEBUG] '%s' API request '%s' failed with errors...\n", method, requestUrl)
-		for i, err := range errs {
-			log.Printf("[DEBUG] errs[%d] / (%s) = '%v'\n", i, reflect.TypeOf(err), err)
-			// https://stackoverflow.com/questions/23494950/specifically-check-for-timeout-error/23497404
+		log.Printf("[DEBUG] SOLIDServer - '%s' API request '%s' failed with errors.\n", method, requestUrl)
+
+		for _, err := range errs {
 			if err, ok := err.(net.Error); ok && err.Timeout() {
-				log.Printf("[WARNN] timeout error: retrying...\n")
+				log.Printf("[DEBUG] SOLIDServer - Timeout Retry (%d/%d)\n", retryCount+1, t.maxTry)
 				retryCount++
 				continue KeepTrying
 			}
-			log.Printf("[ERROR] non retryable error: bailing out...\n")
-			return nil, "", fmt.Errorf("SOLIDServer - Error initiating API call (%q)\n", errs)
+
+			return nil, "", fmt.Errorf("Non-Retryable error (%q): Bailing out\n", err)
 		}
 	}
 
-	return nil, "", fmt.Errorf("SOLIDServer - [ERROR] '%s' API request '%s' : timeout retry count exceeded (maxTry = %d) !\n", method, requestUrl, t.maxTry)
+	return nil, "", fmt.Errorf("Error '%s' API request '%s' : timeout retry count exceeded (maxTry = %d) !\n", method, requestUrl, t.maxTry)
 }
 
 func (s *SOLIDserver) GetVersion(version string) error {
@@ -155,9 +157,9 @@ func (s *SOLIDserver) GetVersion(version string) error {
 	parameters := url.Values{}
 	parameters.Add("WHERE", "member_is_me='1'")
 
-	resp, body, errs := SubmitRequest(s, apiclient, "get", "rest/member_list", parameters.Encode())
+	resp, body, err := SubmitRequest(s, apiclient, "get", "rest/member_list", parameters.Encode())
 
-	if errs == nil && resp.StatusCode == 200 {
+	if err == nil && resp.StatusCode == 200 {
 		var buf [](map[string]interface{})
 		json.Unmarshal([]byte(body), &buf)
 
@@ -187,7 +189,7 @@ func (s *SOLIDserver) GetVersion(version string) error {
 		}
 	}
 
-	if errs == nil && resp.StatusCode == 401 && version != "" {
+	if err == nil && resp.StatusCode == 401 && version != "" {
 		StrVersion := strings.Split(version, ".")
 
 		for i := 0; i < len(StrVersion) && i < 3; i++ {

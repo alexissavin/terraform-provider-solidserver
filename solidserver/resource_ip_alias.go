@@ -120,11 +120,11 @@ func resourceipaliasDelete(d *schema.ResourceData, meta interface{}) error {
 			// Reporting a failure
 			if len(buf) > 0 {
 				if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-					return fmt.Errorf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errMsg)
+					return fmt.Errorf("SOLIDServer - Unable to delete IP alias : %s - %s (%s)\n", d.Get("name"), d.Get("type"), errMsg)
 				}
 			}
 
-			return fmt.Errorf("[DEBUG] SOLIDServer - Unable to delete IP alias : %s - %s\n", d.Get("name"), d.Get("type"))
+			return fmt.Errorf("SOLIDServer - Unable to delete IP alias : %s - %s\n", d.Get("name"), d.Get("type"))
 		}
 
 		// Log deletion

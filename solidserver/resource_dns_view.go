@@ -443,10 +443,10 @@ func resourcednsviewDelete(d *schema.ResourceData, meta interface{}) error {
 				// Logging a failure
 				if len(buf) > 0 {
 					if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-						log.Printf("SOLIDServer - Unable to delete DNS view: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+						log.Printf("[DEBUG] SOLIDServer - Unable to delete DNS view: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
 					}
 				} else {
-					log.Printf("SOLIDServer - Unable to delete DNS view: %s", strings.ToLower(d.Get("name").(string)))
+					log.Printf("[DEBUG] SOLIDServer - Unable to delete DNS view: %s", strings.ToLower(d.Get("name").(string)))
 				}
 				time.Sleep(time.Duration(8 * time.Second))
 			}

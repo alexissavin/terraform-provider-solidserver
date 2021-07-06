@@ -34,7 +34,7 @@ func dataSourceusergroupRead(d *schema.ResourceData, meta interface{}) error {
 	resp, body, err := s.Request("get", "rest/group_admin_list", &parameters)
 
 	if err != nil {
-		return fmt.Errorf("solidserver get error on group %s %s\n", d.Get("name").(string), err)
+		return fmt.Errorf("SOLIDServer - Error on group %s %s\n", d.Get("name").(string), err)
 	}
 
 	var buf [](map[string]interface{})
@@ -48,17 +48,15 @@ func dataSourceusergroupRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if len(buf) > 0 {
-		log.Printf("group buf: %s\n", buf)
-
 		if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
 			// Log the error
-			log.Printf("unable to find group: %s (%s)\n", d.Get("name").(string), errMsg)
+			log.Printf("[DEBUG] SOLIDServer - Unable to find group: %s (%s)\n", d.Get("name").(string), errMsg)
 		}
 	} else {
 		// Log the error
-		return fmt.Errorf("unable to find group: %s\n", d.Get("name").(string))
+		return fmt.Errorf("SOLIDServer - Unable to find group: %s\n", d.Get("name").(string))
 	}
 
 	// Reporting a failure
-	return fmt.Errorf("general error in group : %s\n", d.Get("name").(string))
+	return fmt.Errorf("SOLIDServer - Error retreiving group : %s\n", d.Get("name").(string))
 }

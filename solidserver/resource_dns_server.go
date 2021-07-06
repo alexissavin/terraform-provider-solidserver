@@ -436,6 +436,10 @@ func resourcednsserverDelete(d *schema.ResourceData, meta interface{}) error {
 		if strings.ToLower(d.Get("smart").(string)) != "" {
 			//FIXME - Handle Errors
 			dnsdeletefromsmart(strings.ToLower(d.Get("smart").(string)), strings.ToLower(d.Get("name").(string)), meta)
+
+			//FIXME - Based on a given option set to false by default, use the following to clean up the server
+			//call "object_delete?calling_action=mod_dns_zone_list&selected_query=" + urlencode("dns_zone_list WHERE=dns_id+%3D'<ID>')
+			//call "object_delete?calling_action=mod_dns_view_list&selected_query=" + urlencode("dns_view_list WHERE=dns_id+%3D'<ID>')
 		}
 
 		// Wait for all views and zones to be deleted, fail after 3 attempts
@@ -473,10 +477,10 @@ func resourcednsserverDelete(d *schema.ResourceData, meta interface{}) error {
 				// Logging a failure
 				if len(buf) > 0 {
 					if errMsg, errExist := buf[0]["errmsg"].(string); errExist {
-						log.Printf("SOLIDServer - Unable to delete DNS server: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
+						log.Printf("[DEBUG] SOLIDServer - Unable to delete DNS server: %s (%s)", strings.ToLower(d.Get("name").(string)), errMsg)
 					}
 				} else {
-					log.Printf("SOLIDServer - Unable to delete DNS server: %s", strings.ToLower(d.Get("name").(string)))
+					log.Printf("[DEBUG] SOLIDServer - Unable to delete DNS server: %s", strings.ToLower(d.Get("name").(string)))
 				}
 				time.Sleep(time.Duration(8 * time.Second))
 			}
