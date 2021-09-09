@@ -37,11 +37,11 @@ For more info: https://golang.org/cmd/go/#hdr-GOPATH_environment_variable
 Then, clone the repository. The folder structure to maintain the local repo is *$GOPATH/src/github.com/<org-name>/<project-name>*
 
 For this document, let's assume you're cloning the below repo.
-https://github.com/alexissavin/terraform-provider-solidserver
+https://github.com/EfficientIP-Labs/terraform-provider-solidserver
 
 ```
-mkdir -p $GOPATH/src/github.com/alexissavin/terraform-provider-solidserver
-cd $GOPATH/src/github.com/alexissavin/terraform-provider-solidserver
+mkdir -p $GOPATH/src/github.com/EfficientIP-Labs/terraform-provider-solidserver
+cd $GOPATH/src/github.com/EfficientIP-Labs/terraform-provider-solidserver
 
 git clone git@github.com:alexissavin/terraform-provider-solidserver
 ```
@@ -60,7 +60,7 @@ Note: Depends on the package, it may install a binary under $GOPATH/bin or a pac
 
 * Go into the project's folder and run the make command.
 ```
-cd $GOPATH/src/github.com/alexissavin/terraform-provider-solidserver
+cd $GOPATH/src/github.com/EfficientIP-Labs/terraform-provider-solidserver
 make
 ```
 
