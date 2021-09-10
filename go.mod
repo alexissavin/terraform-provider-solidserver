@@ -1,4 +1,4 @@
-module github.com/alexissavin/terraform-provider-solidserver
+module github.com/EfficientIP-Labs/terraform-provider-solidserver
 
 go 1.12
 

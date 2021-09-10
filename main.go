@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/alexissavin/terraform-provider-solidserver/solidserver"
+	"github.com/EfficientIP-Labs/terraform-provider-solidserver/solidserver"
 	"github.com/hashicorp/terraform/plugin"
 )
 
