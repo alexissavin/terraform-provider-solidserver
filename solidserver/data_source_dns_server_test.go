@@ -1,11 +1,13 @@
+//go:build ds_dns_server
 // +build ds_dns_server
+
 // to test only these features: -tags ds_dns_server -run="XX"
 
 package solidserver
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"testing"
 )
 

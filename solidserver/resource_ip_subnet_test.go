@@ -1,4 +1,6 @@
+//go:build all || ip_subnet
 // +build all ip_subnet
+
 // to test only these features: -tags ip_subnet -run="ipsubnet_XX"
 
 package solidserver
@@ -7,7 +9,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	// "github.com/hashicorp/terraform/terraform"
 
 	"github.com/satori/go.uuid"

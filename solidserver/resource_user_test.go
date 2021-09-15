@@ -1,4 +1,6 @@
+//go:build all || user
 // +build all user
+
 // to test only these features: -tags user -run="CreateUser01"
 
 package solidserver
@@ -10,9 +12,9 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	// "github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 
 	"github.com/satori/go.uuid"
 )
