@@ -1,4 +1,4 @@
-[![License](https://img.shields.io/badge/License-BSD%202--Clause-blue.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build status](https://travis-ci.com/alexissavin/terraform-provider-solidserver.svg)](https://travis-ci.org/alexissavin/terraform-provider-solidserver) [![Go Report Card](https://goreportcard.com/badge/github.com/alexissavin/terraform-provider-solidserver)](https://goreportcard.com/report/github.com/alexissavin/terraform-provider-solidserver)
+[![License](https://img.shields.io/badge/License-BSD%202--Clause-blue.svg)](https://opensource.org/licenses/BSD-2-Clause) [![Build status](https://travis-ci.com/EfficientIP-Labs/terraform-provider-solidserver.svg)](https://travis-ci.org/EfficientIP-Labs/terraform-provider-solidserver) [![Go Report Card](https://goreportcard.com/badge/github.com/EfficientIP-Labs/terraform-provider-solidserver)](https://goreportcard.com/report/github.com/EfficientIP-Labs/terraform-provider-solidserver)
 
 # EfficientIP SOLIDserver Provider
 This provider allows to easily interact with EfficientIP's [SOLIDserver](https://www.efficientip.com/products/solidserver/) REST API.
@@ -17,17 +17,17 @@ Download the latest revision of the master branch then use the go compiler to ge
 
 ```
 cd "${GOPATH}"
-go get github.com/alexissavin/terraform-provider-solidserver
-cd ./src/github.com/alexissavin/terraform-provider-solidserver
+go get github.com/EfficientIP-Labs/terraform-provider-solidserver
+cd ./src/github.com/EfficientIP-Labs/terraform-provider-solidserver
 go get
 go build -o terraform-provider-solidserver_vX.Y.Z
 ```
 
 # Install
 
-If using terraform 0.13 or higher, you can leverage the terraform registry to install the provider [see here](https://registry.terraform.io/providers/alexissavin/solidserver/latest/docs).
+If using terraform 0.13 or higher, you can leverage the terraform registry to install the provider [see here](https://registry.terraform.io/providers/EfficientIP-Labs/solidserver/latest/docs).
 
-Download the appropriate build for your system from the [release page]( https://github.com/alexissavin/terraform-provider-solidserver/releases) or build the master branch of this repository.
+Download the appropriate build for your system from the [release page]( https://github.com/EfficientIP-Labs/terraform-provider-solidserver/releases) or build the master branch of this repository.
 
 ## Linux
 Move the binary file `terraform-provider-solidserver_vX.Y.Z` into the following directory: `$HOME/.terraform.d/plugins/`.
