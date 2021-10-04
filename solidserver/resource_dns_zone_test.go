@@ -1,4 +1,6 @@
+//go:build all || dns_zone
 // +build all dns_zone
+
 // to test only these features: -tags dns_zone -run="dnszone_XX"
 
 package solidserver
@@ -7,7 +9,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 
 	"github.com/satori/go.uuid"
 )
