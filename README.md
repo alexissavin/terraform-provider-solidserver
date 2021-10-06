@@ -2,7 +2,9 @@
 
 ---
 **IMPORTANT**
+
 This official repository for this project is now managed by EfficientIP-Labs and available [here](https://github.com/EfficientIP-Labs/terraform-provider-solidserver/releases)
+
 ---
 
 # EfficientIP SOLIDserver Provider
