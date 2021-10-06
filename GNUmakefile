@@ -61,7 +61,7 @@ release:
 	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_freebsd_amd64
 	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_windows_amd64
 	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_amd64
-		rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_arm64
+	rm -rf ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_arm64
 	cd ./_releases/$(RELEASE) && shasum -a 256 *.zip > ./terraform-provider-solidserver_$(RELEASE)_SHA256SUMS && cd ../..
 	cd ./_releases/$(RELEASE) && gpg $(GPGKEYOPTION) --detach-sign ./terraform-provider-solidserver_$(RELEASE)_SHA256SUMS && cd ../..
 
