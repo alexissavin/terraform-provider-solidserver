@@ -726,6 +726,8 @@ func ipsubnetinfobyname(siteID string, subnetName string, terminal bool, meta in
 				return res, nil
 			}
 		}
+
+		return nil, fmt.Errorf("SOLIDServer - Unable to find IP subnet: %s\n", subnetName)
 	}
 
 	log.Printf("[DEBUG] SOLIDServer - Unable to find IP subnet: %s\n", subnetName)
@@ -910,6 +912,8 @@ func ip6subnetinfobyname(siteID string, subnetName string, terminal bool, meta i
 				return res, nil
 			}
 		}
+
+		return nil, fmt.Errorf("SOLIDServer - Unable to find IPv6 subnet: %s\n", subnetName)
 	}
 
 	log.Printf("[DEBUG] SOLIDServer - Unable to find IPv6 subnet: %s\n", subnetName)
