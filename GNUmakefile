@@ -26,7 +26,7 @@ build:
 	go mod tidy
 	go mod vendor
 	if ! [ -d ${TERRAFORM_PLUGINS_DIRECTORY} ]; then mkdir -p ${TERRAFORM_PLUGINS_DIRECTORY}; fi
-	go build -o ${TERRAFORM_PLUGINS_DIRECTORY}/terraform-provider-${PKG_NAME}
+	env CGO_ENABLED=0 go build -o ${TERRAFORM_PLUGINS_DIRECTORY}/terraform-provider-${PKG_NAME}
 	if [ -d ./_tests ]; then cd _tests && rm -rf .terraform* && cd ..; fi
 
 release:
@@ -47,11 +47,11 @@ release:
 	cp -r ./README.md ./LICENSE ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_windows_amd64/
 	cp -r ./README.md ./LICENSE ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_amd64/
 	cp -r ./README.md ./LICENSE ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_arm64/
-	env GOOS=linux GOARCH=amd64 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_linux_amd64/terraform-provider-solidserver_v$(RELEASE)
-	env GOOS=freebsd GOARCH=amd64 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_freebsd_amd64/terraform-provider-solidserver_v$(RELEASE)
-	env GOOS=windows GOARCH=amd64 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_windows_amd64/terraform-provider-solidserver_v$(RELEASE)
-	env GOOS=darwin GOARCH=amd64 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_amd64/terraform-provider-solidserver_v$(RELEASE)
-	env GOOS=darwin GOARCH=arm64 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_arm64/terraform-provider-solidserver_v$(RELEASE)
+	env GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_linux_amd64/terraform-provider-solidserver_v$(RELEASE)
+	env GOOS=freebsd GOARCH=amd64 CGO_ENABLED=0 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_freebsd_amd64/terraform-provider-solidserver_v$(RELEASE)
+	env GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_windows_amd64/terraform-provider-solidserver_v$(RELEASE)
+	env GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_amd64/terraform-provider-solidserver_v$(RELEASE)
+	env GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -o ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_darwin_arm64/terraform-provider-solidserver_v$(RELEASE)
 	zip -j -r ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_linux_amd64.zip ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_linux_amd64
 	zip -j -r ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_freebsd_amd64.zip ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_freebsd_amd64
 	zip -j -r ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_windows_amd64.zip ./_releases/$(RELEASE)/terraform-provider-solidserver_$(RELEASE)_windows_amd64
