@@ -523,6 +523,12 @@ func resourceip6subnetImportState(d *schema.ResourceData, meta interface{}) ([]*
 			d.Set("name", buf[0]["subnet6_name"].(string))
 			d.Set("class", buf[0]["subnet6_class_name"].(string))
 
+			if buf[0]["is_terminal"].(string) == "1" {
+				d.Set("terminal", true)
+			} else {
+				d.Set("terminal", false)
+			}
+
 			// Setting local class_parameters
 			currentClassParameters := d.Get("class_parameters").(map[string]interface{})
 			retrievedClassParameters, _ := url.ParseQuery(buf[0]["subnet6_class_parameters"].(string))

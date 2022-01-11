@@ -524,7 +524,7 @@ func resourceipsubnetImportState(d *schema.ResourceData, meta interface{}) ([]*s
 			d.Set("space", buf[0]["site_name"].(string))
 			d.Set("block", buf[0]["parent_subnet_name"].(string))
 			d.Set("name", buf[0]["subnet_name"].(string))
-			d.Set("request_ip", buf[0]["start_hostaddr"].(string))
+			d.Set("request_ip", "")
 
 			address := hexiptoip(buf[0]["start_ip_addr"].(string))
 			subnet_size, _ := strconv.Atoi(buf[0]["subnet_size"].(string))
