@@ -21,6 +21,9 @@ TERRAFORM_PLUGINS_DIRECTORY := ~/.terraform.d/plugins/terraform.efficientip.com/
 
 default: build
 
+update:
+	go get -u ./...
+
 build:
 	go get -v ./...
 	go mod tidy
