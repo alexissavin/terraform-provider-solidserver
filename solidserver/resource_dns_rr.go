@@ -56,11 +56,12 @@ func resourcednsrr() *schema.Resource {
 				ForceNew:     true,
 			},
 			"value": {
-				Type:        schema.TypeString,
-				Description: "The value od the RR to create.",
-				Computed:    false,
-				Required:    true,
-				ForceNew:    true,
+				Type:             schema.TypeString,
+				Description:      "The value od the RR to create.",
+				Computed:         false,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: resourcediffsuppressIPv6Format,
 			},
 			"ttl": {
 				Type:        schema.TypeInt,
@@ -105,7 +106,16 @@ func resourcednsrrExists(d *schema.ResourceData, meta interface{}) (bool, error)
 	//resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
 
 	// Attempt to not rely on the ID that may change due to DNS behavior
-	whereClause := "dns_name='" + d.Get("dnsserver").(string) + "' AND rr_full_name='" + d.Get("name").(string) + "' AND rr_type='" + strings.ToUpper(d.Get("type").(string)) + "' AND value1='" + d.Get("value").(string) + "' "
+	whereClause := "dns_name='" + d.Get("dnsserver").(string) + "' AND rr_full_name='" + d.Get("name").(string) + "' AND rr_type='" + strings.ToUpper(d.Get("type").(string))
+
+	// FIXME - Must convert IPv6 short to long
+	if strings.ToUpper(d.Get("type").(string)) == "AAAA" {
+		value := shortip6tolongip6(d.Get("value").(string))
+		log.Printf("[DEBUG] SOLIDServer - Using Expanded IPv6 format: %s\n", value)
+		whereClause += "' AND value1='" + value + "' "
+	} else {
+		whereClause += "' AND value1='" + d.Get("value").(string) + "' "
+	}
 
 	// Attempt to hande changing RR IDs
 	if len(d.Get("dnsview").(string)) != 0 {
@@ -313,7 +323,16 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
 	//resp, body, err := s.Request("get", "rest/dns_rr_info", &parameters)
 
 	// Attempt to not rely on the ID that may change due to DNS behavior
-	whereClause := "dns_name='" + d.Get("dnsserver").(string) + "' AND rr_full_name='" + d.Get("name").(string) + "' AND rr_type='" + strings.ToUpper(d.Get("type").(string)) + "' AND value1='" + d.Get("value").(string) + "' "
+	whereClause := "dns_name='" + d.Get("dnsserver").(string) + "' AND rr_full_name='" + d.Get("name").(string) + "' AND rr_type='" + strings.ToUpper(d.Get("type").(string))
+
+	// FIXME - Must convert IPv6 short to long
+	if strings.ToUpper(d.Get("type").(string)) == "AAAA" {
+		value := shortip6tolongip6(d.Get("value").(string))
+		log.Printf("[DEBUG] SOLIDServer - Using Expanded IPv6 format: %s\n", value)
+		whereClause += "' AND value1='" + value + "' "
+	} else {
+		whereClause += "' AND value1='" + d.Get("value").(string) + "' "
+	}
 
 	// Attempt to hande changing RR IDs
 	if len(d.Get("dnsview").(string)) != 0 {
@@ -345,7 +364,13 @@ func resourcednsrrRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("dnsserver", buf[0]["dns_name"].(string))
 			d.Set("name", buf[0]["rr_full_name"].(string))
 			d.Set("type", buf[0]["rr_type"].(string))
-			d.Set("value", buf[0]["value1"].(string))
+
+			if strings.ToUpper(buf[0]["rr_type"].(string)) == "AAAA" {
+				d.Set("value", longip6toshortip6(buf[0]["value1"].(string)))
+			} else {
+				d.Set("value", buf[0]["value1"].(string))
+			}
+
 			d.Set("ttl", ttl)
 
 			if buf[0]["dnsview_name"].(string) != "#" {
@@ -396,7 +421,13 @@ func resourcednsrrImportState(d *schema.ResourceData, meta interface{}) ([]*sche
 			d.Set("dnsserver", buf[0]["dns_name"].(string))
 			d.Set("name", buf[0]["rr_full_name"].(string))
 			d.Set("type", buf[0]["rr_type"].(string))
-			d.Set("value", buf[0]["value1"].(string))
+
+			if strings.ToUpper(buf[0]["rr_type"].(string)) == "AAAA" {
+				d.Set("value", longip6toshortip6(buf[0]["value1"].(string)))
+			} else {
+				d.Set("value", buf[0]["value1"].(string))
+			}
+
 			d.Set("ttl", ttl)
 
 			if buf[0]["dnsview_name"].(string) != "#" {

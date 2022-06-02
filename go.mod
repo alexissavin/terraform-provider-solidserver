@@ -47,5 +47,6 @@ require (
 	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 	google.golang.org/api v0.78.0 // indirect
 	google.golang.org/genproto v0.0.0-20220505152158-f39f71e6c8f3 // indirect
+	inet.af/netaddr v0.0.0-20211027220019-c74959edd3b6
 	moul.io/http2curl v1.0.0 // indirect
 )

@@ -2,6 +2,8 @@
 
 - [X] Implement support for VLAN class parameters for version >= 7.2
 - [X] Implement support for DNS views
+- [ ] Upgrade SDK to V2 (https://www.terraform.io/plugin/sdkv2/guides/v2-upgrade-guide)
+- [ ] Implement context https://www.terraform.io/plugin/sdkv2/guides/v2-upgrade-guide#more-support-for-context-context
 - [ ] Implement binary generation for https://www.terraform.io/registry/providers/os-arch
 - [ ] Implement a new releaser https://goreleaser.com/install/
 - [ ] Implement support for RPZ Zone and RPZ rules

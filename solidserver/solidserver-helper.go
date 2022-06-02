@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"inet.af/netaddr"
 	"log"
 	"math/big"
 	"net/url"
@@ -220,6 +221,30 @@ func ip6tohexip6(ip string) string {
 	return ""
 }
 
+// Convert standard IPv6 address string into expanded IPv6 address string
+// Return an empty string in case of failure
+func longip6toshortip6(ip string) string {
+	tmp, _ := netaddr.ParseIP(ip)
+
+	if tmp.Is6() {
+		return tmp.String()
+	}
+
+	return ""
+}
+
+// Convert standard IPv6 address string into expanded IPv6 address string
+// Return an empty string in case of failure
+func shortip6tolongip6(ip string) string {
+	tmp, _ := netaddr.ParseIP(ip)
+
+	if tmp.Is6() {
+		return tmp.StringExpanded()
+	}
+
+	return ""
+}
+
 // Convert standard IP address string into unsigned int32
 // Return 0 in case of failure
 func iptolong(ip string) uint32 {
@@ -259,6 +284,26 @@ func longtoip(iplong uint32) string {
 
 func resourcediffsuppresscase(k, old, new string, d *schema.ResourceData) bool {
 	if strings.ToLower(old) == strings.ToLower(new) {
+		return true
+	}
+
+	return false
+}
+
+func resourcediffsuppressIPv6Format(k, old, new string, d *schema.ResourceData) bool {
+	oldipv6, _ := netaddr.ParseIP(old)
+	newipv6, _ := netaddr.ParseIP(new)
+
+	//fmt.Printf("(%v).String() -> %v\n", ipv6, newipv6.String())
+
+	if oldipv6.Is6() && newipv6.Is6() {
+		if oldipv6.Compare(newipv6) == 0 {
+			return true
+		}
+		return false
+	}
+
+	if new == old {
 		return true
 	}
 
